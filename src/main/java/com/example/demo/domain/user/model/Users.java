@@ -1,6 +1,8 @@
 package com.example.demo.domain.user.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 import java.util.List;
@@ -19,6 +21,7 @@ CREATE TABLE `user` (
 ) COMMENT='회원';
  */
 @Data
+@NoArgsConstructor
 public class Users {
 	private int userNo;
 	private String userId;

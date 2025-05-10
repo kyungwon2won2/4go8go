@@ -16,17 +16,12 @@
         <result property="updDate" column="upd_date" />
         <collection property="authList" resultMap="authMap" />
     </resultMap>
-    <!--
-    	List<UserAuth> authList  구현 >> collection<authMap>
-    -->
+
     <resultMap type="UserAuth" id="authMap">
         <result property="userId" column="user_id" />
         <result property="auth" column="auth" />
     </resultMap>
 
-    <!-- 회원 조회 - id
-    parameterType="String" 생략 가능
-    -->
     <select id="login" resultMap="userMap">
         SELECT u.user_no
         ,u.user_id

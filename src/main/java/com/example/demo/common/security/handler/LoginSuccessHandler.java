@@ -34,7 +34,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         } else if (user.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_USER"))) {
             response.sendRedirect("/user");
         } else {
-            response.sendRedirect("/");
+            response.sendRedirect("/index");
         }
     }
 }
