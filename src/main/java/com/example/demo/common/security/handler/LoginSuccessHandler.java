@@ -29,12 +29,13 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         log.info("권한 :" + user.getAuthorities());
 
         // 사용자 권한에 따라 다른 페이지로 리디렉션
-        if (user.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-            response.sendRedirect("/admin");
-        } else if (user.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_USER"))) {
-            response.sendRedirect("/user");
-        } else {
-            response.sendRedirect("/index");
-        }
+//        if (user.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+//            response.sendRedirect("/admin");
+//        } else if (user.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_USER"))) {
+//            response.sendRedirect("/user");
+//        } else {
+//            response.sendRedirect("/");
+//        }
+        response.sendRedirect("/");
     }
 }

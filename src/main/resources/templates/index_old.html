@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+<meta charset="UTF-8">
+<title>Main Index</title>
+</head>
+<body>
+  <h5>
+        loginId : <span th:text="${loginId}"></span>
+    </h5>
+	<ul>
+        <!-- 사용자 메뉴  권한별 보이고 않보이는 메뉴  -->
+        <th:block sec:authorize="hasAnyRole('ROLE_USER','ROLE_ADMIN')">
+            <li>
+                <a href="/user">사용자</a>
+            </li>
+        </th:block>
+        <!-- 관리자 메뉴 -->
+        <th:block sec:authorize="hasRole('ROLE_ADMIN')">
+            <li>
+                <a href="/admin">관리자</a>
+            </li>
+        </th:block>
+
+        <!-- 비로그인시  인증되지 않은 사용자라면-->
+        <th:block sec:authorize="isAnonymous()">
+                <li>
+                    <a href="/login">로그인</a>
+                    <a href="/join">회원가입</a>
+                </li>
+        </th:block>
+        <!-- 로그인시 -->
+        <th:block sec:authorize="isAuthenticated">
+                <li>
+                    <a href="/logout">로그아웃</a>
+                </li>
+        </th:block>
+    </ul>
+</html>
