@@ -4,6 +4,7 @@ package com.example.demo.common.security.service;
 import com.example.demo.domain.user.model.UserAuth;
 import com.example.demo.domain.user.model.Users;
 import com.example.demo.mapper.UserMapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,14 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private UserMapper userMapper;
+    private final UserMapper userMapper;
 
-    //회원가입 비밀번호 암호화 ^^
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public Users login(String username) {

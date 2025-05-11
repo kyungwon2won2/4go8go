@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+<meta charset="UTF-8">
+<title>User Index</title>
+</head>
+<body>
+<h5>
+    loginId : <span th:text="${loginId}"></span>
+</h5>
+<ul sec:authorize="isAuthenticated">
+    <li>  인증정보 : <span sec:authentication="principal"></span>    </li>
+    <li>  사용자 ID: <span sec:authentication="principal.username"></span>    </li>
+    <li>  사용자 ID: <span sec:authentication="principal.authorities"></span>    </li>
+</ul>
+<ul>
+	<li>
+        <a href="/">메인</a>
+    </li>
+    <li>
+        <a href="/login">로그인</a>
+    </li>
+    <li>
+        <a href="/user">사용자</a>
+    </li>
+    <li>
+        <a href="/admin">관리자</a>
+    </li>
+</ul>
+</body>
+</html>

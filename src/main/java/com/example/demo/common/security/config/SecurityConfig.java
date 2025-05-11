@@ -36,12 +36,14 @@ public class SecurityConfig {
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		//인증 처리
 		//3단계 사용자 정의 (Mybatis , jpa)
-		http.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/admin/**").hasRole("ADMIN")
-						.requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
-						.anyRequest().permitAll())
-				.formLogin(withDefaults()) // 기본 폼 로그인 사용
-				.logout(withDefaults());   // 기본 로그아웃 사용
+		http
+				.authorizeHttpRequests(auth -> auth
+				.requestMatchers("/admin/**").hasRole("ADMIN")
+				.requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
+				.requestMatchers("/test/**").hasRole("**")
+				.anyRequest().permitAll())
+			.formLogin(withDefaults()) // 기본 폼 로그인 사용
+			.logout(withDefaults());   // 기본 로그아웃 사용
 
 
 		http.logout(logout -> logout
