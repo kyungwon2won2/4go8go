@@ -56,7 +56,7 @@ public class SecurityConfig {
 
 		http.formLogin(form -> form
 				.loginPage("/login")                            // 커스텀 로그인 페이지 요청 경로
-				.loginProcessingUrl("/loginPro")                // 커스텀 로그인 처리 경로 지정
+				.loginProcessingUrl("/loginPro")                // 커스텀 로그인 처리 경로 지정.
 								// Controller 따로 만들 필요 없음
 								// loginPro는 Security 내부적으로 필터(UsernamePasswordAuthenticationFilter)가 처리하기 때문에,
 								// 이 URL에 대한 Controller를 만들 필요 없습니다.
