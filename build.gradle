@@ -50,6 +50,13 @@ dependencies {
 	implementation 'org.webjars:stomp-websocket:2.3.4'
 	implementation 'io.projectreactor.netty:reactor-netty'
 
+	// Spring Batch
+	implementation 'org.springframework.boot:spring-boot-starter-batch'
+	// quartz
+	implementation 'org.springframework.boot:spring-boot-starter-quartz'
+	// Email
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+
 	// 롬복
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'

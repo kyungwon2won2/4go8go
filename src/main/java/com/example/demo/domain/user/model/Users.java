@@ -14,6 +14,7 @@ CREATE TABLE `user` (
   `USER_PW` varchar(200) NOT NULL,
   `NAME` varchar(100) NOT NULL,
   `EMAIL` varchar(200) DEFAULT NULL,
+  `BIRTHDAY` date DEFAULT NULL,
   `REG_DATE` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `UPD_DATE` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `ENABLED` int DEFAULT 1,
@@ -23,11 +24,11 @@ CREATE TABLE `user` (
 @Data
 @NoArgsConstructor
 public class Users {
-	private int userNo;
-	private String userId;
+	private int userId;
 	private String userPw;
 	private String name;
 	private String email;
+	private Date birthday;    // 생일 필드 추가
 	private Date regDate;
 	private Date updDate;
 	private int enabled;

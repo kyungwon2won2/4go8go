@@ -41,7 +41,7 @@ public class CustomerUser implements UserDetails{
 	@Override
 	public String getUsername() {
 		// TODO Auto-generated method stub
-		return user.getUserId();
+		return user.getName();
 	}
 
 	

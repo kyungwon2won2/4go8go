@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.mapper.CouponMapper">
+
+    <resultMap type="BirthdayCoupon" id="birthdayCouponMap">
+        <id property="couponId" column="coupon_id" />
+        <result property="couponCode" column="coupon_code" />
+        <result property="couponName" column="coupon_name" />
+        <result property="discountAmount" column="discount_amount" />
+        <result property="validFrom" column="valid_from" />
+        <result property="validTo" column="valid_to" />
+        <result property="userId" column="user_id" /> <!-- userNo -> userId로 수정 -->
+        <result property="used" column="used" />
+        <result property="createdAt" column="created_at" />
+    </resultMap>
+
+    <!-- 생일 쿠폰 저장 -->
+    <insert id="insertBirthdayCoupon" parameterType="BirthdayCoupon">
+        INSERT INTO birthday_coupon (
+        coupon_code,
+        coupon_name,
+        discount_amount,
+        valid_from,
+        valid_to,
+        used,
+        created_at
+        ) VALUES (
+        #{couponCode},
+        #{couponName},
+        #{discountAmount},
+        #{validFrom},
+        #{validTo},
+        #{used},
+        #{createdAt}
+        )
+    </insert>
+
+    <!-- 사용자의 활성 생일 쿠폰 조회 -->
+    <select id="findActiveBirthdayCouponByUserId" parameterType="int" resultMap="birthdayCouponMap">
+        SELECT
+        coupon_id,
+        coupon_code,
+        coupon_name,
+        discount_amount,
+        valid_from,
+        valid_to,
+        user_id, <!-- userNo -> userId로 수정 -->
+        used,
+        created_at
+        FROM
+        birthday_coupon
+        WHERE
+        AND valid_to >= CURRENT_DATE
+        AND used = 0  <!-- 'false' 대신 '0'으로 수정 -->
+        ORDER BY
+        valid_to ASC
+        LIMIT 1
+    </select>
+
+</mapper>

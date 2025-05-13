@@ -33,7 +33,6 @@ public class TestController {
         @PostMapping("/join")
         public String CreateUser(@ModelAttribute TestDto testDto){
                 Users user = new Users();
-                user.setUserId(testDto.getUserId());
                 user.setUserPw(testDto.getUserPw());
                 user.setName(testDto.getName());
                 user.setEmail(testDto.getEmail());
