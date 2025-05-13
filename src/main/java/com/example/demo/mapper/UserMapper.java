@@ -30,4 +30,6 @@ public interface UserMapper {
     // 사용자 삭제
     public int deleteUser(String userId);
 
+    List<Users> findUsersByBirthdayToday();
+
 }

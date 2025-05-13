@@ -64,10 +64,10 @@ public class SampleJobConfig {
     public ItemProcessor<Users, Users> birthdayUserProcessor() {
         return user -> {
             if (user.getEmail() != null && !user.getEmail().isEmpty()) {
-                log.info("생일 이메일 처리 대상: {}님, 이메일: {}", user.getName(), user.getEmail());
+                log.info("생일 이메일 처리 대상: {}님, 이메일: {}", user.getNickname(), user.getEmail());
                 return user;
             }
-            log.warn("이메일 정보가 없는 사용자: {}", user.getName());
+            log.warn("이메일 정보가 없는 사용자: {}", user.getNickname());
             return null;
         };
     }
@@ -85,12 +85,12 @@ public class SampleJobConfig {
                     if (result > 0) {
                         boolean emailSent = emailService.sendBirthdayEmail(user, birthdayCoupon);
                         if (emailSent) {
-                            log.info("생일 축하 이메일 발송 완료: {}님, 이메일: {}", user.getName(), user.getEmail());
+                            log.info("생일 축하 이메일 발송 완료: {}님, 이메일: {}", user.getNickname(), user.getEmail());
                         } else {
-                            log.warn("생일 축하 이메일 발송 실패: {}님, 이메일: {}", user.getName(), user.getEmail());
+                            log.warn("생일 축하 이메일 발송 실패: {}님, 이메일: {}", user.getNickname(), user.getEmail());
                         }
                     } else {
-                        log.error("생일 쿠폰 저장 실패: {}님", user.getName());
+                        log.error("생일 쿠폰 저장 실패: {}님", user.getNickname());
                     }
                 } catch (Exception e) {
                     log.error("생일 쿠폰/이메일 처리 실패: {} - 오류: {}", user.getEmail(), e.getMessage(), e);

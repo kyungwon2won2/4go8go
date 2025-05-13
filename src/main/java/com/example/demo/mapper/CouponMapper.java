@@ -10,5 +10,5 @@ public interface CouponMapper {
     int insertBirthdayCoupon(BirthdayCoupon coupon);
     
     // 사용자의 활성 생일 쿠폰 조회
-    BirthdayCoupon findActiveBirthdayCouponByUserNo(int userNo);
+    BirthdayCoupon findActiveBirthdayCouponByUserId(int userId);
 }

@@ -28,7 +28,7 @@ public class CouponService {
         // 생일 쿠폰 생성
         return BirthdayCoupon.builder()
                 .couponCode(couponCode)
-                .couponName(user.getName() + "님의 생일 쿠폰")
+                .couponName(user.getNickname() + "님의 생일 쿠폰")
                 .discountAmount(discountAmount)
                 .validFrom(currentDate)
                 .validTo(expiryDate)

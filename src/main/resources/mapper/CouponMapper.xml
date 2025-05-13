@@ -25,6 +25,7 @@
         discount_amount,
         valid_from,
         valid_to,
+        user_id,
         used,
         created_at
         ) VALUES (
@@ -33,6 +34,7 @@
         #{discountAmount},
         #{validFrom},
         #{validTo},
+        #{userId},
         #{used},
         #{createdAt}
         )
@@ -47,14 +49,15 @@
         discount_amount,
         valid_from,
         valid_to,
-        user_id, <!-- userNo -> userId로 수정 -->
+        user_id,
         used,
         created_at
         FROM
         birthday_coupon
         WHERE
+        user_id = #{userId}
         AND valid_to >= CURRENT_DATE
-        AND used = 0  <!-- 'false' 대신 '0'으로 수정 -->
+        AND used = 0
         ORDER BY
         valid_to ASC
         LIMIT 1

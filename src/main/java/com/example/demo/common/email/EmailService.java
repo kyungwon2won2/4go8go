@@ -36,11 +36,11 @@ public class EmailService {
             // 이메일 기본 정보 설정
             helper.setFrom(fromEmail);
             helper.setTo(user.getEmail());
-            helper.setSubject(user.getName() + "님, 생일을 축하합니다! 🎂");
+            helper.setSubject(user.getNickname() + "님, 생일을 축하합니다! 🎂");
 
             // 이메일 템플릿 컨텍스트 설정
             Context context = new Context();
-            context.setVariable("name", user.getName());
+            context.setVariable("name", user.getNickname());
             context.setVariable("couponCode", coupon.getCouponCode());
             context.setVariable("discountAmount", coupon.getDiscountAmount());
             
