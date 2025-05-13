@@ -55,17 +55,13 @@ public class SecurityConfig {
 		);
 
 		http.formLogin(form -> form
-				.loginPage("/login")                            // 커스텀 로그인 페이지 요청 경로
-				.loginProcessingUrl("/loginPro")                // 커스텀 로그인 처리 경로 지정.
-								// Controller 따로 만들 필요 없음
-								// loginPro는 Security 내부적으로 필터(UsernamePasswordAuthenticationFilter)가 처리하기 때문에,
-								// 이 URL에 대한 Controller를 만들 필요 없습니다.
-				.defaultSuccessUrl("/")                         // 로그인 성공 시 이동할 경로
-				.usernameParameter("id")                        // 사용자 이름 파라미터 설정
-				.passwordParameter("pw")                        // 패스워드 파라미터 설정
-				.successHandler(authenticationSuccessHandler()) // 성공 시 핸들러 설정
-				.permitAll()                                    // 모든 사용자에게 로그인 페이지 접근 허용
-
+				.loginPage("/login")
+				.loginProcessingUrl("/loginPro")
+				.defaultSuccessUrl("/")
+				.usernameParameter("email")    // userId에서 email로 변경
+				.passwordParameter("password") // userPw에서 password로 변경
+				.successHandler(authenticationSuccessHandler())
+				.permitAll()
 		);
 
 		http.userDetailsService(customerDetailService); //사용자 정의 인증 방식 (mybatis 연동)

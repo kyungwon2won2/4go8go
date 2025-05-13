@@ -1,39 +1,27 @@
 package com.example.demo.domain.user.model;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
-/*
-CREATE TABLE `user` (
-  `USER_NO` int NOT NULL AUTO_INCREMENT,
-  `USER_ID` varchar(100) NOT NULL,
-  `USER_PW` varchar(200) NOT NULL,
-  `NAME` varchar(100) NOT NULL,
-  `EMAIL` varchar(200) DEFAULT NULL,
-  `BIRTHDAY` date DEFAULT NULL,
-  `REG_DATE` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `UPD_DATE` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `ENABLED` int DEFAULT 1,
-  PRIMARY KEY (`USER_NO`)
-) COMMENT='회원';
- */
 @Data
 @NoArgsConstructor
 public class Users {
 	private int userId;
-	private String userPw;
-	private String name;
 	private String email;
-	private Date birthday;    // 생일 필드 추가
-	private Date regDate;
-	private Date updDate;
-	private int enabled;
-	
-	//권한 목록
-	List<UserAuth> authList; 
-	
+	private String password;
+	private String nickname;
+	private String address;
+	private Date birthDate;
+	private int points;
+	private BigDecimal rating;
+	private boolean receiveMail;
+	private Date createdAt;
+	private Date updatedAt;
+
+	// 권한 목록
+	List<UserRole> roleList;
 }
