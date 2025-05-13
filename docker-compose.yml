@@ -1,0 +1,13 @@
+version: "3.8"
+services:
+  rabbitmq:
+    container_name: rabbitmq-container
+    build:
+      context: .
+      dockerfile: dockerfiles/rabbitmqDokerfile/Dockerfile
+    image: rabbitmq-image
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+      - "61613:61613"
+    restart: unless-stopped

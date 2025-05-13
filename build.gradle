@@ -42,6 +42,21 @@ dependencies {
 	// security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 
+	// 실시간 통신
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	implementation 'org.webjars:sockjs-client:1.0.2'
+	implementation 'org.springframework.boot:spring-boot-starter-amqp'
+	implementation 'org.springframework:spring-messaging'
+	implementation 'org.webjars:stomp-websocket:2.3.4'
+	implementation 'io.projectreactor.netty:reactor-netty'
+
+	// Spring Batch
+	implementation 'org.springframework.boot:spring-boot-starter-batch'
+	// quartz
+	implementation 'org.springframework.boot:spring-boot-starter-quartz'
+	// Email
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+
 	// 롬복
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
