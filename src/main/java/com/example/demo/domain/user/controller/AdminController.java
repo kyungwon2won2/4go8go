@@ -11,7 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class AdminController {
 
 	@GetMapping
-	public void index() {
+	public String index() {
 		log.info("[[[  /admin ]]]");
+		return "admin/index";  // admin 폴더의 index.html을 명시적으로 지정
 	}
 }

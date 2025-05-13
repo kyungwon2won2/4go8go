@@ -6,54 +6,71 @@
 <mapper namespace="com.example.demo.mapper.UserMapper">
 
     <resultMap type="Users" id="userMap">
-        <id property="userId" column="userId" />
-        <result property="userPw" column="userPw" />
-        <result property="name" column="name" />
+        <id property="userId" column="user_id" />
         <result property="email" column="email" />
-        <result property="birthday" column="birthday" />
-        <result property="enabled" column="enabled" />
-        <result property="regDate" column="regDate" />
-        <result property="updDate" column="updDate" />
-        <collection property="authList" resultMap="authMap" />
+        <result property="password" column="password" />
+        <result property="nickname" column="nickname" />
+        <result property="address" column="address" />
+        <result property="birthDate" column="birth_date" />
+        <result property="points" column="points" />
+        <result property="rating" column="rating" />
+        <result property="receiveMail" column="receive_mail" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
+        <collection property="roleList" resultMap="roleMap" />
     </resultMap>
 
-    <resultMap type="UserAuth" id="authMap">
-        <result property="userId" column="user_id" /> <!-- user_id로 수정 -->
-        <result property="auth" column="auth" />
+    <resultMap type="UserRole" id="roleMap">
+        <result property="userId" column="user_id" />
+        <result property="roleName" column="role_name" />
     </resultMap>
 
-    <!-- 로그인 처리 -->
     <select id="login" resultMap="userMap">
-        SELECT u.userId,
-        u.userPw,
-        u.name,
-        u.email,
-        u.birthday,
-        u.enabled,
-        u.regDate,
-        u.updDate,
-        auth.auth
-        FROM user u
-        JOIN user_auth auth ON u.userId = auth.user_id  <!-- userId -> user_id로 수정 -->
-        WHERE u.userId = #{userId}
+        SELECT u.user_id, u.email, u.password, u.nickname, u.address,
+               u.birth_date, u.points, u.rating, u.receive_mail,
+               u.created_at, u.updated_at, r.role_name
+        FROM user u JOIN user_role r ON u.user_id = r.user_id
+        WHERE u.email = #{email}
     </select>
 
-    <!-- 오늘 생일인 사용자 목록 조회 -->
-    <select id="findUsersByBirthdayToday" resultMap="userMap">
-        SELECT u.userId,
-        u.userPw,
-        u.name,
-        u.email,
-        u.birthday,
-        u.enabled,
-        u.regDate,
-        u.updDate,
-        auth.auth
-        FROM user u
-        JOIN user_auth auth ON u.userId = auth.user_id
-        WHERE MONTH(u.birthday) = MONTH(CURRENT_DATE)
-        AND DAY(u.birthday) = DAY(CURRENT_DATE)
-        AND u.enabled = 1
+    <!-- 자동 생성된 키(user_id)를 반환받도록 useGeneratedKeys와 keyProperty 추가 -->
+    <insert id="join" useGeneratedKeys="true" keyProperty="userId">
+        INSERT INTO user(email, password, nickname, address, birth_date, receive_mail)
+        VALUES(#{email}, #{password}, #{nickname}, #{address}, #{birthDate}, #{receiveMail})
+    </insert>
+
+    <insert id="insertAuth">
+        INSERT INTO user_role(user_id, role_name)
+        VALUES(#{userId}, #{roleName})
+    </insert>
+
+    <select id="getAllUsers" resultMap="userMap">
+        SELECT u.user_id, u.email, u.nickname, u.address, u.birth_date,
+               u.points, u.rating, u.receive_mail, u.created_at, u.updated_at,
+               r.role_name
+        FROM user u JOIN user_role r ON u.user_id = r.user_id
     </select>
 
+    <select id="getUserById" resultMap="userMap">
+        SELECT u.user_id, u.email, u.nickname, u.address, u.birth_date,
+               u.points, u.rating, u.receive_mail, u.created_at, u.updated_at,
+               r.role_name
+        FROM user u JOIN user_role r ON u.user_id = r.user_id
+        WHERE u.email = #{email}
+    </select>
+
+    <update id="updateUser">
+        UPDATE user
+        SET nickname = #{nickname},
+        address = #{address},
+        receive_mail = #{receiveMail}
+        <if test="password != null and password != ''">
+            , password = #{password}
+        </if>
+        WHERE user_id = #{userId}
+    </update>
+
+    <delete id="deleteUser">
+        DELETE FROM user WHERE email = #{email}
+    </delete>
 </mapper>
