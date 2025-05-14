@@ -8,6 +8,8 @@
     <resultMap type="Users" id="userMap">
         <id property="userId" column="user_id" />
         <result property="email" column="email" />
+        <result property="name" column="name" />
+        <result property="phone" column="phone" />
         <result property="password" column="password" />
         <result property="nickname" column="nickname" />
         <result property="address" column="address" />
@@ -37,7 +39,7 @@
     </resultMap>
 
     <select id="login" resultMap="userMap">
-        SELECT u.user_id, u.email, u.password, u.nickname, u.address,
+        SELECT u.user_id, u.email, u.name, u.phone, u.password, u.nickname, u.address,
                u.birth_date, u.points, u.rating, u.receive_mail, u.email_verified,
                u.created_at, u.updated_at, r.role_name
         FROM user u JOIN user_role r ON u.user_id = r.user_id
@@ -46,8 +48,8 @@
 
     <!-- 자동 생성된 키(user_id)를 반환받도록 useGeneratedKeys와 keyProperty 추가 -->
     <insert id="join" useGeneratedKeys="true" keyProperty="userId">
-        INSERT INTO user(email, password, nickname, address, birth_date, receive_mail, email_verified)
-        VALUES(#{email}, #{password}, #{nickname}, #{address}, #{birthDate}, #{receiveMail}, #{emailVerified})
+        INSERT INTO user(email, name, phone, password, nickname, address, birth_date, receive_mail, email_verified)
+        VALUES(#{email}, #{name}, #{phone}, #{password}, #{nickname}, #{address}, #{birthDate}, #{receiveMail}, #{emailVerified})
     </insert>
 
     <insert id="insertAuth">
@@ -56,14 +58,14 @@
     </insert>
 
     <select id="getAllUsers" resultMap="userMap">
-        SELECT u.user_id, u.email, u.nickname, u.address, u.birth_date,
+        SELECT u.user_id, u.email, u.name, u.phone, u.nickname, u.address, u.birth_date,
                u.points, u.rating, u.receive_mail, u.email_verified, u.created_at, u.updated_at,
                r.role_name
         FROM user u JOIN user_role r ON u.user_id = r.user_id
     </select>
 
     <select id="getUserById" resultMap="userMap">
-        SELECT u.user_id, u.email, u.nickname, u.address, u.birth_date,
+        SELECT u.user_id, u.email, u.name, u.phone, u.nickname, u.address, u.birth_date,
                u.points, u.rating, u.receive_mail, u.email_verified, u.created_at, u.updated_at,
                r.role_name
         FROM user u JOIN user_role r ON u.user_id = r.user_id
@@ -71,8 +73,8 @@
     </select>
     
     <select id="getUserByEmail" resultMap="userMap">
-        SELECT u.user_id, u.email, u.nickname, u.address, u.birth_date,
-               u.points, u.rating, u.receive_mail, u.email_verified, u.created_at, u.updated_at,
+        SELECT u.user_id, u.email, u.name, u.phone, u.nickname, u.address, u.birth_date,
+               u.points, u.rating, u.receive_mail, u.created_at, u.updated_at,
                r.role_name
         FROM user u JOIN user_role r ON u.user_id = r.user_id
         WHERE u.email = #{email}
@@ -81,6 +83,8 @@
     <update id="updateUser">
         UPDATE user
         SET nickname = #{nickname},
+        name = #{name},
+        phone = #{phone},
         address = #{address},
         receive_mail = #{receiveMail}
         <if test="password != null and password != ''">

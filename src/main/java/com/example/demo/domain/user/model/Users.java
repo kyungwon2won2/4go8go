@@ -12,6 +12,8 @@ import java.util.List;
 public class Users {
 	private int userId;
 	private String email;
+	private String name;      // 추가
+	private String phone;     // 추가
 	private String password;
 	private String nickname;
 	private String address;
