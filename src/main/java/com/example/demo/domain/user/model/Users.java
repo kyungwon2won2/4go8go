@@ -21,6 +21,7 @@ public class Users {
 	private int points;
 	private BigDecimal rating;
 	private boolean receiveMail;
+	private boolean emailVerified; // 이메일 인증 상태 필드 추가
 	private Date createdAt;
 	private Date updatedAt;
 
