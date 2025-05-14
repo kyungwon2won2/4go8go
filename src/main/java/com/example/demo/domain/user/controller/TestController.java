@@ -35,8 +35,13 @@ public class TestController {
         Users user = new Users();
         user.setEmail(testDto.getEmail());
         user.setPassword(testDto.getPassword());
+        user.setName(testDto.getName());       // 추가
+        user.setPhone(testDto.getPhone());     // 추가
         user.setNickname(testDto.getNickname());
         user.setAddress(testDto.getAddress());
+
+        // 이메일 인증 상태를 true로 설정 테스트용
+        user.setEmailVerified(true);
 
         // LocalDate를 Date로 변환
         if (testDto.getBirthDate() != null) {
@@ -46,7 +51,6 @@ public class TestController {
 
         user.setReceiveMail(testDto.isReceiveMail());
 
-        // 나머지 코드는 동일
         UserRole role = new UserRole();
         role.setRoleName("ROLE_USER");
 

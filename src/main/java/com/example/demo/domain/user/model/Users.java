@@ -12,6 +12,8 @@ import java.util.List;
 public class Users {
 	private int userId;
 	private String email;
+	private String name;      // 추가
+	private String phone;     // 추가
 	private String password;
 	private String nickname;
 	private String address;
@@ -19,6 +21,7 @@ public class Users {
 	private int points;
 	private BigDecimal rating;
 	private boolean receiveMail;
+	private boolean emailVerified; // 이메일 인증 상태 필드 추가
 	private Date createdAt;
 	private Date updatedAt;
 

@@ -61,7 +61,6 @@ public class EmailService {
         }
     }
 
-
     //생일 축하 이메일 내용 생성
     private String generateBirthdayEmailContent(Context context) {
         return templateEngine.process("email/birthday-email", context);

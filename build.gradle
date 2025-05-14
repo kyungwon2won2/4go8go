@@ -57,6 +57,9 @@ dependencies {
 	// Email
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 
+	// 정규표현식
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
 	// 롬복
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
