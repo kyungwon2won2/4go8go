@@ -1,9 +1,8 @@
 package com.example.demo.common.exception;
 
-import com.example.demo.common.stringcode.ErrorCodeEnum;
+import com.example.demo.common.stringcode.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -14,7 +13,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Slf4j(topic = "GlobalExceptionHandler")
-@ControllerAdvice  // RestControllerAdvice에서 변경 - MVC 패턴에 더 적합
+@ControllerAdvice
 public class GlobalExceptionHandler {
 
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -24,10 +23,10 @@ public class GlobalExceptionHandler {
     public ModelAndView handleInvalidConditionException(InvalidConditionException ex, HttpServletRequest request) {
         log.error("InvalidConditionException: {}, Request URI: {}", ex.getMessage(), request.getRequestURI());
         return buildErrorModelAndView(
-                ErrorCodeEnum.VALIDATION_FAILED, 
+                ErrorCode.VALIDATION_FAILED,
                 ex.getMessage(), 
                 request.getRequestURI(),
-                null
+                ex
         );
     }
     
@@ -36,7 +35,7 @@ public class GlobalExceptionHandler {
     public ModelAndView handleNullPointerException(NullPointerException ex, HttpServletRequest request) {
         log.error("NullPointerException: {}, Request URI: {}", ex.getMessage(), request.getRequestURI(), ex);
         return buildErrorModelAndView(
-                ErrorCodeEnum.INTERNAL_SERVER_ERROR, 
+                ErrorCode.INTERNAL_SERVER_ERROR,
                 ex.getMessage(), 
                 request.getRequestURI(),
                 ex
@@ -48,7 +47,7 @@ public class GlobalExceptionHandler {
     public ModelAndView handleIllegalArgumentException(IllegalArgumentException ex, HttpServletRequest request) {
         log.error("IllegalArgumentException: {}, Request URI: {}", ex.getMessage(), request.getRequestURI());
         return buildErrorModelAndView(
-                ErrorCodeEnum.INVALID_PARAMETER, 
+                ErrorCode.INVALID_PARAMETER,
                 ex.getMessage(), 
                 request.getRequestURI(),
                 ex
@@ -60,7 +59,7 @@ public class GlobalExceptionHandler {
     public ModelAndView handleIllegalAccessException(IllegalAccessException ex, HttpServletRequest request) {
         log.error("IllegalAccessException: {}, Request URI: {}", ex.getMessage(), request.getRequestURI());
         return buildErrorModelAndView(
-                ErrorCodeEnum.FORBIDDEN_ACCESS, 
+                ErrorCode.FORBIDDEN_ACCESS,
                 ex.getMessage(), 
                 request.getRequestURI(),
                 ex
@@ -72,7 +71,7 @@ public class GlobalExceptionHandler {
     public ModelAndView handleIllegalStateException(IllegalStateException ex, HttpServletRequest request) {
         log.error("IllegalStateException: {}, Request URI: {}", ex.getMessage(), request.getRequestURI());
         return buildErrorModelAndView(
-                ErrorCodeEnum.INVALID_PARAMETER, 
+                ErrorCode.INVALID_PARAMETER,
                 ex.getMessage(), 
                 request.getRequestURI(),
                 ex
@@ -84,7 +83,7 @@ public class GlobalExceptionHandler {
     public ModelAndView handleNoHandlerFoundException(NoHandlerFoundException ex, HttpServletRequest request) {
         log.error("Page not found: {}, Request URI: {}", ex.getMessage(), request.getRequestURI());
         return buildErrorModelAndView(
-                ErrorCodeEnum.RESOURCE_NOT_FOUND, 
+                ErrorCode.RESOURCE_NOT_FOUND,
                 "요청하신 페이지를 찾을 수 없습니다.", 
                 request.getRequestURI(),
                 ex
@@ -107,7 +106,7 @@ public class GlobalExceptionHandler {
         log.error("Validation Failed: {}, Request URI: {}", errorMessage, request.getRequestURI());
         
         return buildErrorModelAndView(
-                ErrorCodeEnum.VALIDATION_FAILED, 
+                ErrorCode.VALIDATION_FAILED,
                 errorMessage, 
                 request.getRequestURI(),
                 ex
@@ -119,7 +118,7 @@ public class GlobalExceptionHandler {
     public ModelAndView handleException(Exception ex, HttpServletRequest request) {
         log.error("Unhandled Exception: {}, Request URI: {}", ex.getMessage(), request.getRequestURI(), ex);
         return buildErrorModelAndView(
-                ErrorCodeEnum.INTERNAL_SERVER_ERROR, 
+                ErrorCode.INTERNAL_SERVER_ERROR,
                 "처리 중 예상치 못한 오류가 발생했습니다.", 
                 request.getRequestURI(),
                 ex
@@ -127,7 +126,7 @@ public class GlobalExceptionHandler {
     }
     
     // ModelAndView 구성 메서드
-    private ModelAndView buildErrorModelAndView(ErrorCodeEnum errorCode, String message, String path, Exception ex) {
+    private ModelAndView buildErrorModelAndView(ErrorCode errorCode, String message, String path, Exception ex) {
         ModelAndView modelAndView = new ModelAndView("errorPage");
         
         // 기본 에러 정보
