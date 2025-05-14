@@ -35,6 +35,8 @@ public class TestController {
         Users user = new Users();
         user.setEmail(testDto.getEmail());
         user.setPassword(testDto.getPassword());
+        user.setName(testDto.getName());       // 추가
+        user.setPhone(testDto.getPhone());     // 추가
         user.setNickname(testDto.getNickname());
         user.setAddress(testDto.getAddress());
 
