@@ -4,13 +4,12 @@ import com.example.demo.common.security.service.UserService;
 import com.example.demo.domain.user.model.Users;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
 import java.util.Date;
@@ -22,9 +21,11 @@ import java.util.Date;
 public class UserController {
 
 	@GetMapping
-	public String index() {
+	public String index(Model model, Principal principal) {
 		log.info("[[[[  /user ]]]]");
-		return "user/index";  // 명시적으로 user/index.html을 호출
+		Users user = userService.getUserById(principal.getName());
+		model.addAttribute("user", user);
+		return "user/index";
 	}
 
 
@@ -46,23 +47,29 @@ public class UserController {
 		return "user/profile";
 	}
 
-	// 사용자 정보 수정 폼
 	@GetMapping("/edit")
-	public String editForm(Model model, Principal principal) {
-		Users user = userService.getUserById(principal.getName());
+	public String editUserForm(Model model, Principal principal) {
+		String email = principal.getName();
+		Users user = userService.login(email);
 		model.addAttribute("user", user);
 		return "user/edit";
 	}
 
-	// 사용자 정보 수정 처리
 	@PostMapping("/edit")
-	public String editSubmit(@ModelAttribute Users user, Principal principal) {
-		// 본인 정보만 수정 가능하도록 검증
-		if (!principal.getName().equals(user.getUserId())) {
-			return "redirect:/exception";
+	public String updateUser(@ModelAttribute Users user, Date birthDate, RedirectAttributes ra) {
+		user.setBirthDate(birthDate);
+
+		try {
+			int result = userService.updateUser(user);
+			if(result > 0) {
+				ra.addFlashAttribute("message", "회원정보가 성공적으로 수정되었습니다.");
+			} else {
+				ra.addFlashAttribute("error", "회원정보 수정에 실패했습니다.");
+			}
+		} catch (Exception e) {
+			ra.addFlashAttribute("error", "처리 중 오류가 발생했습니다: " + e.getMessage());
 		}
-		userService.updateUser(user);
-		return "redirect:/user/profile";
+		return "redirect:/user";
 	}
 
 	// 회원 탈퇴

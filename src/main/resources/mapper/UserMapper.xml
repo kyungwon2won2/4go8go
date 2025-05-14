@@ -69,16 +69,20 @@
         WHERE u.email = #{email}
     </select>
 
-    <update id="updateUser">
+    <!-- 사용자 정보 수정 -->
+    <update id="updateUser" parameterType="Users">
         UPDATE user
-        SET nickname = #{nickname},
+        SET
         name = #{name},
+        nickname = #{nickname},
         phone = #{phone},
         address = #{address},
-        receive_mail = #{receiveMail}
+        birth_date = #{birthDate},
+        receive_mail = #{receiveMail},
         <if test="password != null and password != ''">
-            , password = #{password}
+            password = #{password},
         </if>
+        updated_at = NOW()
         WHERE user_id = #{userId}
     </update>
 
