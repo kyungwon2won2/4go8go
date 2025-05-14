@@ -19,7 +19,6 @@ public class Users {
 	private int points;
 	private BigDecimal rating;
 	private boolean receiveMail;
-	private boolean emailVerified;
 	private Date createdAt;
 	private Date updatedAt;
 
