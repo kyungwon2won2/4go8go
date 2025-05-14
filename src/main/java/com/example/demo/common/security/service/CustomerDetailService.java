@@ -29,7 +29,6 @@ public class CustomerDetailService implements UserDetailsService {
 	
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-	//개발자가 원하는 것은 spring 자동 처리되는 것이 아니고 내가 정의한 mybatis 통해서 인증과 권한 정보를 담겠다 
 		
 		Users user = userMapper.login(username);
 		if(user == null) {

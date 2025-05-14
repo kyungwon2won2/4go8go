@@ -1,7 +1,9 @@
 package com.example.demo.domain.user.controller;
 
-import com.example.demo.common.security.service.UserService;
+import com.example.demo.domain.user.dto.TestDto;
+import com.example.demo.domain.user.model.UserRole;
 import com.example.demo.domain.user.model.Users;
+import com.example.demo.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
@@ -15,13 +17,25 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Slf4j
 @Controller
 @RequestMapping("/user")
 @RequiredArgsConstructor
 public class UserController {
+
+	private final UserService userService;
+
+	@PostMapping("/join")
+	public String CreateUser(@ModelAttribute TestDto testDto) throws Exception {
+
+		userService.createUser(testDto);
+		return "redirect:/login";
+	}
 
 	@GetMapping
 	public String index(Model model, Principal principal) {
@@ -30,9 +44,6 @@ public class UserController {
 		model.addAttribute("user", user);
 		return "user/index";
 	}
-
-
-	private final UserService userService;
 
 	// 사용자 목록 조회 (관리자만 접근 가능)
 	@GetMapping("/list")
@@ -50,19 +61,11 @@ public class UserController {
 		return "user/profile";
 	}
 
-	// 문자열 -> Date 변환을 위한 바인더 설정
-	@InitBinder
-	public void initBinder(WebDataBinder binder) {
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-		dateFormat.setLenient(false);
-		binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, true));
-	}
-
 	@GetMapping("/edit")
 	public String editUserForm(Model model, Principal principal) {
 		String email = principal.getName();
-		Users user = userService.login(email);
-		model.addAttribute("user", user);
+//		Users user = userService.login(email);
+//		model.addAttribute("user", user);
 		return "user/edit";
 	}
 

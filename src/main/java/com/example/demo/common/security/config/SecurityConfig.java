@@ -41,17 +41,14 @@ public class SecurityConfig {
 				.requestMatchers("/admin/**").hasRole("ADMIN")
 				.requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
 				.requestMatchers("/test/**").hasRole("**")
-				.anyRequest().permitAll())
-			.formLogin(withDefaults()) // 기본 폼 로그인 사용
-			.logout(withDefaults());   // 기본 로그아웃 사용
-
+				.anyRequest().permitAll());
 
 		http.logout(logout -> logout
-						.logoutUrl("/logout")           // 로그아웃 요청을 받을 URL
-						.logoutSuccessUrl("/")          // 로그아웃 성공 후 이동할 URL
-						.deleteCookies("JSESSIONID")    // 로그아웃 시 삭제할 쿠키 설정 (선택 사항)
-						.invalidateHttpSession(true)    // 세션 무효화
-				//.permitAll()
+						.logoutUrl("/logout")           					// 로그아웃 요청을 받을 URL
+						.logoutSuccessUrl("/")          					// 로그아웃 성공 후 이동할 URL
+						.deleteCookies("JSESSIONID")       // 로그아웃 시 삭제할 쿠키 설정 (선택 사항)
+						.invalidateHttpSession(true)    					// 세션 무효화
+						.permitAll()
 		);
 
 		http.formLogin(form -> form
