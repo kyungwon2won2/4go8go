@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오류가 발생했습니다</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* 마켓컬리 스타일을 반영한 CSS */
+        :root {
+            --primary-color: #5f0080;
+            --light-purple: #f7f0fc;
+            --border-color: #e6e6e6;
+            --text-color: #333;
+            --text-secondary: #666;
+            --button-color: #5f0080;
+            --button-hover-color: #4c0063;
+            --button-secondary: #fff;
+            --button-secondary-border: #5f0080;
+            --border-radius: 3px;
+            --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #fff;
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .error-container {
+            background-color: #fff;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 40px;
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid var(--border-color);
+        }
+
+        .error-icon {
+            font-size: 50px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--primary-color);
+        }
+
+        p {
+            font-size: 14px;
+            margin-bottom: 20px;
+            color: var(--text-secondary);
+        }
+
+        .error-message {
+            background-color: var(--light-purple);
+            padding: 16px;
+            border-radius: var(--border-radius);
+            margin-bottom: 24px;
+        }
+
+        .error-message h3 {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+
+        .error-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 32px;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        .info-item {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .info-item h4 {
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .error-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 16px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: block;
+        }
+
+        .btn-primary {
+            background-color: var(--button-color);
+            color: white;
+            border: 1px solid var(--button-color);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--button-hover-color);
+        }
+
+        .btn-secondary {
+            background-color: var(--button-secondary);
+            color: var(--button-color);
+            border: 1px solid var(--button-secondary-border);
+        }
+
+        .btn-secondary:hover {
+            background-color: #f7f0fc;
+        }
+
+        .technical-details {
+            margin-top: 24px;
+            text-align: left;
+            border-top: 1px dashed var(--border-color);
+            padding-top: 16px;
+        }
+
+        summary {
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .tech-info {
+            margin-top: 10px;
+            font-size: 12px;
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-radius: var(--border-radius);
+            overflow-x: auto;
+        }
+
+        .tech-info div {
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 576px) {
+            .error-container {
+                padding: 24px;
+                width: 95%;
+            }
+            
+            .error-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="error-container">
+        <div class="error-header">
+            <div class="error-icon">
+                <span th:if="${status >= 500}" style="color: #f03f40;">😕</span>
+                <span th:if="${status >= 400 && status < 500}" style="color: #ff8a3d;">😮</span>
+                <span th:if="${status < 400}" style="color: #5f0080;">ℹ️</span>
+            </div>
+            <h1 th:text="${status >= 500 ? '서비스 이용에 불편을 드려 죄송합니다' : '요청하신 페이지를 찾을 수 없습니다'}">오류가 발생했습니다</h1>
+            <p th:text="${status >= 500 ? '시스템 오류가 발생하여 요청을 처리할 수 없습니다. 잠시 후 다시 시도해주세요.' : '요청하신 페이지가 삭제되었거나 일시적으로 사용할 수 없습니다.'}">
+                요청하신 페이지를 처리하는 도중 문제가 발생했습니다.
+            </p>
+        </div>
+        
+        <div class="error-content">
+            <div class="error-message">
+                <h3>오류 안내</h3>
+                <p th:text="${message}" style="margin-bottom: 0;">오류 메시지가 표시됩니다.</p>
+                <p th:if="${detailMessage != null && !detailMessage.isEmpty()}" th:text="${detailMessage}" style="margin-top: 8px; font-size: 13px; color: #666;">상세 메시지</p>
+            </div>
+            
+            <div class="error-info">
+                <div class="info-item">
+                    <h4>상태 코드</h4>
+                    <p th:text="${status}">404</p>
+                </div>
+                <div class="info-item">
+                    <h4>오류 코드</h4>
+                    <p th:text="${code}">RESOURCE_NOT_FOUND</p>
+                </div>
+                <div class="info-item">
+                    <h4>발생 시간</h4>
+                    <p th:text="${timestamp}" style="font-size: 12px;">2023-01-01 12:00:00</p>
+                </div>
+                <div class="info-item">
+                    <h4>요청 경로</h4>
+                    <p th:text="${path}" style="font-size: 12px; word-break: break-all;">경로 정보</p>
+                </div>
+            </div>
+            
+            <div class="error-actions">
+                <a href="/" class="btn btn-primary">홈으로 이동하기</a>
+                <a href="javascript:window.history.back();" class="btn btn-secondary">이전 페이지로 이동</a>
+            </div>
+            
+            <!-- 개발자를 위한 기술적 상세 정보 (확장 가능) -->
+            <details class="technical-details">
+                <summary>개발자 정보</summary>
+                <div class="tech-info">
+                    <div th:if="${exception != null}">
+                        <strong>Exception:</strong> <span th:text="${exception}">Exception Class</span>
+                    </div>
+                    <div th:if="${trace != null}">
+                        <strong>Stack Trace:</strong>
+                        <pre style="margin-top: 5px; white-space: pre-wrap; font-size: 11px;" th:text="${trace}">Stack Trace Information</pre>
+                    </div>
+                </div>
+            </details>
+        </div>
+    </div>
+</body>
+</html>
