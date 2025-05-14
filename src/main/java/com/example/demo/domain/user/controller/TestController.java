@@ -40,6 +40,9 @@ public class TestController {
         user.setNickname(testDto.getNickname());
         user.setAddress(testDto.getAddress());
 
+        // 이메일 인증 상태를 true로 설정 테스트용
+        user.setEmailVerified(true);
+
         // LocalDate를 Date로 변환
         if (testDto.getBirthDate() != null) {
             Date birthDate = Date.from(testDto.getBirthDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
