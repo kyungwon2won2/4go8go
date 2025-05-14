@@ -4,14 +4,17 @@ import com.example.demo.common.security.service.UserService;
 import com.example.demo.domain.user.model.Users;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 @Slf4j
@@ -45,6 +48,14 @@ public class UserController {
 		Users user = userService.getUserById(principal.getName());
 		model.addAttribute("user", user);
 		return "user/profile";
+	}
+
+	// 문자열 -> Date 변환을 위한 바인더 설정
+	@InitBinder
+	public void initBinder(WebDataBinder binder) {
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		dateFormat.setLenient(false);
+		binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, true));
 	}
 
 	@GetMapping("/edit")
