@@ -1,13 +1,13 @@
 package com.example.demo.common.exception;
 
 
-import com.example.demo.common.stringcode.ErrorCodeEnum;
+import com.example.demo.common.stringcode.ErrorCode;
 
 public class InvalidConditionException extends IllegalArgumentException{
 
-    ErrorCodeEnum errorCodeEnum;
+    ErrorCode errorCode;
 
-    public InvalidConditionException(ErrorCodeEnum errorCodeEnum) {
-        this.errorCodeEnum = errorCodeEnum;
+    public InvalidConditionException(ErrorCode errorCode) {
+        this.errorCode = errorCode;
     }
 }
