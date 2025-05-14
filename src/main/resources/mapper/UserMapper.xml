@@ -15,6 +15,7 @@
         <result property="points" column="points" />
         <result property="rating" column="rating" />
         <result property="receiveMail" column="receive_mail" />
+        <result property="emailVerified" column="email_verified" />
         <result property="createdAt" column="created_at" />
         <result property="updatedAt" column="updated_at" />
         <collection property="roleList" resultMap="roleMap" />
@@ -24,10 +25,20 @@
         <result property="userId" column="user_id" />
         <result property="roleName" column="role_name" />
     </resultMap>
+    
+    <resultMap type="EmailVerification" id="emailVerificationMap">
+        <id property="id" column="id" />
+        <result property="email" column="email" />
+        <result property="token" column="token" />
+        <result property="verified" column="verified" />
+        <result property="createdAt" column="created_at" />
+        <result property="expiresAt" column="expires_at" />
+        <result property="verifiedAt" column="verified_at" />
+    </resultMap>
 
     <select id="login" resultMap="userMap">
         SELECT u.user_id, u.email, u.password, u.nickname, u.address,
-               u.birth_date, u.points, u.rating, u.receive_mail,
+               u.birth_date, u.points, u.rating, u.receive_mail, u.email_verified,
                u.created_at, u.updated_at, r.role_name
         FROM user u JOIN user_role r ON u.user_id = r.user_id
         WHERE u.email = #{email}
@@ -35,8 +46,8 @@
 
     <!-- 자동 생성된 키(user_id)를 반환받도록 useGeneratedKeys와 keyProperty 추가 -->
     <insert id="join" useGeneratedKeys="true" keyProperty="userId">
-        INSERT INTO user(email, password, nickname, address, birth_date, receive_mail)
-        VALUES(#{email}, #{password}, #{nickname}, #{address}, #{birthDate}, #{receiveMail})
+        INSERT INTO user(email, password, nickname, address, birth_date, receive_mail, email_verified)
+        VALUES(#{email}, #{password}, #{nickname}, #{address}, #{birthDate}, #{receiveMail}, #{emailVerified})
     </insert>
 
     <insert id="insertAuth">
@@ -46,14 +57,22 @@
 
     <select id="getAllUsers" resultMap="userMap">
         SELECT u.user_id, u.email, u.nickname, u.address, u.birth_date,
-               u.points, u.rating, u.receive_mail, u.created_at, u.updated_at,
+               u.points, u.rating, u.receive_mail, u.email_verified, u.created_at, u.updated_at,
                r.role_name
         FROM user u JOIN user_role r ON u.user_id = r.user_id
     </select>
 
     <select id="getUserById" resultMap="userMap">
         SELECT u.user_id, u.email, u.nickname, u.address, u.birth_date,
-               u.points, u.rating, u.receive_mail, u.created_at, u.updated_at,
+               u.points, u.rating, u.receive_mail, u.email_verified, u.created_at, u.updated_at,
+               r.role_name
+        FROM user u JOIN user_role r ON u.user_id = r.user_id
+        WHERE u.email = #{email}
+    </select>
+    
+    <select id="getUserByEmail" resultMap="userMap">
+        SELECT u.user_id, u.email, u.nickname, u.address, u.birth_date,
+               u.points, u.rating, u.receive_mail, u.email_verified, u.created_at, u.updated_at,
                r.role_name
         FROM user u JOIN user_role r ON u.user_id = r.user_id
         WHERE u.email = #{email}
@@ -77,10 +96,38 @@
     <!-- 오늘 생일인 사용자 목록 조회 -->
     <select id="findUsersByBirthdayToday" resultMap="userMap">
         SELECT u.user_id, u.email, u.password, u.nickname, u.address,
-        u.birth_date, u.points, u.rating, u.receive_mail,
+        u.birth_date, u.points, u.rating, u.receive_mail, u.email_verified,
         u.created_at, u.updated_at, r.role_name
         FROM user u JOIN user_role r ON u.user_id = r.user_id
         WHERE MONTH(u.birth_date) = MONTH(CURRENT_DATE)
         AND DAY(u.birth_date) = DAY(CURRENT_DATE)
     </select>
+    
+    <!-- 이메일 인증 토큰 저장 -->
+    <insert id="saveEmailVerification" parameterType="EmailVerification">
+        INSERT INTO email_verification(email, token, verified, created_at, expires_at)
+        VALUES(#{email}, #{token}, #{verified}, #{createdAt}, #{expiresAt})
+    </insert>
+    
+    <!-- 이메일 인증 토큰 조회 -->
+    <select id="getEmailVerification" resultMap="emailVerificationMap">
+        SELECT id, email, token, verified, created_at, expires_at, verified_at
+        FROM email_verification
+        WHERE token = #{token}
+    </select>
+    
+    <!-- 이메일 인증 완료 처리 -->
+    <update id="updateEmailVerification" parameterType="EmailVerification">
+        UPDATE email_verification
+        SET verified = true,
+            verified_at = NOW()
+        WHERE token = #{token}
+    </update>
+    
+    <!-- 사용자 이메일 인증 상태 업데이트 -->
+    <update id="updateUserEmailVerified">
+        UPDATE user
+        SET email_verified = #{verified}
+        WHERE email = #{email}
+    </update>
 </mapper>
