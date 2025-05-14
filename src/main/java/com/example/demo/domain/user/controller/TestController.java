@@ -51,7 +51,6 @@ public class TestController {
 
         user.setReceiveMail(testDto.isReceiveMail());
 
-        // 나머지 코드는 동일
         UserRole role = new UserRole();
         role.setRoleName("ROLE_USER");
 
