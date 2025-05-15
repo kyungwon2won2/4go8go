@@ -12,7 +12,7 @@
         <result property="discountAmount" column="discount_amount" />
         <result property="validFrom" column="valid_from" />
         <result property="validTo" column="valid_to" />
-        <result property="userId" column="user_id" /> <!-- userNo -> userId로 수정 -->
+        <result property="userId" column="user_id" />
         <result property="used" column="used" />
         <result property="createdAt" column="created_at" />
     </resultMap>

@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>쿠폰 사용 페이지</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+        /* Reset & base */
+        *, *::before, *::after {
+          box-sizing: border-box;
+        }
+        body {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+          background-color: #f9fafb;
+          color: #333;
+          margin: 0;
+          padding: 0;
+          line-height: 1.6;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+        header {
+          background: linear-gradient(90deg, #6f5acb 0%, #5a3dbd 100%);
+          color: #fff;
+          padding: 20px 32px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          box-shadow: 0 4px 12px rgba(111, 90, 203, 0.3);
+          position: sticky;
+          top: 0;
+          z-index: 10;
+        }
+        header .logo {
+          font-size: 30px;
+          font-weight: 700;
+          letter-spacing: 1.4px;
+          user-select: none;
+        }
+        header nav ul {
+          display: flex;
+          gap: 32px;
+          list-style: none;
+          margin: 0;
+          padding: 0;
+        }
+        header nav ul li a {
+          color: #dcd9f8;
+          text-decoration: none;
+          font-weight: 600;
+          font-size: 16px;
+          transition: color 0.3s ease, border-bottom 0.3s ease;
+          padding-bottom: 4px;
+          border-bottom: 2px solid transparent;
+        }
+        header nav ul li a:hover,
+        header nav ul li a:focus {
+          color: #fff;
+          border-bottom: 2px solid #fff;
+          outline: none;
+        }
+        main {
+          max-width: 900px;
+          margin: 48px auto 120px;
+          padding: 0 24px;
+        }
+        p {
+          font-size: 16px;
+          margin-top: 10px;
+          color: #555;
+        }
+        p strong {
+          color: #5a3dbd;
+          font-weight: 700;
+        }
+        section {
+          background: #fff;
+          border-radius: 14px;
+          padding: 36px 32px 42px;
+          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.07);
+          margin-bottom: 52px;
+          transition: box-shadow 0.3s ease;
+        }
+        section:hover {
+          box-shadow: 0 12px 38px rgba(0, 0, 0, 0.12);
+        }
+        h1, h2 {
+          color: #5a3dbd;
+          font-weight: 700;
+          margin-bottom: 24px;
+          user-select: none;
+          letter-spacing: 0.03em;
+        }
+        h1 {
+          font-size: 28px;
+        }
+        h2 {
+          font-size: 22px;
+        }
+        .info-text {
+          color: #7f7f7f;
+          font-size: 15px;
+          margin-bottom: 30px;
+          line-height: 1.4;
+        }
+
+        /* Coupon input */
+        .coupon-input {
+          display: flex;
+          gap: 16px;
+          margin-top: 16px;
+          max-width: 420px;
+        }
+        .coupon-input input {
+          flex-grow: 1;
+          padding: 16px 22px;
+          font-size: 16px;
+          border: 1.5px solid #ccc;
+          border-radius: 12px;
+          transition: border-color 0.3s ease, box-shadow 0.3s ease;
+          outline-offset: 3px;
+          outline-color: transparent;
+          font-weight: 500;
+          color: #444;
+        }
+        .coupon-input input::placeholder {
+          color: #aaa;
+        }
+        .coupon-input input:focus {
+          border-color: #5a3dbd;
+          box-shadow: 0 0 8px rgba(90, 61, 189, 0.5);
+          outline-color: #5a3dbd;
+        }
+        .coupon-input button {
+          background-color: #5a3dbd;
+          color: #fff;
+          border: none;
+          border-radius: 12px;
+          padding: 16px 34px;
+          font-weight: 700;
+          cursor: pointer;
+          font-size: 16px;
+          box-shadow: 0 5px 14px rgba(90, 61, 189, 0.35);
+          transition: background-color 0.3s ease, box-shadow 0.3s ease;
+          user-select: none;
+          letter-spacing: 0.03em;
+          text-transform: uppercase;
+        }
+        .coupon-input button:hover {
+          background-color: #452a9f;
+          box-shadow: 0 7px 22px rgba(69, 42, 159, 0.6);
+        }
+        .coupon-input button:active {
+          transform: scale(0.97);
+        }
+
+        /* Tables */
+        table {
+          width: 100%;
+          border-collapse: separate;
+          border-spacing: 0 14px;
+          margin-top: 22px;
+          font-size: 16px;
+          table-layout: fixed;
+        }
+        thead tr {
+          background-color: #ede9ff;
+          user-select: none;
+        }
+        thead th {
+          padding: 16px 20px;
+          font-weight: 700;
+          color: #5a3dbd;
+          text-align: left;
+          border-radius: 14px 14px 0 0;
+          letter-spacing: 0.03em;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        tbody tr {
+          background-color: #fff;
+          transition: background-color 0.3s ease;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
+          border-radius: 12px;
+          cursor: default;
+          user-select: text;
+        }
+        tbody tr:hover {
+          background-color: #f4f2ff;
+        }
+        tbody td {
+          padding: 16px 20px;
+          color: #444;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        tbody tr:not(:last-child) td {
+          border-bottom: none;
+        }
+        .no-coupons {
+          color: #bbb;
+          font-style: italic;
+          text-align: center;
+          padding: 28px 0;
+        }
+
+        /* Footer */
+        footer {
+          background-color: #5a3dbd;
+          color: white;
+          text-align: center;
+          padding: 16px 0;
+          font-weight: 600;
+          position: fixed;
+          bottom: 0;
+          width: 100%;
+          box-shadow: 0 -4px 12px rgba(90, 61, 189, 0.4);
+          user-select: none;
+          font-size: 15px;
+          letter-spacing: 0.02em;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+          header nav ul {
+            gap: 16px;
+          }
+          .coupon-input {
+            flex-direction: column;
+          }
+          .coupon-input input, .coupon-input button {
+            width: 100%;
+          }
+          main {
+            margin: 24px 16px 140px;
+            padding: 0 12px;
+          }
+          section {
+            padding: 28px 24px 32px;
+            margin-bottom: 36px;
+          }
+          thead th, tbody td {
+            padding: 14px 12px;
+            font-size: 14px;
+            white-space: normal;
+          }
+          h1 {
+            font-size: 24px;
+          }
+          h2 {
+            font-size: 20px;
+          }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div class="logo">컬리</div>
+    <nav>
+        <ul>
+            <li><a href="#">홈</a></li>
+            <li><a href="#">상품</a></li>
+            <li><a href="#">이벤트</a></li>
+            <li><a href="#">마이페이지</a></li>
+        </ul>
+    </nav>
+</header>
+
+<main>
+
+    <!-- 사용가능 할인쿠폰 개수 -->
+    <p>사용가능 할인쿠폰 <strong th:text="${usableCoupons.size()}">0</strong>개</p>
+
+    <!-- 마감임박 할인쿠폰 개수 -->
+    <p>마감임박 할인쿠폰 &gt; 24시간 이내 <strong th:text="${urgentCoupons.size()}">0</strong>개</p>
+
+    <section class="coupon-usage">
+
+        <h1>할인쿠폰</h1>
+        <p class="info-text">할인쿠폰은 구매조건에 따라 상품 결제 시 적용할 수 있습니다.</p>
+
+        <!-- 쿠폰 직접 입력 -->
+        <section class="coupon-apply" style="margin-top: 40px;">
+            <h2>쿠폰 사용하기</h2>
+            <div class="coupon-input">
+                <input type="text" id="coupon-code" placeholder="쿠폰 코드를 입력하세요" />
+                <button type="button" onclick="applyCoupon()">적용</button>
+            </div>
+        </section>
+    </section>
+
+    <!-- 마감임박 쿠폰 -->
+    <!-- 쿠폰 사용내역 -->
+    <section class="used-coupon-list" style="margin-top: 30px;">
+        <h2>쿠폰 사용내역</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>쿠폰 종류</th>
+                <th>금액</th>
+                <th>사용일자</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="coupon : ${usedCoupons}">
+                <td th:text="${coupon.name}">생일쿠폰</td>
+                <td th:text="${coupon.discount}">3,000 원</td>
+                <td th:text="${#dates.format(coupon.usedDate, 'yyyy년 M월 d일 HH:mm')}">2025년 5월 14일 15:30</td>
+            </tr>
+            <tr th:if="${usedCoupons.size() == 0}">
+                <td colspan="5" class="no-coupons">사용한 쿠폰 내역이 없습니다.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+
+</main>
+
+<script>
+    function applyCoupon() {
+      const couponCode = document.getElementById('coupon-code').value.trim();
+      if (!couponCode) {
+        alert('쿠폰 코드를 입력해주세요.');
+        return;
+      }
+      // 여기에 AJAX 호출 혹은 폼 제출 등 실제 쿠폰 검증 로직 연결
+      // 예시: 간단한 코드 체크
+      if (couponCode === 'KURLY50') {
+        alert('쿠폰이 적용되었습니다! 50% 할인이 적용됩니다.');
+      } else {
+        alert('유효하지 않은 쿠폰 코드입니다.');
+      }
+    }
+</script>
+</body>
+</html>
