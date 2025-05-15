@@ -24,6 +24,9 @@ public interface UserMapper {
     // ID로 사용자 조회
     public Users getUserById(String userId);
 
+    // 이메일로 사용자 조회
+    public Users getUserByEmail(String email);
+
     // 사용자 정보 수정
     public int updateUser(Users user);
 
