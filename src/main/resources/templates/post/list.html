@@ -27,7 +27,7 @@
         <td th:text="${post.userId}"></td>
         <td th:text="${post.viewCount}"></td>
         <td th:text="${post.commentCount}"></td>
-        <td th:text="${#dates.format(post.createdAt, 'yyyy-MM-dd')}"></td>
+        <td th:text="${#dates.format(post.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></td>
         <td>
             <a th:href="@{'/post/' + ${post.postId} + '/edit'}" class="btn btn-sm btn-warning">수정</a>
             <form th:action="@{'/post/' + ${post.postId} + '/delete'}" method="post" style="display:inline;">

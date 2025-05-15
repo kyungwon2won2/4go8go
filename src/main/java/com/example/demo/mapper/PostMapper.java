@@ -23,4 +23,6 @@ public interface PostMapper {
     //게시글 삭제
     void deletePostById(int postId);
 
+    void incrementViewCount(int postId);
 }
+

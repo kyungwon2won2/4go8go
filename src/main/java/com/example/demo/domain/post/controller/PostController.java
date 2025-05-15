@@ -1,13 +1,17 @@
 package com.example.demo.domain.post.controller;
 
+import com.example.demo.domain.comment.helper.CommentHelper;
 import com.example.demo.domain.post.model.Post;
 import com.example.demo.domain.post.service.PostService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
@@ -15,6 +19,7 @@ import java.util.List;
 public class PostController {
 
     private final PostService postService;
+    private final CommentHelper commentHelper;
 
     //전체조회
     @GetMapping
@@ -28,11 +33,17 @@ public class PostController {
     //상세조회
     @GetMapping("/{postId}")
     public String getPostById(@PathVariable int postId, Model model){
+        //조회수 증가
+        postService.incrementViewCount(postId);
+
+        //게시글 정보 가져오기
         Post post = postService.getPostById(postId);
         if(post == null){
             return "redirect:/post";
         }
         model.addAttribute("post", post);
+        model.addAttribute("post_id", postId);
+        model.addAttribute("comment_list", commentHelper.getCommentByPostId(postId));
         return "post/detail";
     }
 
@@ -75,5 +86,21 @@ public class PostController {
         postService.deletePost(postId);
         return "redirect:/post";
     }
+
+    //조회수 증가 비동기 요청 처리
+    @PostMapping("/{postId}/increment-view-count")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> incrementViewCount(@PathVariable int postId){
+        //조회수 증가
+        postService.incrementViewCount(postId);
+
+        //증가된 조회수 반환
+        Post post = postService.getPostById(postId);
+        Map<String, Object> response = new HashMap<>();
+        response.put("viewCount", post.getViewCount());
+
+        return ResponseEntity.ok(response);
+    }
+
 
 }

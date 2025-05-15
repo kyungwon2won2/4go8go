@@ -12,7 +12,7 @@
 <div>
     <img th:if="${post.imageId}" th:src="@{'/images/' + ${post.imageId}}" class="img-fluid mb-3" />
     <p th:text="'(카테고리 ID: ' + ${post.postCategoryId} + ')'" class="text-secondary"></p>
-    <p>조회수: <span th:text="${post.viewCount}"></span></p>
+    <p>조회수: <span id="viewCount" th:text="${post.viewCount}"></span></p>
     <p>댓글수: <span th:text="${post.commentCount}"></span></p>
 </div>
 <hr>
@@ -21,5 +21,28 @@
 <form th:action="@{'/post/' + ${post.postId} + '/delete'}" method="post" style="display:inline;">
     <button type="submit" class="btn btn-danger">삭제</button>
 </form>
+<form th:action="@{/post/{postId}/comment(postId=${post_id})}" method="post">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+    <div class="mb-3">
+        <label for="commentContent" class="form-label">댓글 작성</label>
+        <textarea id="commentContent" name="commentContent" class="form-control" rows="3" placeholder="댓글을 입력하세요"></textarea>
+    </div>
+    <button type="submit" class="btn btn-success">작성하기</button>
+</form>
+
+<h3>댓글 목록</h3>
+<div th:if="${comment_list != null and !comment_list.isEmpty()}">
+    <ul class="list-group">
+        <li class="list-group-item" th:each="comment : ${comment_list}">
+            <strong th:text="${comment.userId}">작성자</strong>
+            <span class="text-muted" th:text="${#dates.format(comment.createdAt, 'yyyy-MM-dd HH:mm:ss')}">작성일</span>
+            <p th:text="${comment.content}">댓글 내용</p>
+        </li>
+    </ul>
+</div>
+<div th:if="${comment_list == null or comment_list.isEmpty()}">
+    <p>댓글이 없습니다.</p>
+</div>
+
 </body>
 </html>

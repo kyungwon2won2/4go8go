@@ -71,6 +71,13 @@
         )
     </insert>
 
+    <!-- 조회수 증가 -->
+    <update id="incrementViewCount" parameterType="int">
+        update post
+        set view_count = view_count + 1
+        where post_id = #{postId}
+    </update>
+
 
 
 </mapper>
