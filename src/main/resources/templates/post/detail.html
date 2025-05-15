@@ -12,7 +12,7 @@
 <div>
     <img th:if="${post.imageId}" th:src="@{'/images/' + ${post.imageId}}" class="img-fluid mb-3" />
     <p th:text="'(카테고리 ID: ' + ${post.postCategoryId} + ')'" class="text-secondary"></p>
-    <p>조회수: <span th:text="${post.viewCount}"></span></p>
+    <p>조회수: <span id="viewCount" th:text="${post.viewCount}"></span></p>
     <p>댓글수: <span th:text="${post.commentCount}"></span></p>
 </div>
 <hr>
