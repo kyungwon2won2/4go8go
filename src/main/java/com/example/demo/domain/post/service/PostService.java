@@ -5,6 +5,7 @@ import com.example.demo.mapper.PostMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -26,12 +27,15 @@ public class PostService {
 
     //게시글 작성
     public void addPost(Post post){
+        post.setCreatedAt(new Date());
+        post.setUpdatedAt(new Date());
         postMapper.insertPost(post);
 
     }
 
     //게시글 수정
     public void updatePost(Post post){
+        post.setUpdatedAt(new Date());
         postMapper.updatePost(post);
     }
 
@@ -40,6 +44,10 @@ public class PostService {
         postMapper.deletePostById(postId);
     }
 
+    //조회수 증가
+    public void incrementViewCount(int postId){
+        postMapper.incrementViewCount(postId);
+    }
 
 
 
