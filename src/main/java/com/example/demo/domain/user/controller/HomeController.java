@@ -8,11 +8,13 @@ import java.security.Principal;
 
 @Controller
 public class HomeController {
-	
+
 	@GetMapping({"","/"})
 	public String home(Model model, Principal principal) {
-		String loginId = principal !=null ? principal.getName() : "guest";
-		model.addAttribute(loginId, loginId);
+		boolean isLoggedIn = principal != null;
+		String loginId = isLoggedIn ? principal.getName() : "guest";
+		model.addAttribute("loginId", loginId);
+		model.addAttribute("isLoggedIn", isLoggedIn);
 		return "index";
 	}
 }
