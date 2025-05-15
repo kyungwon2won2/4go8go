@@ -2,9 +2,8 @@ package com.example.demo.domain.user.controller;
 
 import com.example.demo.common.security.service.UserServiceImpl;
 import com.example.demo.domain.user.dto.TestDto;
-import com.example.demo.domain.user.model.UserAuth;
+import com.example.demo.domain.user.model.UserRole;
 import com.example.demo.domain.user.model.Users;
-import com.example.demo.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.time.ZoneId;
 
 @Controller
 @RequiredArgsConstructor
@@ -30,34 +30,40 @@ public class TestController {
         public String login() {
             return "login"; // templates/join.html 렌더링
         }
-        @PostMapping("/join")
-        public String CreateUser(@ModelAttribute TestDto testDto){
-                Users user = new Users();
-                user.setUserId(testDto.getUserId());
-                user.setUserPw(testDto.getUserPw());
-                user.setName(testDto.getName());
-                user.setEmail(testDto.getEmail());
-                user.setRegDate(new Date());
-                user.setUpdDate(new Date());
-                user.setEnabled(1); // 기본값 활성화로 설정
+    @PostMapping("/join")
+    public String CreateUser(@ModelAttribute TestDto testDto) {
+        Users user = new Users();
+        user.setEmail(testDto.getEmail());
+        user.setPassword(testDto.getPassword());
+        user.setName(testDto.getName());       // 추가
+        user.setPhone(testDto.getPhone());     // 추가
+        user.setNickname(testDto.getNickname());
+        user.setAddress(testDto.getAddress());
 
-                // 권한 설정 예시
-                UserAuth auth = new UserAuth();
-                auth.setUserId(testDto.getUserId());
-                auth.setAuth("ROLE_USER");
+        // 이메일 인증 상태를 true로 설정 테스트용
+        user.setEmailVerified(true);
 
-                List<UserAuth> authList = new ArrayList<>();
-                authList.add(auth);
-                user.setAuthList(authList);
-                int n = 0;
-                try {
-                    n = userServiceImpl.join(user);
-                } catch (Exception e){
-                    System.out.println("ddd : " + e.getMessage());
-                }
-                return "index";
-            }
+        // LocalDate를 Date로 변환
+        if (testDto.getBirthDate() != null) {
+            Date birthDate = Date.from(testDto.getBirthDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+            user.setBirthDate(birthDate);
+        }
 
+        user.setReceiveMail(testDto.isReceiveMail());
 
+        UserRole role = new UserRole();
+        role.setRoleName("ROLE_USER");
 
+        List<UserRole> roleList = new ArrayList<>();
+        roleList.add(role);
+        user.setRoleList(roleList);
+
+        try {
+            userServiceImpl.join(user);
+        } catch (Exception e) {
+            System.out.println("회원가입 오류: " + e.getMessage());
+        }
+        return "redirect:/login";
     }
+
+}
