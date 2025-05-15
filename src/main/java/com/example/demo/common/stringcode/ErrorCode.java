@@ -4,7 +4,7 @@ import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 @Getter
-public enum ErrorCodeEnum {
+public enum ErrorCode {
 
     LOGIN_FAIL(HttpStatus.BAD_REQUEST, "로그인 실패"),
     DUPLICATE_USERNAME_EXIST(HttpStatus.BAD_REQUEST, "중복된 사용자가 존재합니다"),
@@ -13,6 +13,7 @@ public enum ErrorCodeEnum {
     USER_NOT_MATCH(HttpStatus.BAD_REQUEST, "작성자만 수정, 삭제가 가능합니다"),
 
     UNAUTHORIZED_ACCESS(HttpStatus.UNAUTHORIZED, "인증되지 않은 접근입니다"),
+    ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근이 거부되었습니다"),
     FORBIDDEN_ACCESS(HttpStatus.FORBIDDEN, "접근 권한이 없습니다"),
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "요청하신 자원을 찾을 수 없습니다"),
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "허용되지 않는 HTTP 메소드입니다"),
@@ -32,7 +33,7 @@ public enum ErrorCodeEnum {
     private final HttpStatus status;
     private final String message;
 
-    ErrorCodeEnum(HttpStatus status, String message) {
+    ErrorCode(HttpStatus status, String message) {
         this.status = status;
         this.message = message;
     }

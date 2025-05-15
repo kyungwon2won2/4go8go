@@ -58,8 +58,8 @@ public class SecurityConfig {
 				.loginPage("/login")
 				.loginProcessingUrl("/loginPro")
 				.defaultSuccessUrl("/")
-				.usernameParameter("email")    // userId에서 email로 변경
-				.passwordParameter("password") // userPw에서 password로 변경
+				.usernameParameter("email")
+				.passwordParameter("password")
 				.successHandler(authenticationSuccessHandler())
 				.permitAll()
 		);
