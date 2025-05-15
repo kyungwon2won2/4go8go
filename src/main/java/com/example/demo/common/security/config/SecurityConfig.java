@@ -40,7 +40,6 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> auth
 				.requestMatchers("/admin/**").hasRole("ADMIN")
 				.requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
-				.requestMatchers("/test/**").hasRole("**")
 				.anyRequest().permitAll());
 
 		http.logout(logout -> logout

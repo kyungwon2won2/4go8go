@@ -17,9 +17,7 @@ import org.springframework.stereotype.Service;
  사용자가 로그인 시도 (/login POST)
  스프링 시큐리티는 내부적으로 UserDetailsService.loadUserByUsername() 호출
  이 메서드를 통해 DB에서 사용자 정보를 가져옴
- 반환된 UserDetails 객체의 비밀번호, 권한 등을 기준으로 인증 진행 
-  
-  
+ 반환된 UserDetails 객체의 비밀번호, 권한 등을 기준으로 인증 진행
  */
 @Service
 @RequiredArgsConstructor

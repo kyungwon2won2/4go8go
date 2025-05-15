@@ -90,45 +90,45 @@ public class GlobalExceptionHandler {
         );
     }
 
-//    // 효성 검사 실패
-//    @ExceptionHandler(MethodArgumentNotValidException.class)
-//    public ModelAndView handleMethodArgumentNotValidException(MethodArgumentNotValidException ex, HttpServletRequest request) {
-//        StringBuilder stringBuilder = new StringBuilder();
-//        ex.getBindingResult().getFieldErrors().forEach((error) -> {
-//            stringBuilder.append(error.getField()).append(": ").append(error.getDefaultMessage()).append(" / ");
-//        });
-//
-//        if (stringBuilder.length() > 3) {
-//            stringBuilder.setLength(stringBuilder.length() - 3);
-//        }
-//
-//        String errorMessage = stringBuilder.toString();
-//        log.error("Validation Failed: {}, Request URI: {}", errorMessage, request.getRequestURI());
-//
-//        return buildErrorModelAndView(
-//                ErrorCode.VALIDATION_FAILED,
-//                errorMessage,
-//                request.getRequestURI(),
-//                ex
-//        );
-//    }
-//
-//    // 기타 모든 예외 처리
-//    @ExceptionHandler(Exception.class)
-//    public ModelAndView handleException(Exception ex, HttpServletRequest request) {
-//        log.error("Unhandled Exception: {}, Request URI: {}", ex.getMessage(), request.getRequestURI(), ex);
-//        return buildErrorModelAndView(
-//                ErrorCode.INTERNAL_SERVER_ERROR,
-//                "처리 중 예상치 못한 오류가 발생했습니다.",
-//                request.getRequestURI(),
-//                ex
-//        );
-//    }
-//
+    // 효율성 검사 실패
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ModelAndView handleMethodArgumentNotValidException(MethodArgumentNotValidException ex, HttpServletRequest request) {
+        StringBuilder stringBuilder = new StringBuilder();
+        ex.getBindingResult().getFieldErrors().forEach((error) -> {
+            stringBuilder.append(error.getField()).append(": ").append(error.getDefaultMessage()).append(" / ");
+        });
+
+        if (stringBuilder.length() > 3) {
+            stringBuilder.setLength(stringBuilder.length() - 3);
+        }
+
+        String errorMessage = stringBuilder.toString();
+        log.error("Validation Failed: {}, Request URI: {}", errorMessage, request.getRequestURI());
+
+        return buildErrorModelAndView(
+                ErrorCode.VALIDATION_FAILED,
+                errorMessage,
+                request.getRequestURI(),
+                ex
+        );
+    }
+
+    // 기타 모든 예외 처리
+    @ExceptionHandler(Exception.class)
+    public ModelAndView handleException(Exception ex, HttpServletRequest request) {
+        log.error("Unhandled Exception: {}, Request URI: {}", ex.getMessage(), request.getRequestURI(), ex);
+        return buildErrorModelAndView(
+                ErrorCode.INTERNAL_SERVER_ERROR,
+                "처리 중 예상치 못한 오류가 발생했습니다.",
+                request.getRequestURI(),
+                ex
+        );
+    }
+
     // ModelAndView 구성 메서드
     private ModelAndView buildErrorModelAndView(ErrorCode errorCode, String message, String path, Exception ex) {
         ModelAndView modelAndView = new ModelAndView("errorPage");
-        
+
         // 기본 에러 정보
         modelAndView.addObject("timestamp", LocalDateTime.now().format(formatter));
         modelAndView.addObject("status", errorCode.getStatus().value());
@@ -137,13 +137,11 @@ public class GlobalExceptionHandler {
         modelAndView.addObject("message", errorCode.getMessage());
         modelAndView.addObject("detailMessage", message);
         modelAndView.addObject("path", path);
-        
         // 개발 환경을 위한 추가 디버그 정보
         if (ex != null) {
             modelAndView.addObject("exception", ex.getClass().getName());
             modelAndView.addObject("trace", ex.getStackTrace().length > 0 ? ex.getStackTrace()[0].toString() : "");
         }
-        
         modelAndView.setStatus(errorCode.getStatus());
         return modelAndView;
     }

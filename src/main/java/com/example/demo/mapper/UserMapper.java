@@ -32,4 +32,6 @@ public interface UserMapper {
 
     List<Users> findUsersByBirthdayToday();
 
+    Users getUserByEmail(String email);
+
 }
