@@ -55,18 +55,23 @@
             text-decoration: none;
         }
 
-        /* 로고 영역 */
+        /* 공통 로고 영역 스타일 - 두 페이지에 동일하게 적용할 코드 */
         .logo-area {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 20px 0;
+            background-color: white;
+            border-bottom: 1px solid var(--border-color);
+            width: 100%;
         }
 
         .logo {
             font-size: 24px;
             font-weight: bold;
             color: var(--primary-color);
+            text-decoration: none;
+            margin-left: 20px;
         }
 
         .search-box {
@@ -239,7 +244,7 @@
 
     <!-- 로고, 검색창, 아이콘 -->
     <div class="logo-area">
-        <div class="logo">4고8고마켓</div>
+        <a href="/" class="logo"><img src="/images/4go8go_logo.png" alt="4고8고마켓" height="40"></a>
         <div class="search-box">
             <input type="text" placeholder="검색어를 입력해주세요">
             <button><i class="bi bi-search"></i></button>
