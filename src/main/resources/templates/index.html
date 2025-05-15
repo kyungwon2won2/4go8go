@@ -218,28 +218,24 @@
 <!-- 헤더 (로그인/회원가입) -->
 <header class="container">
     <div class="header-top">
-        <div></div>
-        <ul class="user-menu">
+        <div class="container">
             <!-- 비로그인 상태 -->
-            <th:block sec:authorize="isAnonymous()">
-                <li><a href="/join">회원가입</a></li>
-                <li><a href="/login">로그인</a></li>
-            </th:block>
+            <div th:if="${!isLoggedIn}">
+                <h3>환영합니다! 로그인하시면 더 많은 서비스를 이용하실 수 있습니다.</h3>
+                <a href="/login" class="btn btn-primary">로그인</a>
+                <a href="/join" class="btn btn-secondary">회원가입</a>
+            </div>
 
             <!-- 로그인 상태 -->
-            <th:block sec:authorize="isAuthenticated()">
-                <li>
-                    <span sec:authentication="principal.username"></span>님
-                </li>
-                <li>
-                    <form action="/logout" method="post" style="display: inline">
-                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                        <button type="submit" style="background: none; border: none; cursor: pointer; padding: 0; color: #666; font-size: 12px;">로그아웃</button>
-                    </form>
-                </li>
-            </th:block>
-            <li><a href="#">고객센터</a></li>
-        </ul>
+            <div th:if="${isLoggedIn}">
+                <h3><span th:text="${loginId}"></span>님 환영합니다!</h3>
+                <a href="/user/profile" class="btn btn-primary">내 정보</a>
+                <form action="/logout" method="post" style="display: inline-block">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button type="submit" class="btn btn-danger">로그아웃</button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- 로고, 검색창, 아이콘 -->
@@ -263,7 +259,11 @@
             <li><a href="#">신상품</a></li>
             <li><a href="#">베스트</a></li>
             <li><a href="#">알뜰쇼핑</a></li>
-            <li><a href="#">특가/혜택</a></li>
+
+            <!-- 게시판 메뉴 -->
+            <th:block sec:authorize="hasAnyRole('ROLE_USER','ROLE_ADMIN')">
+                <li><a href="/post" style="color: var(--primary-color);">게시판</a></li>
+            </th:block>
 
             <!-- 관리자 메뉴 -->
             <th:block sec:authorize="hasRole('ROLE_ADMIN')">
