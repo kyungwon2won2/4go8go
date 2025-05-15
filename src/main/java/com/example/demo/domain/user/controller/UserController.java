@@ -1,27 +1,24 @@
 package com.example.demo.domain.user.controller;
 
-import com.example.demo.common.security.service.UserService;
+import com.example.demo.domain.user.dto.UpdateUserDTO;
 import com.example.demo.domain.user.model.Users;
+import com.example.demo.domain.user.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.propertyeditors.CustomDateEditor;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.security.access.prepost.PreAuthorize;
+import lombok.extern.slf4j.Slf4j;import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 @Slf4j
 @Controller
 @RequestMapping("/user")
 @RequiredArgsConstructor
 public class UserController {
+
+	private final UserService userService;
 
 	@GetMapping
 	public String index(Model model, Principal principal) {
@@ -30,9 +27,6 @@ public class UserController {
 		model.addAttribute("user", user);
 		return "user/index";
 	}
-
-
-	private final UserService userService;
 
 	// 사용자 목록 조회 (관리자만 접근 가능)
 	@GetMapping("/list")
@@ -50,36 +44,16 @@ public class UserController {
 		return "user/profile";
 	}
 
-	// 문자열 -> Date 변환을 위한 바인더 설정
-	@InitBinder
-	public void initBinder(WebDataBinder binder) {
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-		dateFormat.setLenient(false);
-		binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, true));
-	}
-
 	@GetMapping("/edit")
 	public String editUserForm(Model model, Principal principal) {
-		String email = principal.getName();
-		Users user = userService.login(email);
+		Users user = userService.getUserByEmail(principal.getName());
 		model.addAttribute("user", user);
 		return "user/edit";
 	}
 
 	@PostMapping("/edit")
-	public String updateUser(@ModelAttribute Users user, Date birthDate, RedirectAttributes ra) {
-		user.setBirthDate(birthDate);
-
-		try {
-			int result = userService.updateUser(user);
-			if(result > 0) {
-				ra.addFlashAttribute("message", "회원정보가 성공적으로 수정되었습니다.");
-			} else {
-				ra.addFlashAttribute("error", "회원정보 수정에 실패했습니다.");
-			}
-		} catch (Exception e) {
-			ra.addFlashAttribute("error", "처리 중 오류가 발생했습니다: " + e.getMessage());
-		}
+	public String updateUser(@Valid UpdateUserDTO dto) {
+		userService.updateUser(dto);
 		return "redirect:/user";
 	}
 
