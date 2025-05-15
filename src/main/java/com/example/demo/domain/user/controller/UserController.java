@@ -21,12 +21,13 @@ public class UserController {
 
 	private final UserService userService;
 
-	@GetMapping
-	public String index(Model model, Principal principal) {
+	// 사용자 정보 조회
+	@GetMapping("/profile")
+	public String userProfile(Model model, Principal principal) {
 		log.info("[[[[  /user ]]]]");
 		Users user = userService.getUserById(principal.getName());
 		model.addAttribute("user", user);
-		return "user/index";
+		return "user/profile";
 	}
 
 	// 사용자 목록 조회 (관리자만 접근 가능)
@@ -35,14 +36,6 @@ public class UserController {
 	public String userList(Model model) {
 		model.addAttribute("users", userService.getAllUsers());
 		return "user/list";
-	}
-
-	// 사용자 상세 정보
-	@GetMapping("/profile")
-	public String userProfile(Model model, Principal principal) {
-		Users user = userService.getUserById(principal.getName());
-		model.addAttribute("user", user);
-		return "user/profile";
 	}
 
 	@GetMapping("/edit")
