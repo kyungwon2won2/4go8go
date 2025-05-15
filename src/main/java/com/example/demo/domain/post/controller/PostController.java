@@ -1,5 +1,6 @@
 package com.example.demo.domain.post.controller;
 
+import com.example.demo.domain.comment.helper.CommentHelper;
 import com.example.demo.domain.post.model.Post;
 import com.example.demo.domain.post.service.PostService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import java.util.Map;
 public class PostController {
 
     private final PostService postService;
+    private final CommentHelper commentHelper;
 
     //전체조회
     @GetMapping
@@ -40,6 +42,8 @@ public class PostController {
             return "redirect:/post";
         }
         model.addAttribute("post", post);
+        model.addAttribute("post_id", postId);
+        model.addAttribute("comment_list", commentHelper.getCommentByPostId(postId));
         return "post/detail";
     }
 
