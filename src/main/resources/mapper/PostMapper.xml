@@ -14,6 +14,7 @@
         <result property="commentCount" column="comment_count"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
+        <result property="content" column="content"/>
     </resultMap>
 
     <select id="selectAllPost" resultType="com.example.demo.domain.post.model.Post">
@@ -39,6 +40,7 @@
         set
 
             title = #{title},
+            content = #{content},
             image_id = #{imageId},
             updated_at = #{updatedAt}
         where post_id = #{postId}
@@ -51,6 +53,7 @@
             post_category_id,
             user_id,
             title,
+            content,
             image_id,
             view_count,
             comment_count,
@@ -63,6 +66,7 @@
             #{postCategoryId},
             #{userId},
             #{title},
+            #{content},
             #{imageId},
             #{viewCount},
             #{commentCount},

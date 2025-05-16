@@ -31,6 +31,9 @@ public class Users implements Serializable {
 	private boolean emailVerified; // 이메일 인증 상태 필드 추가
 	private Date createdAt;
 	private Date updatedAt;
+	private String socialType;    // GOOGLE, KAKAO, NAVER 등
+	private String socialId;      // 소셜 서비스의 고유 ID
+	private String oauth2AccessToken;
 
 	// 권한 목록
 	List<UserRole> roleList;

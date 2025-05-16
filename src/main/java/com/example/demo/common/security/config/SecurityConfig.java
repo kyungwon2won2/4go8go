@@ -1,7 +1,9 @@
 package com.example.demo.common.security.config;
 
+import com.example.demo.common.oauth.CustomOAuth2UserService;
 import com.example.demo.common.security.handler.CustomerAccessDeniedHandler;
 import com.example.demo.common.security.handler.LoginSuccessHandler;
+import com.example.demo.common.security.handler.OAuth2LoginSuccessHandler;
 import com.example.demo.common.security.service.CustomerDetailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +33,9 @@ public class SecurityConfig {
 
 	private final CustomerDetailService customerDetailService;
 
+	private final CustomOAuth2UserService customOAuth2UserService;
+
+
 	//권한처리
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -58,6 +63,15 @@ public class SecurityConfig {
 				.passwordParameter("password")
 				.successHandler(authenticationSuccessHandler())
 				.permitAll()
+		);
+
+		// OAuth2 로그인 설정 추가
+		http.oauth2Login(oauth2 -> oauth2
+				.loginPage("/login")
+				.userInfoEndpoint(userInfo -> userInfo
+						.userService(customOAuth2UserService)
+				)
+				.successHandler(oAuth2AuthenticationSuccessHandler())
 		);
 
 		http.userDetailsService(customerDetailService); //사용자 정의 인증 방식 (mybatis 연동)
@@ -90,6 +104,9 @@ public class SecurityConfig {
 	public AuthenticationSuccessHandler authenticationSuccessHandler(){
 		return new LoginSuccessHandler();
 	}
+
+	@Bean
+	public AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler() { return new OAuth2LoginSuccessHandler(); }
 
 }
 
