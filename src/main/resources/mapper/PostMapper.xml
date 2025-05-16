@@ -38,7 +38,6 @@
     <update id="updatePost" parameterType="com.example.demo.domain.post.model.Post">
         update post
         set
-
             title = #{title},
             content = #{content},
             image_id = #{imageId},
@@ -49,7 +48,6 @@
     <insert id="insertPost" parameterType="com.example.demo.domain.post.model.Post" useGeneratedKeys="true" keyProperty="postId">
         insert into post
         (
-
             post_category_id,
             user_id,
             title,
@@ -62,7 +60,6 @@
         )
         values
         (
-
             #{postCategoryId},
             #{userId},
             #{title},
