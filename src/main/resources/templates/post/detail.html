@@ -14,6 +14,7 @@
     <p th:text="'(카테고리 ID: ' + ${post.postCategoryId} + ')'" class="text-secondary"></p>
     <p>조회수: <span id="viewCount" th:text="${post.viewCount}"></span></p>
     <p>댓글수: <span th:text="${post.commentCount}"></span></p>
+    <div th:utext="${post.content}"></div>
 </div>
 <hr>
 <a href="/post" class="btn btn-secondary">목록</a>

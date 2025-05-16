@@ -16,5 +16,8 @@ public class Post {
     private Date createdAt;
     private Date updatedAt;
 
+    //내용추가, 스키마 컬럼추가
+    private String content;
+
 
 }
