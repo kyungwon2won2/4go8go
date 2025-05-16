@@ -21,6 +21,7 @@ public class CommentService {
 
     @Transactional
     public void createComment(int postId, String commentContent, Principal principal){
+
         Users user = userMapper.getUserById(principal.getName());
         Comment comment = new Comment(
                 postId,
@@ -30,5 +31,14 @@ public class CommentService {
         );
 
         commentMapper.insertComment(comment);
+    }
+
+    @Transactional
+    public void updateComment(int commentId, String commentContent, int userId){
+        Comment comment = commentMapper.selectComment(commentId);
+        comment.setContent(commentContent);
+        comment.setUpdatedAt(new Date());
+
+        commentMapper.updateComment(comment);
     }
 }
