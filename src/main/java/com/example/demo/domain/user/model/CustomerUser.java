@@ -23,6 +23,14 @@ public class CustomerUser implements UserDetails {
 				.collect(Collectors.toList());
 	}
 
+	public Users getUser(){
+		return user;
+	}
+
+	public int getUserId(){
+		return user.getUserId();
+	}
+
 	@Override
 	public String getPassword() {
 		return user.getPassword();
