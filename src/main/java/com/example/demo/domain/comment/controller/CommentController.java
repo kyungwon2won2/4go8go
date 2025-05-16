@@ -21,7 +21,7 @@ public class CommentController {
     @PostMapping
     public String createComment(@PathVariable("post_id") int postId, String commentContent, Principal principal){
         commentService.createComment(postId, commentContent, principal);
-        System.out.println("젠킨스 테스트2");
+        System.out.println("젠킨스 테스트23");
         return "redirect:/post/" + postId;
     }
 
