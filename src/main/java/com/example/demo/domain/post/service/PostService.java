@@ -1,17 +1,13 @@
 package com.example.demo.domain.post.service;
 
-import com.example.demo.domain.post.dto.GeneralDetailDto;
-import com.example.demo.domain.post.dto.GeneralPostDto;
+import com.example.demo.domain.post.DTO.GeneralDetailDto;
+import com.example.demo.domain.post.DTO.GeneralPostDto;
 import com.example.demo.domain.post.model.Post;
-import com.example.demo.domain.user.model.Users;
 import com.example.demo.mapper.PostMapper;
-import com.example.demo.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.Principal;
 import java.util.Date;
 import java.util.List;
 
