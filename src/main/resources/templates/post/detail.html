@@ -7,10 +7,9 @@
 </head>
 <body class="container mt-4">
 <h1 th:text="${post.title}"></h1>
-<p class="text-muted">작성자: <span th:text="${post.userId}"></span> | 작성일: <span th:text="${#dates.format(post.createdAt, 'yyyy-MM-dd HH:mm')}"></span></p>
+<p class="text-muted">작성자: <span th:text="${post.userName}"></span> | 작성일: <span th:text="${#dates.format(post.createdAt, 'yyyy-MM-dd HH:mm')}"></span>| 수정일: <span th:text="${#dates.format(post.updatedAt, 'yyyy-MM-dd HH:mm')}"></span></p>
 <hr>
 <div>
-    <img th:if="${post.imageId}" th:src="@{'/images/' + ${post.imageId}}" class="img-fluid mb-3" />
     <p th:text="'(카테고리 ID: ' + ${post.postCategoryId} + ')'" class="text-secondary"></p>
     <p>조회수: <span id="viewCount" th:text="${post.viewCount}"></span></p>
     <p>댓글수: <span th:text="${post.commentCount}"></span></p>

@@ -18,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.web.filter.HiddenHttpMethodFilter;
 
 import javax.sql.DataSource;
 
@@ -76,8 +77,12 @@ public class SecurityConfig {
 
 		http.userDetailsService(customerDetailService); //사용자 정의 인증 방식 (mybatis 연동)
 		http.exceptionHandling(exceptions -> exceptions.accessDeniedHandler(accessDeniedHandler()));
-
 		return http.build();
+	}
+	// HiddenHttpMethodFilter 빈만 별도 등록
+	@Bean
+	public HiddenHttpMethodFilter hiddenHttpMethodFilter() {
+		return new HiddenHttpMethodFilter();
 	}
 
 	//권한접근 제어 처리

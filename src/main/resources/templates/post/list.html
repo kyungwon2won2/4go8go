@@ -24,7 +24,7 @@
     <tr th:each="post : ${posts}">
         <td th:text="${post.postId}"></td>
         <td><a th:href="@{'/post/' + ${post.postId}}" th:text="${post.title}"></a></td>
-        <td th:text="${post.userId}"></td>
+        <td th:text="${post.userName}"></td>
         <td th:text="${post.viewCount}"></td>
         <td th:text="${post.commentCount}"></td>
         <td th:text="${#dates.format(post.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></td>
