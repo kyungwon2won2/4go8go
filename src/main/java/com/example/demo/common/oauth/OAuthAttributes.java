@@ -61,21 +61,17 @@ public class OAuthAttributes {
     }
 
     private static OAuthAttributes ofNaver(String userNameAttributeName, Map<String, Object> attributes) {
-        // attributes가 response 키를 포함하는지 확인
-        Map<String, Object> response;
-        if (attributes.containsKey("response")) {
-            response = (Map<String, Object>) attributes.get("response");
-        } else {
-            // 이미 response 자체가 전달된 경우
-            response = attributes;
+        Map<String, Object> response = (Map<String, Object>) attributes.get("response");
+        if (response == null) {
+            response = attributes;  // 이미 response가 attributes인 경우 처리
         }
 
         NaverOAuth2UserInfo userInfo = new NaverOAuth2UserInfo(response);
 
         return OAuthAttributes.builder()
-                .name((String) response.get("name"))
-                .email((String) response.get("email"))
-                .attributes(attributes) // 원래 attributes를 유지
+                .name(userInfo.getName())
+                .email(userInfo.getEmail())
+                .attributes(attributes)
                 .nameAttributeKey(userNameAttributeName)
                 .oauth2UserInfo(userInfo)
                 .build();

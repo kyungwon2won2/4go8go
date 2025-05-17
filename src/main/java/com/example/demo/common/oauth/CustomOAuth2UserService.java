@@ -28,23 +28,27 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        String registrationId = userRequest.getClientRegistration().getRegistrationId();
+        log.info("OAuth 로그인 진행 중: {}", registrationId);
+
         OAuth2UserService<OAuth2UserRequest, OAuth2User> delegate = new DefaultOAuth2UserService();
         OAuth2User oAuth2User = delegate.loadUser(userRequest);
 
-        // 현재 로그인 진행 중인 서비스 구분(구글, 카카오, 네이버)
-        String registrationId = userRequest.getClientRegistration().getRegistrationId();
-
-        // OAuth2 로그인 진행 시 키가 되는 필드값 (PK)
         String userNameAttributeName = userRequest.getClientRegistration()
                 .getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName();
+        log.info("userNameAttributeName: {}", userNameAttributeName);
 
-        // OAuth2UserService를 통해 가져온 데이터를 담을 클래스
         Map<String, Object> attributes = oAuth2User.getAttributes();
+        log.info("OAuth2 속성: {}", attributes);
 
-        // 네이버 로그인인 경우 response를 포함하도록 설정
-        if ("naver".equals(registrationId) && !attributes.containsKey("response")) {
-            attributes = new HashMap<>(attributes);
-            attributes.put("response", attributes);
+        // 네이버 로그인이면서 응답이 없는 경우
+        if ("naver".equals(registrationId)) {
+            log.info("네이버 로그인 처리");
+            if (attributes.containsKey("response")) {
+                log.info("네이버 응답 데이터 확인: {}", attributes.get("response"));
+            } else {
+                log.warn("네이버 응답에 'response' 키가 없습니다!");
+            }
         }
 
         // OAuthAttributes 객체 생성
