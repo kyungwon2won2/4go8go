@@ -1,13 +1,12 @@
 package com.example.demo.domain.post.controller;
 
+import com.example.demo.domain.comment.dto.CommentDTO;
 import com.example.demo.domain.comment.helper.CommentHelper;
-import com.example.demo.domain.post.dto.GeneralDetailDto;
-import com.example.demo.domain.post.dto.GeneralPostDto;
+import com.example.demo.domain.post.DTO.GeneralDetailDto;
+import com.example.demo.domain.post.DTO.GeneralPostDto;
 import com.example.demo.domain.post.model.Post;
 import com.example.demo.domain.post.service.PostService;
 import com.example.demo.domain.user.model.CustomerUser;
-import com.example.demo.domain.user.model.Users;
-import com.example.demo.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,8 +46,11 @@ public class PostController {
         if(post == null){
             return "redirect:/post";
         }
+        // 댓글 가져오기 (닉네임 포함)
+        List<CommentDTO> commentList = commentHelper.getCommentWithNicknameByPostId(postId);
 
         model.addAttribute("post", post);
+        model.addAttribute("comment_list", commentList);
         return "post/detail";
     }
 

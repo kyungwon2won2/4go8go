@@ -1,5 +1,6 @@
 package com.example.demo.mapper;
 
+import com.example.demo.domain.comment.dto.CommentDTO;
 import com.example.demo.domain.comment.model.Comment;
 
 import java.util.List;
@@ -11,9 +12,15 @@ public interface CommentMapper {
 
     // 댓글 1개 조회
     Comment selectComment(int commentId);
+    
+    // 댓글 1개 상세 조회 (닉네임 포함)
+    CommentDTO selectCommentWithNickname(int commentId);
 
     // 게시글에 달린 댓글 목록 조회
     List<Comment> selectCommentsByPost(int postId);
+    
+    // 게시글에 달린 댓글 목록 조회 (닉네임 포함)
+    List<CommentDTO> selectCommentsByPostWithNickname(int postId);
 
     // 댓글 수정
     void updateComment(Comment comment);
