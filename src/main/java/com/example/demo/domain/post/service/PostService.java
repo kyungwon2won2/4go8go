@@ -7,7 +7,9 @@ import com.example.demo.domain.user.model.Users;
 import com.example.demo.mapper.PostMapper;
 import com.example.demo.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
 import java.util.Date;
@@ -18,7 +20,7 @@ import java.util.List;
 public class PostService {
 
     private final PostMapper postMapper;
-    private final UserMapper userMapper;
+    //private final UserMapper userMapper;
 
     //전체조회
     public List<GeneralPostDto> getAllPostsDto(){
@@ -32,24 +34,27 @@ public class PostService {
     }
 
     //게시글 작성
-    public void addPost(Post post, Principal principal){
+    @Transactional
+    public void addPost(Post post, int userId){
 
-        Users user = userMapper.getUserById(principal.getName());
+        //Users user = userMapper.getUserById(principal.getName());
 
         post.setCreatedAt(new Date());
         post.setUpdatedAt(new Date());
-        post.setUserId(user.getUserId());
+        post.setUserId(userId);
         postMapper.insertPost(post);
 
     }
 
     //게시글 수정
+    @Transactional
     public void updatePost(Post post){
         post.setUpdatedAt(new Date());
         postMapper.updatePost(post);
     }
 
     //게시글 삭제
+    @Transactional
     public void deletePost(int postId){
         postMapper.deletePostById(postId);
     }

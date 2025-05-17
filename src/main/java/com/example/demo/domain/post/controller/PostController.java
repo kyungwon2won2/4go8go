@@ -5,10 +5,12 @@ import com.example.demo.domain.post.dto.GeneralDetailDto;
 import com.example.demo.domain.post.dto.GeneralPostDto;
 import com.example.demo.domain.post.model.Post;
 import com.example.demo.domain.post.service.PostService;
+import com.example.demo.domain.user.model.CustomerUser;
 import com.example.demo.domain.user.model.Users;
 import com.example.demo.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -59,9 +61,9 @@ public class PostController {
 
     //게시글 생성 처리
     @PostMapping
-    public String createPost(@ModelAttribute Post post, Principal principal){
+    public String createPost(@ModelAttribute Post post, @AuthenticationPrincipal CustomerUser loginUser){
         System.out.println(post);
-        postService.addPost(post, principal);
+        postService.addPost(post, loginUser.getUserId());
         return "redirect:/post";
     }
 
