@@ -1,10 +1,15 @@
 package com.example.demo.domain.post.service;
 
+import com.example.demo.domain.post.dto.GeneralDetailDto;
+import com.example.demo.domain.post.dto.GeneralPostDto;
 import com.example.demo.domain.post.model.Post;
+import com.example.demo.domain.user.model.Users;
 import com.example.demo.mapper.PostMapper;
+import com.example.demo.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
 import java.util.Date;
 import java.util.List;
 
@@ -13,22 +18,27 @@ import java.util.List;
 public class PostService {
 
     private final PostMapper postMapper;
+    private final UserMapper userMapper;
 
     //전체조회
-    public List<Post> getAllPosts(){
-        return postMapper.selectAllPost();
+    public List<GeneralPostDto> getAllPostsDto(){
+        return postMapper.selectAllPostsDto();
     }
 
     //상세조회
-    public Post getPostById(int postId){
+    public GeneralDetailDto selectPostByIdDto(int postId){
         System.out.println("Generated postId : " + postId);
-        return postMapper.selectPostById(postId);
+        return postMapper.selectPostByIdDto(postId);
     }
 
     //게시글 작성
-    public void addPost(Post post){
+    public void addPost(Post post, Principal principal){
+
+        Users user = userMapper.getUserById(principal.getName());
+
         post.setCreatedAt(new Date());
         post.setUpdatedAt(new Date());
+        post.setUserId(user.getUserId());
         postMapper.insertPost(post);
 
     }
