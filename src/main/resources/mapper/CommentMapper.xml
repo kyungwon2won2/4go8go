@@ -5,11 +5,21 @@
 
 <mapper namespace="com.example.demo.mapper.CommentMapper">
 
+    <resultMap id="CommentDTOResultMap" type="com.example.demo.domain.comment.dto.CommentDTO">
+        <id property="commentId" column="comment_id" />
+        <result property="postId" column="post_id" />
+        <result property="userId" column="user_id" />
+        <result property="nickname" column="nickname" />
+        <result property="commentContent" column="comment_content" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
+    </resultMap>
+    
     <resultMap id="CommentResultMap" type="com.example.demo.domain.comment.model.Comment">
         <id property="commentId" column="comment_id" />
         <result property="postId" column="post_id" />
         <result property="userId" column="user_id" />
-        <result property="commentContent" column="comment_content" />
+        <result property="content" column="comment_content" />
         <result property="createdAt" column="created_at" />
         <result property="updatedAt" column="updated_at" />
     </resultMap>
@@ -21,18 +31,35 @@
     </insert>
 
     <!-- 댓글 1개 조회 -->
-    <select id="selectComment" parameterType="int" resultType="com.example.demo.domain.comment.model.Comment">
+    <select id="selectComment" parameterType="int" resultMap="CommentResultMap">
         SELECT comment_id, post_id, user_id, comment_content, created_at, updated_at
         FROM comments
         WHERE comment_id = #{commentId}
     </select>
+    
+    <!-- 댓글 1개 상세 조회 (닉네임 포함) -->
+    <select id="selectCommentWithNickname" parameterType="int" resultMap="CommentDTOResultMap">
+        SELECT c.comment_id, c.post_id, c.user_id, u.nickname, c.comment_content, c.created_at, c.updated_at
+        FROM comments c
+        JOIN user u ON c.user_id = u.user_id
+        WHERE c.comment_id = #{commentId}
+    </select>
 
     <!-- 게시글에 달린 댓글 목록 -->
-    <select id="selectCommentsByPost" parameterType="int" resultType="com.example.demo.domain.comment.model.Comment">
+    <select id="selectCommentsByPost" parameterType="int" resultMap="CommentResultMap">
         SELECT comment_id, post_id, user_id, comment_content, created_at, updated_at
         FROM comments
         WHERE post_id = #{postId}
         ORDER BY created_at ASC
+    </select>
+    
+    <!-- 게시글에 달린 댓글 목록 (닉네임 포함) -->
+    <select id="selectCommentsByPostWithNickname" parameterType="int" resultMap="CommentDTOResultMap">
+        SELECT c.comment_id, c.post_id, c.user_id, u.nickname, c.comment_content, c.created_at, c.updated_at
+        FROM comments c
+        JOIN user u ON c.user_id = u.user_id
+        WHERE c.post_id = #{postId}
+        ORDER BY c.created_at ASC
     </select>
 
     <!-- 댓글 수정 -->
