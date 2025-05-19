@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.mapper.ChatParticipantMapper">
+
+    <resultMap id="chatParticipantResultMap" type="com.example.demo.domain.chat.model.ChatParticipant">
+        <id property="participantId" column="participant_id"/>
+        <result property="chatRoomId" column="chat_room_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="hasEntered" column="has_entered"/>
+    </resultMap>
+
+    <select id="findByChatRoomId" resultMap="chatParticipantResultMap">
+        SELECT * FROM chat_participant WHERE chat_room_id = #{chatRoomId}
+    </select>
+
+    <select id="findByChatRoomIdAndUserId" resultMap="chatParticipantResultMap">
+        SELECT * FROM chat_participant WHERE chat_room_id = #{chatRoomId} AND user_id = #{userId}
+    </select>
+
+    <select id="findAllByUserId" resultMap="chatParticipantResultMap">
+        SELECT * FROM chat_participant WHERE user_id = #{userId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="participantId">
+        INSERT INTO chat_participant (chat_room_id, user_id, created_at, has_entered)
+        VALUES (#{chatRoomId}, #{userId}, NOW(), #{hasEntered})
+    </insert>
+
+    <update id="updateHasEntered">
+        UPDATE chat_participant 
+        SET has_entered = #{hasEntered}
+        WHERE chat_room_id = #{chatRoomId} AND user_id = #{userId}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM chat_participant WHERE participant_id = #{participantId}
+    </delete>
+
+    <delete id="deleteByRoomIdAndUserId">
+        DELETE FROM chat_participant WHERE chat_room_id = #{chatRoomId} AND user_id = #{userId}
+    </delete>
+
+    <select id="findPrivateRoomBetweenUsers" resultType="long">
+        SELECT cp1.chat_room_id
+        FROM chat_participant cp1
+                 JOIN chat_participant cp2 ON cp1.chat_room_id = cp2.chat_room_id
+                 JOIN chat_room cr ON cr.chat_room_id = cp1.chat_room_id
+        WHERE cp1.user_id = #{userId1}
+          AND cp2.user_id = #{userId2}
+          AND cr.is_group_chat = 'N'
+            LIMIT 1
+    </select>
+
+</mapper>

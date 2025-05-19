@@ -8,6 +8,7 @@ import com.example.demo.domain.post.model.Post;
 import com.example.demo.domain.post.service.PostService;
 import com.example.demo.domain.user.model.CustomerUser;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -18,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/post")
@@ -37,7 +39,7 @@ public class PostController {
 
     //상세조회
     @GetMapping("/{postId}")
-    public String getPostByIdDto(@PathVariable int postId, Model model){
+    public String getPostByIdDto(@PathVariable int postId, Model model, @AuthenticationPrincipal CustomerUser customerUser){
         //조회수 증가
         postService.incrementViewCount(postId);
 
@@ -51,6 +53,9 @@ public class PostController {
 
         model.addAttribute("post", post);
         model.addAttribute("comment_list", commentList);
+        model.addAttribute("userId", customerUser.getUserId());
+        log.info("customerUser.getUserId(): " + customerUser.getUserId());
+        log.info("post.getUserId(): " + post.getUserId());
         return "post/detail";
     }
 
