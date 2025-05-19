@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+
+    <!-- 기본 로그 레벨 -->
+    <logger name="org.springframework.web.socket" level="WARN"/>
+    <logger name="org.springframework.messaging" level="WARN"/>
+    <logger name="com.example.demo.domain.chat.controller.ChatMessageController" level="WARN"/>
+    <logger name="com.example.demo.domain.chat.config.StompHandler" level="INFO"/>
+    <logger name="com.example.demo.domain.chat" level="WARN"/>
+    <logger name="org.springframework.security" level="WARN"/>
+    
+    <!-- 프로덕션 환경에서 로그 레벨을 더 높게 설정 -->
+    <springProfile name="prod">
+        <root level="WARN"/>
+    </springProfile>
+</configuration>
