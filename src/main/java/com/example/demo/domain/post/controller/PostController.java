@@ -2,8 +2,8 @@ package com.example.demo.domain.post.controller;
 
 import com.example.demo.domain.comment.dto.CommentDTO;
 import com.example.demo.domain.comment.helper.CommentHelper;
-import com.example.demo.domain.post.DTO.GeneralDetailDto;
-import com.example.demo.domain.post.DTO.GeneralPostDto;
+import com.example.demo.domain.post.dto.GeneralDetailDto;
+import com.example.demo.domain.post.dto.GeneralPostDto;
 import com.example.demo.domain.post.model.Post;
 import com.example.demo.domain.post.service.PostService;
 import com.example.demo.domain.user.model.CustomerUser;

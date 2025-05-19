@@ -279,6 +279,16 @@
 
             <!-- 게시글 내용 -->
             <div class="kurly-content mb-5" th:utext="${post.content}"></div>
+            <script>
+                document.querySelectorAll('img').forEach(function(img) {
+                    var imageId = img.getAttribute('data-id');
+                    if(imageId){
+                        fetch('/image/' + imageId)
+                            .then(response => response.json())
+                            .then(data => img.src = data.url);
+                    }
+                });
+            </script>
 
             <div class="kurly-divider"></div>
 

@@ -46,6 +46,10 @@ dependencies {
 	// 소셜로그인
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
+
+	// 이미지 파싱
+	implementation 'org.jsoup:jsoup:1.17.2'
+
 	// 실시간 통신
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 	implementation 'org.webjars:sockjs-client:1.0.2'
@@ -68,11 +72,14 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 
+
 	// 테스트
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
 }
+
+
 
 tasks.named('test') {
 	useJUnitPlatform()
