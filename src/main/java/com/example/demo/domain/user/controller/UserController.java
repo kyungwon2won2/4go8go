@@ -1,25 +1,23 @@
 package com.example.demo.domain.user.controller;
 
+
+
 import com.example.demo.domain.user.dto.UpdateUserDTO;
 import com.example.demo.domain.user.model.Users;
-<<<<<<< Updated upstream
 import com.example.demo.domain.user.service.UserService;
 import jakarta.validation.Valid;
-import com.example.demo.domain.user.service.UserService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;import org.springframework.security.access.prepost.PreAuthorize;
-=======
-import com.example.demo.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.security.access.prepost.PreAuthorize;
->>>>>>> Stashed changes
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.Principal;
+import java.util.Map;
 
 @Slf4j
 @Controller
@@ -28,19 +26,40 @@ import java.security.Principal;
 public class UserController {
 
 	private final UserService userService;
-<<<<<<< Updated upstream
 
 	// 사용자 정보 조회
 	@GetMapping("/profile")
 	public String userProfile(Model model, Principal principal) {
-=======
-	private final UserMapper userMapper;
-
-	@GetMapping
-	public String index(Model model, Principal principal) {
->>>>>>> Stashed changes
 		log.info("[[[[  /user ]]]]");
-		Users user = userService.getUserById(principal.getName());
+
+		String email = null;
+
+		// OAuth2 소셜 로그인 사용자인 경우
+		if (principal instanceof OAuth2AuthenticationToken) {
+			OAuth2AuthenticationToken token = (OAuth2AuthenticationToken) principal;
+			Map<String, Object> attributes = token.getPrincipal().getAttributes();
+
+			// 소셜 로그인 유형에 따라 이메일 정보 가져오기
+			if ("google".equals(token.getAuthorizedClientRegistrationId())) {
+				email = (String) attributes.get("email");
+			} else if ("naver".equals(token.getAuthorizedClientRegistrationId())) {
+				Map<String, Object> response = (Map<String, Object>) attributes.get("response");
+				if (response != null) {
+					email = (String) response.get("email");
+				}
+			} else if ("kakao".equals(token.getAuthorizedClientRegistrationId())) {
+				Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
+				if (kakaoAccount != null) {
+					email = (String) kakaoAccount.get("email");
+				}
+			}
+		} else {
+			// 일반 로그인 사용자인 경우
+			email = principal.getName();
+		}
+
+		// 이메일로 사용자 조회
+		Users user = userService.getUserByEmail(email);
 		model.addAttribute("user", user);
 		return "user/profile";
 	}
@@ -53,27 +72,7 @@ public class UserController {
 		return "user/list";
 	}
 
-<<<<<<< Updated upstream
-=======
-	// 사용자 정보
-	@GetMapping("/profile")
-	public String profile(Model model, Principal principal) {
-		// 현재 로그인한 사용자 정보 가져오기
-		String email = principal.getName();
-		Users user = userMapper.getUserByEmail(email);
-		model.addAttribute("user", user);
-		return "user/profile";
-	}
 
-	// 문자열 -> Date 변환을 위한 바인더 설정
-	@InitBinder
-	public void initBinder(WebDataBinder binder) {
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-		dateFormat.setLenient(false);
-		binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, true));
-	}
-
->>>>>>> Stashed changes
 	@GetMapping("/edit")
 	public String editUserForm(Model model, Principal principal) {
 		Users user = userService.getUserByEmail(principal.getName());
