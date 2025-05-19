@@ -152,12 +152,6 @@
                 <input type="text" class="form-control" id="address" name="address" th:value="${user.address}" required>
             </div>
 
-            <div class="mb-3">
-                <label for="birthDate" class="form-label">생년월일</label>
-                <input type="date" class="form-control" id="birthDate" name="birthDate"
-                       th:value="${#dates.format(user.birthDate, 'yyyy-MM-dd')}">
-            </div>
-
             <div class="mb-3 form-check">
                 <input type="checkbox" class="form-check-input" id="receiveMail" name="receiveMail"
                        th:checked="${user.receiveMail}">
