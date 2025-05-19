@@ -336,25 +336,21 @@
                                 </div>
                             </div>
                             
-                            <!-- 자신의 댓글일 경우 수정/삭제 버튼, 아닐 경우 좋아요 버튼 -->
+                            <!-- 자신의 댓글일 경우 수정/삭제 버튼 -->
                             <div th:if="${#authentication.name == comment.userId}">
                                 <div class="d-flex gap-2">
-                                    <button class="btn-edit border-0 bg-transparent" 
-                                            th:data-comment-id="${comment.commentId}" 
+                                    <button class="btn-edit border-0 bg-transparent"
+                                            th:data-comment-id="${comment.commentId}"
                                             onclick="editComment(this)">
                                         <i class="fas fa-edit text-purple"></i>
                                     </button>
-                                    <button class="btn-delete border-0 bg-transparent" 
-                                            th:data-comment-id="${comment.commentId}" 
+                                    <button class="btn-delete border-0 bg-transparent"
+                                            th:data-comment-id="${comment.commentId}"
+
                                             onclick="deleteComment(this)">
                                         <i class="fas fa-trash text-danger"></i>
                                     </button>
                                 </div>
-                            </div>
-                            <div th:unless="${#authentication.name == comment.userId}">
-                                <button class="btn-like border-0 bg-transparent">
-                                    <i class="far fa-heart"></i>
-                                </button>
                             </div>
                         </div>
                         
@@ -399,29 +395,6 @@
             el.addEventListener('blur', function() {
                 this.style.borderColor = '';
                 this.style.boxShadow = '';
-            });
-        });
-        
-        // 좋아요 버튼 효과
-        document.querySelectorAll('.btn-like').forEach(btn => {
-            btn.addEventListener('click', function() {
-                this.classList.toggle('active');
-                const icon = this.querySelector('i');
-                if (icon.classList.contains('far')) {
-                    icon.classList.remove('far');
-                    icon.classList.add('fas');
-                    const countSpan = this.querySelector('span');
-                    if (countSpan) {
-                        countSpan.textContent = parseInt(countSpan.textContent) + 1;
-                    }
-                } else {
-                    icon.classList.remove('fas');
-                    icon.classList.add('far');
-                    const countSpan = this.querySelector('span');
-                    if (countSpan && parseInt(countSpan.textContent) > 0) {
-                        countSpan.textContent = parseInt(countSpan.textContent) - 1;
-                    }
-                }
             });
         });
         
