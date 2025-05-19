@@ -36,10 +36,21 @@ public class CommentService {
     @Transactional
     public void updateComment(int commentId, String commentContent, int userId){
         Comment comment = commentMapper.selectComment(commentId);
-        comment.setContent(commentContent);
-        comment.setUpdatedAt(new Date());
+        if (comment.getUserId() == userId) {
+            comment.setContent(commentContent);
+            comment.setUpdatedAt(new Date());
 
-        commentMapper.updateComment(comment);
+            commentMapper.updateComment(comment);
+        }
+
+    }
+    
+    @Transactional
+    public void deleteComment(int commentId, int userId) {
+        Comment comment = commentMapper.selectComment(commentId);
+        if (comment.getUserId() == userId) {
+            commentMapper.deleteComment(commentId);
+        }
     }
     
     // 댓글 1개 상세 조회 (닉네임 포함)

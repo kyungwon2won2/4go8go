@@ -65,7 +65,7 @@
     <!-- 댓글 수정 -->
     <update id="updateComment" parameterType="com.example.demo.domain.comment.model.Comment">
         UPDATE comments
-        SET comment_content = #{commentContent},
+        SET comment_content = #{content},
         updated_at = CURRENT_TIMESTAMP
         WHERE comment_id = #{commentId}
     </update>
