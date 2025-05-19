@@ -35,9 +35,9 @@
             <button><i class="bi bi-search"></i></button>
         </div>
         <div class="icons">
-            <a href="#"><i class="bi bi-person"></i></a>
-            <a href="#"><i class="bi bi-heart"></i></a>
+            <a href="/user/profile"><i class="bi bi-person"></i></a>
             <a href="#"><i class="bi bi-cart"></i></a>
+            <a href="#"><i class="bi bi-messenger"></i></a>
         </div>
     </div>
 
@@ -55,10 +55,6 @@
                 <li><a href="/admin" style="color: var(--primary-color);">관리자</a></li>
             </th:block>
 
-            <!-- 사용자 메뉴 -->
-            <th:block sec:authorize="hasAnyRole('ROLE_USER','ROLE_ADMIN')">
-                <li><a href="/user/profile" style="color: var(--primary-color);">마이페이지</a></li>
-            </th:block>
         </ul>
     </nav>
 </header>
