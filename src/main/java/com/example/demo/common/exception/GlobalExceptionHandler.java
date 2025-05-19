@@ -17,7 +17,7 @@ import java.time.format.DateTimeFormatter;
 public class GlobalExceptionHandler {
 
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    
+
     // 사용자 정의 예외 처리
     @ExceptionHandler(InvalidConditionException.class)
     public ModelAndView handleInvalidConditionException(InvalidConditionException ex, HttpServletRequest request) {
@@ -29,14 +29,26 @@ public class GlobalExceptionHandler {
                 ex
         );
     }
-    
+
     // NullPointerException 처리
     @ExceptionHandler(NullPointerException.class)
     public ModelAndView handleNullPointerException(NullPointerException ex, HttpServletRequest request) {
         log.error("NullPointerException: {}, Request URI: {}", ex.getMessage(), request.getRequestURI(), ex);
+
+        // loginUser 가 null일 경우
+        if (ex.getMessage() != null && ex.getMessage().contains("loginUser")) {
+            return buildErrorModelAndView(
+                    ErrorCode.LOGIN_REQUIRED,
+                    ex.getMessage(),
+                    request.getRequestURI(),
+                    ex
+            );
+        }
+
+        // 일반 NullPointerException 처리
         return buildErrorModelAndView(
                 ErrorCode.INTERNAL_SERVER_ERROR,
-                ex.getMessage(), 
+                ex.getMessage(),
                 request.getRequestURI(),
                 ex
         );
@@ -48,7 +60,7 @@ public class GlobalExceptionHandler {
         log.error("IllegalArgumentException: {}, Request URI: {}", ex.getMessage(), request.getRequestURI());
         return buildErrorModelAndView(
                 ErrorCode.INVALID_PARAMETER,
-                ex.getMessage(), 
+                ex.getMessage(),
                 request.getRequestURI(),
                 ex
         );
@@ -60,7 +72,7 @@ public class GlobalExceptionHandler {
         log.error("IllegalAccessException: {}, Request URI: {}", ex.getMessage(), request.getRequestURI());
         return buildErrorModelAndView(
                 ErrorCode.FORBIDDEN_ACCESS,
-                ex.getMessage(), 
+                ex.getMessage(),
                 request.getRequestURI(),
                 ex
         );
@@ -72,7 +84,7 @@ public class GlobalExceptionHandler {
         log.error("IllegalStateException: {}, Request URI: {}", ex.getMessage(), request.getRequestURI());
         return buildErrorModelAndView(
                 ErrorCode.INVALID_PARAMETER,
-                ex.getMessage(), 
+                ex.getMessage(),
                 request.getRequestURI(),
                 ex
         );
@@ -84,7 +96,7 @@ public class GlobalExceptionHandler {
         log.error("Page not found: {}, Request URI: {}", ex.getMessage(), request.getRequestURI());
         return buildErrorModelAndView(
                 ErrorCode.RESOURCE_NOT_FOUND,
-                "요청하신 페이지를 찾을 수 없습니다.", 
+                "요청하신 페이지를 찾을 수 없습니다.",
                 request.getRequestURI(),
                 ex
         );

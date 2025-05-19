@@ -58,5 +58,23 @@
 
 <br>
 
+## E2E 테스트 (Playwright)
+
+- Playwright를 사용한 E2E 테스트는 프로젝트 루트에 playwright.config.js와 tests/ 디렉토리를 생성하여 관리합니다.
+- 서버는 반드시 8090 포트에서 실행되어야 합니다.
+- 테스트 실행 전, 다음 명령어로 playwright와 브라우저를 설치하세요:
+
+```
+npm install @playwright/test
+npx playwright install
+```
+
+- 테스트 실행:
+```
+npx playwright test --headed
+```
+
+- 테스트 위치: `tests/join.e2e.spec.js` (회원가입/주소 API/validation 등)
+
 <br>
 <br>
