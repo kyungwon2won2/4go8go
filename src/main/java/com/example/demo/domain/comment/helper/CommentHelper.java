@@ -20,6 +20,6 @@ public class CommentHelper {
     
     // 닉네임이 포함된 댓글 목록
     public List<CommentDTO> getCommentWithNicknameByPostId(int postId){
-        return commentMapper.selectCommentsByPostWithNickname(postId);
+        return commentMapper.selectCommentsByPostWithNickname(postId, 0, Integer.MAX_VALUE);
     }
 }
