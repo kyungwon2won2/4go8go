@@ -527,6 +527,10 @@
                     await axios.delete(`/comment/${commentId}`, {
                         headers: { 'X-CSRF-TOKEN': getCsrfToken() }
                     });
+                    // 삭제 후 목록 새로고침 (상태 초기화)
+                    document.querySelector('.kurly-card > div').innerHTML = '';
+                    currentPage = 1;
+                    isEnd = false;
                     fetchComments();
                 } catch (err) {
                     alert('댓글 삭제 실패');

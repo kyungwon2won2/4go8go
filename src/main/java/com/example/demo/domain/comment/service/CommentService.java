@@ -4,7 +4,6 @@ import com.example.demo.domain.comment.dto.CommentDTO;
 import com.example.demo.domain.comment.model.Comment;
 import com.example.demo.domain.user.model.CustomerUser;
 import com.example.demo.mapper.CommentMapper;
-import com.example.demo.mapper.UserMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -70,8 +69,13 @@ public class CommentService {
         } else {
             throw new IllegalStateException("댓글 삭제 권한이 없습니다.");
         }
+        // 삭제 후 남은 댓글 목록과 전체 개수 반환
+        List<CommentDTO> comments = commentMapper.selectCommentsByPostWithNickname(comment.getPostId(), 0, Integer.MAX_VALUE);
+        int totalCount = commentMapper.selectCommentCountByPostId(comment.getPostId());
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
+        response.put("comments", comments);
+        response.put("totalCount", totalCount);
         return response;
     }
 
