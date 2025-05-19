@@ -19,6 +19,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.web.filter.HiddenHttpMethodFilter;
+import org.springframework.security.config.Customizer;
 
 import javax.sql.DataSource;
 
@@ -64,21 +65,44 @@ public class SecurityConfig {
 				.passwordParameter("password")
 				.successHandler(authenticationSuccessHandler())
 				.permitAll()
-		);
+		)
+				.csrf(Customizer.withDefaults());
 
-		// OAuth2 로그인 설정 추가
+		// OAuth2 로그인 설정
 		http.oauth2Login(oauth2 -> oauth2
 				.loginPage("/login")
-				.userInfoEndpoint(userInfo -> userInfo
-						.userService(customOAuth2UserService)
-				)
-				.successHandler(oAuth2AuthenticationSuccessHandler())
+				.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+				.successHandler(oAuth2AuthenticationSuccessHandler()) // 수정: oauth2LoginSuccessHandler() -> oAuth2AuthenticationSuccessHandler()
+				.failureHandler((request, response, exception) -> {
+					// 추가 정보 입력이 필요한 경우
+					if (request.getSession().getAttribute("requireAdditionalInfo") != null) {
+						response.sendRedirect("/oauth2/signup/additional-info");
+					} else {
+						response.sendRedirect("/login?error=true");
+					}
+				})
 		);
 
-		http.userDetailsService(customerDetailService); //사용자 정의 인증 방식 (mybatis 연동)
-		http.exceptionHandling(exceptions -> exceptions.accessDeniedHandler(accessDeniedHandler()));
+		//예외처리
+		http.exceptionHandling(exception -> exception
+				.accessDeniedHandler(accessDeniedHandler())
+		);
+
+		//remember me
+		http
+				.rememberMe(rememberMe -> rememberMe
+						.key("uniqueAndSecret")
+						.tokenValiditySeconds(86400)
+						.userDetailsService(customerDetailService)
+						.rememberMeParameter("remember-me")
+				);
+
+		//교차 도메인 허용
+		http.cors(withDefaults());
+
 		return http.build();
 	}
+
 	// HiddenHttpMethodFilter 빈만 별도 등록
 	@Bean
 	public HiddenHttpMethodFilter hiddenHttpMethodFilter() {
@@ -114,8 +138,3 @@ public class SecurityConfig {
 	public AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler() { return new OAuth2LoginSuccessHandler(); }
 
 }
-
-
-
-
-
