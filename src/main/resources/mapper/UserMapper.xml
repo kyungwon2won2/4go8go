@@ -61,7 +61,23 @@
         WHERE u.email = #{email}
     </select>
     
+    <select id="findById" resultMap="userMap">
+        SELECT u.user_id, u.email, u.name, u.phone, u.nickname, u.address, u.birth_date,
+               u.points, u.rating, u.receive_mail, u.email_verified, u.created_at, u.updated_at,
+               r.role_name
+        FROM user u JOIN user_role r ON u.user_id = r.user_id
+        WHERE u.user_id = #{userId}
+    </select>
+    
     <select id="getUserByEmail" resultMap="userMap">
+        SELECT u.user_id, u.email, u.name, u.phone, u.nickname, u.address, u.birth_date,
+               u.points, u.rating, u.receive_mail, u.created_at, u.updated_at,
+               r.role_name
+        FROM user u JOIN user_role r ON u.user_id = r.user_id
+        WHERE u.email = #{email}
+    </select>
+    
+    <select id="findByEmail" resultMap="userMap">
         SELECT u.user_id, u.email, u.name, u.phone, u.nickname, u.address, u.birth_date,
                u.points, u.rating, u.receive_mail, u.created_at, u.updated_at,
                r.role_name

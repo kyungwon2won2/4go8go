@@ -1,7 +1,5 @@
 package com.example.demo.domain.user.controller;
 
-
-
 import com.example.demo.domain.user.dto.UpdateUserDTO;
 import com.example.demo.domain.user.model.CustomerUser;
 import com.example.demo.domain.user.model.Users;
@@ -10,7 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
@@ -18,7 +16,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 import java.security.Principal;
 import java.util.Map;
@@ -100,7 +97,6 @@ public class UserController {
 		model.addAttribute("users", userService.getAllUsers());
 		return "user/list";
 	}
-
 
 	@GetMapping("/edit")
 	public String editUserForm(Model model, Principal principal) {
