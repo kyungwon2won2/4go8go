@@ -13,6 +13,7 @@ public enum ErrorCode {
     USER_NOT_MATCH(HttpStatus.BAD_REQUEST, "작성자만 수정, 삭제가 가능합니다"),
 
     UNAUTHORIZED_ACCESS(HttpStatus.UNAUTHORIZED, "인증되지 않은 접근입니다"),
+    LOGIN_REQUIRED(HttpStatus.UNAUTHORIZED, "로그인 후 접근 가능합니다"),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근이 거부되었습니다"),
     FORBIDDEN_ACCESS(HttpStatus.FORBIDDEN, "접근 권한이 없습니다"),
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "요청하신 자원을 찾을 수 없습니다"),
