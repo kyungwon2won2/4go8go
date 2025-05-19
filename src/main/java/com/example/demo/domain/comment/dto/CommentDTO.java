@@ -1,4 +1,4 @@
-package com.example.demo.domain.comment.model;
+package com.example.demo.domain.comment.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,18 +11,12 @@ import java.util.Date;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Comment {
+public class CommentDTO {
     private int commentId;
     private int postId;
     private int userId;
-    private String content;
+    private String nickname;
+    private String commentContent;
     private Date createdAt;
     private Date updatedAt;
-
-    public Comment(int postId, int userId, String content, Date createdAt) {
-        this.postId = postId;
-        this.userId = userId;
-        this.content = content;
-        this.createdAt = createdAt;
-    }
 }

@@ -1,10 +1,15 @@
 package com.example.demo.domain.post.controller;
 
+import com.example.demo.domain.comment.dto.CommentDTO;
 import com.example.demo.domain.comment.helper.CommentHelper;
+import com.example.demo.domain.post.DTO.GeneralDetailDto;
+import com.example.demo.domain.post.DTO.GeneralPostDto;
 import com.example.demo.domain.post.model.Post;
 import com.example.demo.domain.post.service.PostService;
+import com.example.demo.domain.user.model.CustomerUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +29,7 @@ public class PostController {
     //전체조회
     @GetMapping
     public String getAllPosts(Model model){
-        List<Post> posts = postService.getAllPosts();
+        List<GeneralPostDto> posts = postService.getAllPostsDto();
         System.out.println("Posts : " + posts);
         model.addAttribute("posts", posts);
         return "post/list";
@@ -32,18 +37,20 @@ public class PostController {
 
     //상세조회
     @GetMapping("/{postId}")
-    public String getPostById(@PathVariable int postId, Model model){
+    public String getPostByIdDto(@PathVariable int postId, Model model){
         //조회수 증가
         postService.incrementViewCount(postId);
 
         //게시글 정보 가져오기
-        Post post = postService.getPostById(postId);
+        GeneralDetailDto post = postService.selectPostByIdDto(postId);
         if(post == null){
             return "redirect:/post";
         }
+        // 댓글 가져오기 (닉네임 포함)
+        List<CommentDTO> commentList = commentHelper.getCommentWithNicknameByPostId(postId);
+
         model.addAttribute("post", post);
-        model.addAttribute("post_id", postId);
-        model.addAttribute("comment_list", commentHelper.getCommentByPostId(postId));
+        model.addAttribute("comment_list", commentList);
         return "post/detail";
     }
 
@@ -55,16 +62,16 @@ public class PostController {
 
     //게시글 생성 처리
     @PostMapping
-    public String createPost(@ModelAttribute Post post){
+    public String createPost(@ModelAttribute Post post, @AuthenticationPrincipal CustomerUser loginUser){
         System.out.println(post);
-        postService.addPost(post);
+        postService.addPost(post, loginUser.getUserId());
         return "redirect:/post";
     }
 
     //게시글 수정 폼
     @GetMapping("/{postId}/edit")
     public String updatePostForm(@PathVariable int postId, Model model){
-        Post post = postService.getPostById(postId);
+        GeneralDetailDto post = postService.selectPostByIdDto(postId);
         if(post == null){
             return "redirect:/post";
         }
@@ -95,7 +102,7 @@ public class PostController {
         postService.incrementViewCount(postId);
 
         //증가된 조회수 반환
-        Post post = postService.getPostById(postId);
+        GeneralDetailDto post = postService.selectPostByIdDto(postId);
         Map<String, Object> response = new HashMap<>();
         response.put("viewCount", post.getViewCount());
 
