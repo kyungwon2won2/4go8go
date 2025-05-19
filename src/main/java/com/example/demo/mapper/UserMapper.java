@@ -23,9 +23,15 @@ public interface UserMapper {
 
     // ID로 사용자 조회
     public Users getUserById(String userId);
+    
+    // Integer ID로 사용자 조회
+    public Users findById(Integer userId);
 
     // 이메일로 사용자 조회
     public Users getUserByEmail(String email);
+    
+    // 이메일로 사용자 조회 (별칭)
+    public Users findByEmail(String email);
 
     // 사용자 정보 수정
     public int updateUser(Users user);

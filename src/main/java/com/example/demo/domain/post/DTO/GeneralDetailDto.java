@@ -15,4 +15,5 @@ public class GeneralDetailDto {
     private int commentCount;
     private Date createdAt;
     private Date updatedAt;
+    private int userId;
 }
