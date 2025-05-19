@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.mapper.ReadStatusMapper">
+
+    <resultMap id="readStatusResultMap" type="com.example.demo.domain.chat.model.ReadStatus">
+        <id property="readId" column="read_id"/>
+        <result property="chatRoomId" column="chat_room_id"/>
+        <result property="messageId" column="message_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="isRead" column="is_read"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="readId">
+        INSERT INTO read_status (chat_room_id, message_id, user_id, is_read, created_at)
+        VALUES (#{chatRoomId}, #{messageId}, #{userId}, #{isRead}, NOW())
+    </insert>
+
+    <select id="findByChatRoomIdAndUserId" resultMap="readStatusResultMap">
+        SELECT * FROM read_status
+        WHERE chat_room_id = #{chatRoomId}
+          AND user_id = #{userId}
+    </select>
+
+    <update id="updateIsRead">
+        UPDATE read_status
+        SET is_read = #{isRead}
+        WHERE chat_room_id = #{chatRoomId} AND user_id = #{userId} AND is_read = FALSE
+    </update>
+
+    <select id="countUnread" resultType="long">
+        SELECT COUNT(*) FROM read_status
+        WHERE chat_room_id = #{chatRoomId}
+          AND user_id = #{userId}
+          AND is_read = FALSE
+    </select>
+
+</mapper>

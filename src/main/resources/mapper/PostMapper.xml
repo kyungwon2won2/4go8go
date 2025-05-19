@@ -37,6 +37,7 @@
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
         <result property="content" column="content"/>
+        <result property="userId" column="user_id"/>
     </resultMap>
 
     <select id="selectAllPostsDto" resultMap="GeneralPostDtoMap">
@@ -60,7 +61,7 @@
     </select>
     -->
     <select id="selectPostByIdDto" resultMap="GeneralDetailDtoMap">
-        select p.post_id, p.title, u.name, p.view_count, p.comment_count, p.created_at, p.updated_at, p.content, p.post_category_id
+        select p.post_id, p.title, u.name, p.view_count, p.comment_count, p.created_at, p.updated_at, p.content, p.post_category_id, p.user_id
         from post p
         join user u on p.user_id = u.user_id
         where p.post_id = #{postId}

@@ -45,6 +45,8 @@ public class SecurityConfig {
 		//3단계 사용자 정의 (Mybatis , jpa)
 		http
 				.authorizeHttpRequests(auth -> auth
+				.requestMatchers("/ws/**").authenticated()	//웹소켓 경로 검증 허용
+				.requestMatchers("/chat/**").authenticated()	//chat 경로 검증 허용
 				.requestMatchers("/admin/**").hasRole("ADMIN")
 				.requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
 				.anyRequest().permitAll());
