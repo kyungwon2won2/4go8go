@@ -1,7 +1,6 @@
 package com.example.demo.common.oauth;
 
 import com.example.demo.domain.user.model.CustomerUser;
-import com.example.demo.domain.user.model.UserRole;
 import com.example.demo.domain.user.model.Users;
 import com.example.demo.mapper.UserMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,8 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 @Slf4j
