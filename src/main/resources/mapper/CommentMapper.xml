@@ -54,12 +54,13 @@
     </select>
     
     <!-- 게시글에 달린 댓글 목록 (닉네임 포함) -->
-    <select id="selectCommentsByPostWithNickname" parameterType="int" resultMap="CommentDTOResultMap">
+    <select id="selectCommentsByPostWithNickname" resultMap="CommentDTOResultMap">
         SELECT c.comment_id, c.post_id, c.user_id, u.nickname, c.comment_content, c.created_at, c.updated_at
         FROM comments c
         JOIN user u ON c.user_id = u.user_id
         WHERE c.post_id = #{postId}
         ORDER BY c.created_at ASC
+        LIMIT #{limit} OFFSET #{offset}
     </select>
 
     <!-- 댓글 수정 -->
@@ -76,6 +77,9 @@
         WHERE comment_id = #{commentId}
     </delete>
 
-
+    <!-- 게시글에 달린 전체 댓글 개수 -->
+    <select id="selectCommentCountByPostId" parameterType="int" resultType="int">
+        SELECT COUNT(*) FROM comments WHERE post_id = #{postId}
+    </select>
 
 </mapper>

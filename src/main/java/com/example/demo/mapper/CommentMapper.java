@@ -20,11 +20,14 @@ public interface CommentMapper {
     List<Comment> selectCommentsByPost(int postId);
     
     // 게시글에 달린 댓글 목록 조회 (닉네임 포함)
-    List<CommentDTO> selectCommentsByPostWithNickname(int postId);
+    List<CommentDTO> selectCommentsByPostWithNickname(int postId, int offset, int limit);
 
     // 댓글 수정
     void updateComment(Comment comment);
 
     // 댓글 삭제 (소프트 삭제)
     void deleteComment(int commentId);
+
+    // 게시글에 달린 전체 댓글 개수
+    int selectCommentCountByPostId(int postId);
 }

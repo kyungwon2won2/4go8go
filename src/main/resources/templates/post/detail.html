@@ -398,15 +398,17 @@
         // 현재 로그인 유저 ID 추출
         window.currentUserId = document.querySelector('meta[name="current-user-id"]')?.content;
 
-        // 댓글 렌더링 함수
-        function renderComments(comments, currentUserId) {
+        // 댓글 렌더링 함수 (누적)
+        function renderCommentsAppend(comments, currentUserId) {
             const commentListDiv = document.querySelector('.kurly-card > div');
             if (!comments || comments.length === 0) {
-                commentListDiv.innerHTML = `<div class="text-center py-4">
-                    <i class="far fa-comment-dots me-2 text-muted"></i>
-                    <p class="text-muted">작성된 댓글이 없습니다.</p>
-                </div>`;
-                document.querySelector('.comment-count').textContent = 0;
+                if (commentListDiv.innerHTML.trim() === '') {
+                    commentListDiv.innerHTML = `<div class="text-center py-4">
+                        <i class="far fa-comment-dots me-2 text-muted"></i>
+                        <p class="text-muted">작성된 댓글이 없습니다.</p>
+                    </div>`;
+                    document.querySelector('.comment-count').textContent = 0;
+                }
                 return;
             }
             let html = '';
@@ -441,19 +443,54 @@
                     </div>
                 </div>`;
             });
-            commentListDiv.innerHTML = html;
-            document.querySelector('.comment-count').textContent = comments.length;
+            // 기존 내용에 append
+            commentListDiv.insertAdjacentHTML('beforeend', html);
+            // 댓글 수 갱신 (누적)
+            const count = document.querySelectorAll('.comment-item').length;
+            document.querySelector('.comment-count').textContent = count;
         }
 
-        // 댓글 목록 불러오기
-        async function fetchComments() {
+        let currentPage = 1;
+        const pageSize = 10;
+        let isLoading = false;
+        let isEnd = false;
+
+        async function fetchComments(page = currentPage, size = pageSize) {
+            if (isLoading || isEnd) return;
+            isLoading = true;
             try {
-                const res = await axios.get(`/post/${postId}/comments`);
-                renderComments(res.data, window.currentUserId);
+                const res = await axios.get(`/post/${postId}/comments?page=${page}&size=${size}`);
+                const { comments, totalCount } = res.data;
+                if (comments.length < size) isEnd = true;
+                renderCommentsAppend(comments, window.currentUserId);
+                // 전체 댓글 수 표시
+                document.querySelector('.comment-count').textContent = totalCount;
+                currentPage++;
             } catch (e) {
                 console.error(e);
+            } finally {
+                isLoading = false;
             }
         }
+
+        // 무한 스크롤 이벤트
+        window.addEventListener('scroll', () => {
+            const card = document.querySelector('.kurly-card');
+            if (!card || isLoading || isEnd) return;
+            const rect = card.getBoundingClientRect();
+            if (rect.bottom <= window.innerHeight + 100) {
+                fetchComments();
+            }
+        });
+
+        // 페이지 로드 시 1페이지 댓글 목록 불러오기
+        window.addEventListener('DOMContentLoaded', () => {
+            // 초기화
+            document.querySelector('.kurly-card > div').innerHTML = '';
+            currentPage = 1;
+            isEnd = false;
+            fetchComments();
+        });
 
         // 댓글 작성
         document.querySelector('.comment-form form').addEventListener('submit', async function(e) {
@@ -524,9 +561,6 @@
                 }
             }
         });
-
-        // 페이지 로드 시 댓글 목록 불러오기
-        window.addEventListener('DOMContentLoaded', fetchComments);
     </script>
 </body>
 </html>
