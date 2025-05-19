@@ -267,7 +267,9 @@
             .then(rooms => {
                 updateChatRoomList(rooms);
             })
-            .catch(error => console.error('채팅방 목록 로드 실패:', error));
+            .catch(() => {
+                // 조용히 오류 처리
+            });
     }
     
     // 채팅방 목록 업데이트
@@ -286,13 +288,13 @@
             a.href = `/chat/room/${room.roomId}`;
             a.textContent = room.roomName;
             
-            // 현재 채팅방은 강조 표시
+            // 현재 채팅방은 강조 표시하고 읽지 않은 메시지 수를 표시하지 않음
             if (room.roomId == roomId) {
                 a.style.fontWeight = 'bold';
                 a.style.backgroundColor = '#f0f0f0';
-            }
-            
-            if (room.unReadCount > 0) {
+            } 
+            // 현재 채팅방이 아니고 읽지 않은 메시지가 있는 경우에만 뱃지 표시
+            else if (room.unReadCount > 0) {
                 const badge = document.createElement('span');
                 badge.textContent = room.unReadCount;
                 badge.style.backgroundColor = '#5f0080';
@@ -314,19 +316,21 @@
         const socket = new SockJS('/ws');
         stompClient = Stomp.over(socket);
         
-        // 디버깅을 위한 로그 활성화
-        // stompClient.debug = function(str) {
-        //     console.log(str);
-        // };
+        // CSRF 토큰 가져오기
+        const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
         
-        stompClient.connect({}, function(frame) {
-            console.log('STOMP 연결 성공:', frame);
+        // 연결 헤더 설정
+        const headers = {};
+        headers[csrfHeader] = csrfToken;
+        headers['username'] = userEmail;  // 명시적으로 사용자 이메일 전달
+        
+        stompClient.connect(headers, function(frame) {
             connectionStatus.textContent = '연결됨';
             connectionStatus.className = 'connection-status connected';
             
             // 채팅방 구독
             stompClient.subscribe('/sub/chat/room/' + roomId, function(message) {
-                console.log('메시지 수신:', message.body);
                 const messageData = JSON.parse(message.body);
                 
                 // 입장 메시지인 경우 특별 처리
@@ -343,19 +347,32 @@
                     displayMessage(messageData);
                 }
                 
+                // 현재 채팅방에 있으므로 새 메시지 자동 읽음 처리
+                if (messageData.senderEmail !== userEmail) {
+                    fetch(`/chat/room/${roomId}/read`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || ''
+                        }
+                    }).catch(() => {
+                        // 읽음 처리 실패시 조용히 오류 처리
+                    });
+                }
+                
                 // 스크롤을 최신 메시지 위치로
                 chatBox.scrollTop = chatBox.scrollHeight;
             });
             
             // 읽지 않은 메시지 개수 업데이트 구독
             stompClient.subscribe('/sub/user/' + userEmail + '/unread', function(message) {
-                console.log('읽지 않은 메시지 업데이트:', message.body);
+                // 읽지 않은 메시지 목록으로 채팅방 목록 업데이트
                 const rooms = JSON.parse(message.body);
                 updateChatRoomList(rooms);
-            });
+            }, {'username': userEmail});
             
             // 채팅방 입장 메시지 전송
-            stompClient.send("/pub/chat/enter", {}, JSON.stringify({
+            stompClient.send("/pub/chat/enter", {'username': userEmail}, JSON.stringify({
                 roomId: roomId,
                 senderEmail: userEmail,
                 message: "입장했습니다."
@@ -368,12 +385,20 @@
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || ''
                 }
-            }).catch(err => console.error('읽음 처리 실패:', err));
+            })
+            .then(response => {
+                if (response.ok) {
+                    // 채팅방 목록 새로고침 (읽지 않은 메시지 수 업데이트)
+                    loadChatRooms();
+                }
+            })
+            .catch(err => {
+                // 오류 발생 시 조용히 처리
+            });
             
             // 채팅 이력 로드
             loadChatHistory();
         }, function(error) {
-            console.error('STOMP 연결 실패:', error);
             connectionStatus.textContent = '연결 실패. 새로고침 해주세요.';
             connectionStatus.className = 'connection-status disconnected';
         });
@@ -422,7 +447,9 @@
                 });
                 chatBox.scrollTop = chatBox.scrollHeight;
             })
-            .catch(error => console.error('채팅 이력 로드 실패:', error));
+            .catch(() => {
+                // 조용히 오류 처리
+            });
     }
     
     // 폼 제출 처리
@@ -433,14 +460,13 @@
         if (!message) return;
         
         if (stompClient && stompClient.connected) {
-            console.log('메시지 전송:', message, 'to room:', roomId);
             const chatMessage = {
                 roomId: roomId,
                 senderEmail: userEmail,
                 message: message
             };
             
-            stompClient.send("/pub/chat/message", {}, JSON.stringify(chatMessage));
+            stompClient.send("/pub/chat/message", {'username': userEmail}, JSON.stringify(chatMessage));
             messageInput.value = '';
         } else {
             alert('연결이 끊어졌습니다. 페이지를 새로고침 해주세요.');
@@ -493,7 +519,6 @@
             window.location.href = '/';  // 메인 페이지로 이동
         })
         .catch(error => {
-            console.error('채팅방 나가기 오류:', error);
             alert('채팅방 나가기에 실패했습니다. 다시 시도해주세요.');
             closeLeaveRoomModal();
         });

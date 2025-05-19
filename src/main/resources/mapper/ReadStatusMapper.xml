@@ -28,7 +28,7 @@
     <update id="updateIsRead">
         UPDATE read_status
         SET is_read = #{isRead}
-        WHERE chat_room_id = #{chatRoomId} AND user_id = #{userId}
+        WHERE chat_room_id = #{chatRoomId} AND user_id = #{userId} AND is_read = FALSE
     </update>
 
     <select id="countUnread" resultType="long">

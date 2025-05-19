@@ -56,18 +56,8 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
     // 여기에 넣기
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(new ChannelInterceptor() {
-            @Override
-            public Message<?> preSend(Message<?> message, MessageChannel channel) {
-                StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
-
-                if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-                    Authentication user = (Authentication) accessor.getUser();
-                    // 인증 여부 확인 및 필요한 로직 구현
-                }
-                return message;
-            }
-        });
+        // StompHandler를 인터셉터로 등록하여 모든 웹소켓 메시지를 가로채고 처리
+        registration.interceptors(stompHandler);
     }
 
 

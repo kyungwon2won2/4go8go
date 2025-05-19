@@ -191,7 +191,7 @@ public class ChatService {
     }
 
     /**
-     * 메시지 읽음 처리
+     * 메시지 읽음 처리 (현재 사용자)
      */
     public void messageRead(Long roomId) {
         log.info("메시지 읽음 처리: roomId={}", roomId);
@@ -199,6 +199,21 @@ public class ChatService {
         try {
             Users user = getCurrentUser();
             readStatusMapper.updateIsRead(roomId, user.getUserId(), true);
+            log.info("메시지 읽음 처리 완료");
+        } catch (Exception e) {
+            log.error("메시지 읽음 처리 중 오류 발생", e);
+            throw e;
+        }
+    }
+    
+    /**
+     * 메시지 읽음 처리 (지정된 사용자)
+     */
+    public void messageRead(Long roomId, Integer userId) {
+        log.info("메시지 읽음 처리: roomId={}, userId={}", roomId, userId);
+        
+        try {
+            readStatusMapper.updateIsRead(roomId, userId, true);
             log.info("메시지 읽음 처리 완료");
         } catch (Exception e) {
             log.error("메시지 읽음 처리 중 오류 발생", e);
