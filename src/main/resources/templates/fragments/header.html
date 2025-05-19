@@ -12,26 +12,17 @@
         <ul class="user-menu">
             <!-- 비로그인 상태 -->
             <th:block>
-                <div th:if="${!isLoggedIn}">
-                    <li><a href="/join">회원가입</a></li>
-                    <li><a href="/login">로그인</a></li>
-                </div>
-            </th:block>
-
-            <!-- 로그인 상태 -->
-            <th:block>
-                <div th:if="${isLoggedIn}">
-                    <li>
-                        <span th:text="${loginId}"></span>님
-                    </li>
-                    <li>
-                        <form action="/logout" method="post" style="display: inline">
-                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                            <button type="submit" style="background: none; border: none; cursor: pointer; padding: 0; color: #666; font-size: 12px;">로그아웃</button>
-                        </form>
-                    </li>
-                </div>
-            </th:block>
+                <li th:if="${!isLoggedIn}"><a href="/join">회원가입</a></li>
+                <li th:if="${!isLoggedIn}"><a href="/login">로그인</a></li>
+                <li th:if="${isLoggedIn}">
+                    <span th:text="${loginId}"></span>님
+                </li>
+                <li th:if="${isLoggedIn}">
+                    <form action="/logout" method="post" style="display: inline">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button type="submit" style="background: none; border: none; cursor: pointer; padding: 0; color: #666; font-size: 12px;">로그아웃</button>
+                    </form>
+                </li>
             <li><a href="#">고객센터</a></li>
         </ul>
     </div>
