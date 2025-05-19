@@ -33,6 +33,9 @@ public interface UserMapper {
     // 이메일로 사용자 조회 (별칭)
     public Users findByEmail(String email);
 
+    // 이메일로 사용자 조회
+    public Users tusgetUserByEmail(String email);
+
     // 사용자 정보 수정
     public int updateUser(Users user);
 
