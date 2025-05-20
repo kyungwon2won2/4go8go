@@ -384,14 +384,12 @@
                                     <div class="meta-info" th:text="${#dates.format(comment.createdAt, 'yyyy.MM.dd HH:mm')}">작성일</div>
                                 </div>
                             </div>
-                            <!-- 여기에 조건 추가 -->
                             <div th:if="${comment.userId == userId}" class="d-flex gap-2">
                                 <button class="btn-edit border-0 bg-transparent" th:data-comment-id="${comment.commentId}" title="수정"><i class="fas fa-pen text-purple"></i></button>
                                 <button class="btn-delete border-0 bg-transparent" th:data-comment-id="${comment.commentId}" title="삭제"><i class="fas fa-trash text-danger"></i></button>
                             </div>
                         </div>
                         <p class="mb-0 mt-3 comment-content" th:text="${comment.commentContent}">댓글 내용</p>
-                        <div class="mt-2 small text-muted">[디버그] userId: <span th:text="${comment.userId}"></span>, comment: <span th:text="${comment}"></span></div>
                     </div>
                 </div>
             </div>
