@@ -583,25 +583,36 @@
 
         // 댓글 수정 폼 submit
         document.querySelector('.kurly-card').addEventListener('submit', async function(e) {
-            if (e.target.closest('.edit-comment-form form')) {
-                e.preventDefault();
-                const item = e.target.closest('.comment-item');
-                const commentId = item.id.replace('comment-', '');
-                const content = e.target.commentContent.value.trim();
-                if (!content) return alert('댓글을 입력하세요.');
-                try {
-                    await axios.put(`/comment/${commentId}`, { commentContent: content }, {
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': getCsrfToken()
-                        }
-                    });
-                    fetchComments();
-                } catch (err) {
-                    alert('댓글 수정 실패');
-                }
+            const form = e.target.closest('form');
+            if (!form || !form.closest('.edit-comment-form')) return;
+
+            e.preventDefault();
+
+            const item = form.closest('.comment-item');
+            const commentId = item.id.replace('comment-', '');
+            const content = form.commentContent.value.trim();
+
+            if (!content) return alert('댓글을 입력하세요.');
+
+            try {
+                await axios.put(`/comment/${commentId}`, { commentContent: content }, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': getCsrfToken()
+                    }
+                });
+
+                // ✅ UI 업데이트
+                item.querySelector('.comment-content').textContent = content;
+                item.querySelector('.edit-comment-form').style.display = 'none';
+                item.querySelector('.comment-content').style.display = 'block';
+
+            } catch (err) {
+                console.error('❌ 댓글 수정 실패:', err);
+                alert('댓글 수정 실패');
             }
         });
+
     </script>
 </body>
 </html>
