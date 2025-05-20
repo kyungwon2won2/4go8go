@@ -35,9 +35,11 @@ public class UserService {
         user.setNickname(dto.nickname());
         user.setPhone(dto.phone());
         user.setAddress(dto.address());
+        user.setReceiveMail(dto.receiveMail());  // receiveMail 필드 추가
 
-        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-            String encodedPassword = passwordEncoder.encode(user.getPassword());
+        // 비밀번호 처리 수정
+        if (dto.password() != null && !dto.password().isEmpty()) {
+            String encodedPassword = passwordEncoder.encode(dto.password());
             user.setPassword(encodedPassword);
         }
 
