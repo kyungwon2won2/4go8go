@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title>4go8go - 게시글 상세</title>
@@ -386,7 +387,7 @@
                             </div>
                             
                             <!-- 자신의 댓글일 경우 수정/삭제 버튼 -->
-                            <div th:if="${#authentication.name == comment.userId}">
+                            <div sec:authorize="isAuthenticated() and #authentication.name == comment.userId">
                                 <div class="d-flex gap-2">
                                     <button class="btn-edit border-0 bg-transparent"
                                             th:data-comment-id="${comment.commentId}"
