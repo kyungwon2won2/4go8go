@@ -9,6 +9,7 @@
 
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <meta name="current-user-id" th:content="${userId}" />
 
     <style>
         :root {
@@ -365,69 +366,33 @@
             </form>
         </div>
 
-            <!-- 댓글 목록 -->
+            <!-- 댓글 목록 (Thymeleaf 서버 렌더링) -->
             <div class="kurly-card">
                 <h3 class="fs-5 fw-bold mb-3">
                     <i class="fas fa-comments me-2 text-purple"></i>
                     댓글 <span class="comment-count" th:text="${post.commentCount}"></span>
                 </h3>
-
-                <div th:if="${comment_list != null and !comment_list.isEmpty()}">
+                <div>
                     <div class="comment-item" th:each="comment : ${comment_list}" th:id="'comment-' + ${comment.commentId}">
-
-                        <!-- 보기 모드 -->
-                        <div class="comment-view-mode" th:if="${#authentication.name != comment.nickname or !comment.editing}">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div class="user-info d-flex">
-                                    <div class="user-avatar me-2">
-                                        <i class="fas fa-user"></i>
-                                    </div>
-                                    <div>
-                                        <strong class="text-purple" th:text="${comment.nickname}">작성자</strong>
-                                        <div class="meta-info" th:if="${comment.createdAt != null}" th:text="${#dates.format(comment.createdAt, 'yyyy.MM.dd HH:mm')}">작성일</div>
-                                        <div class="meta-info" th:if="${comment.createdAt == null}">날짜 정보 없음</div>
-                                    </div>
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="user-info">
+                                <div class="user-avatar">
+                                    <i class="fas fa-user"></i>
                                 </div>
-
-                                <!-- 수정/삭제 버튼 (로그인한 사용자 = 댓글 작성자일 때만 표시) -->
-                                <div class="comment-actions ms-3" th:if="${#authentication.name == comment.nickname}">
-                                    <button class="btn btn-sm btn-outline-primary me-2" type="button" onclick="enableEdit(this)">
-                                        <i class="fas fa-pen"></i> 수정
-                                    </button>
-                                    <form th:action="@{/post/{postId}/comment/{commentId}/delete(postId=${post.postId},commentId=${comment.commentId})}" method="post" class="d-inline">
-                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">
-                                            <i class="fas fa-trash"></i> 삭제
-                                        </button>
-                                    </form>
+                                <div>
+                                    <strong class="text-purple" th:text="${comment.nickname}">작성자</strong>
+                                    <div class="meta-info" th:text="${#dates.format(comment.createdAt, 'yyyy.MM.dd HH:mm')}">작성일</div>
                                 </div>
                             </div>
-                            <div class="comment-content mt-2" th:text="${comment.commentContent}">댓글 내용</div>
+                            <!-- 여기에 조건 추가 -->
+                            <div th:if="${comment.userId == userId}" class="d-flex gap-2">
+                                <button class="btn-edit border-0 bg-transparent" th:data-comment-id="${comment.commentId}" title="수정"><i class="fas fa-pen text-purple"></i></button>
+                                <button class="btn-delete border-0 bg-transparent" th:data-comment-id="${comment.commentId}" title="삭제"><i class="fas fa-trash text-danger"></i></button>
+                            </div>
                         </div>
-
-                        <!-- 수정 모드 -->
-                        <div class="edit-comment-form" style="display: none;">
-                            <form th:action="@{/post/{postId}/comment/{commentId}/edit(postId=${post.postId},commentId=${comment.commentId})}" method="post">
-                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                                <div class="mb-2">
-                                    <textarea name="commentContent" class="form-control edit-textarea" rows="3" th:text="${comment.commentContent}"></textarea>
-                                </div>
-                                <div class="d-flex justify-content-end gap-2">
-                                    <button type="button" class="kurly-btn" onclick="cancelEdit(this)">
-                                        <i class="fas fa-times me-1"></i> 취소
-                                    </button>
-                                    <button type="submit" class="kurly-btn-primary">
-                                        <i class="fas fa-check me-1"></i> 저장
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+                        <p class="mb-0 mt-3 comment-content" th:text="${comment.commentContent}">댓글 내용</p>
+                        <div class="mt-2 small text-muted">[디버그] userId: <span th:text="${comment.userId}"></span>, comment: <span th:text="${comment}"></span></div>
                     </div>
-                </div>
-                
-                <div th:if="${comment_list == null or comment_list.isEmpty()}" class="text-center py-4">
-                    <i class="far fa-comment-dots me-2 text-muted"></i>
-                    <p class="text-muted">작성된 댓글이 없습니다.</p>
                 </div>
             </div>
         </div>
@@ -471,9 +436,9 @@
                                 <div class="meta-info">${comment.createdAt ? comment.createdAt.replace('T', ' ').substring(0, 16) : '날짜 정보 없음'}</div>
                             </div>
                         </div>
-                        ${currentUserId == comment.userId ? `<div class="d-flex gap-2">
-                            <button class="btn-edit border-0 bg-transparent" data-comment-id="${comment.commentId}"><i class="fas fa-edit text-purple"></i></button>
-                            <button class="btn-delete border-0 bg-transparent" data-comment-id="${comment.commentId}"><i class="fas fa-trash text-danger"></i></button>
+                        ${(String(currentUserId) === String(comment.userId)) ? `<div class="d-flex gap-2">
+                            <button class="btn-edit border-0 bg-transparent" data-comment-id="${comment.commentId}" title="수정"><i class="fas fa-pen text-purple"></i></button>
+                            <button class="btn-delete border-0 bg-transparent" data-comment-id="${comment.commentId}" title="삭제"><i class="fas fa-trash text-danger"></i></button>
                         </div>` : ''}
                     </div>
                     <p class="mb-0 mt-3 comment-content">${comment.commentContent}</p>
@@ -488,6 +453,7 @@
                             </div>
                         </form>
                     </div>
+                    <div class="mt-2 small text-muted">[디버그] userId: ${comment.userId}, comment: ${JSON.stringify(comment)}</div>
                 </div>`;
             });
             // 기존 내용에 append
