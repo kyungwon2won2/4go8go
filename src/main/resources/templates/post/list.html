@@ -13,70 +13,73 @@
 </head>
 <body>
 <div th:replace="~{fragments/header :: header}"></div>
-<div class="kurly-container">
-    <div class="kurly-header">
-        <h1 class="kurly-title">커뮤니티</h1>
-        <p class="kurly-description">4go8go에서 다양한 이야기를 만나보세요</p>
-        
-        <div class="kurly-search-box">
+<div class="post-container">
+    <div class="post-header">
+        <h1 class="post-title">커뮤니티</h1>
+        <p class="post-description">4go8go에서 다양한 이야기를 만나보세요</p>
+
+        <div class="search-box">
             <form action="/post/search" method="get">
-                <input type="text" name="keyword" class="kurly-search-input" placeholder="검색어를 입력하세요">
-                <button type="submit" class="kurly-search-button">
+                <input type="text" name="keyword" class="search-input" placeholder="검색어를 입력하세요">
+                <button type="submit" class="search-button">
                     <i class="bi bi-search"></i>
                 </button>
             </form>
         </div>
-        
-        <a href="/post/new" class="kurly-btn-primary">
+
+        <a href="/post/new" class="btn-primary">
             <i class="bi bi-pencil-fill me-1"></i> 새 글 작성
         </a>
     </div>
-    
-    <div class="kurly-post-list">
-        <div th:each="post : ${posts}" class="kurly-post-card">
-            <div class="kurly-post-title">
-                <a th:href="@{'/post/' + ${post.postId}}" th:text="${post.title}"></a>
-                <span th:if="${post.commentCount > 0}" class="kurly-badge">
-                    <i class="bi bi-chat-dots-fill me-1"></i>
-                    <span th:text="${post.commentCount}"></span>
-                </span>
-                <span th:if="${#dates.createNow().getTime() - post.createdAt.getTime() < 86400000}" class="kurly-badge-new">NEW</span>
-            </div>
-            
-            <div class="kurly-post-info">
-                <div class="kurly-post-meta">
-                    <div class="kurly-post-meta-item">
-                        <i class="bi bi-person"></i>
-                        <span th:text="${post.userName}"></span>
-                    </div>
-                    <div class="kurly-post-meta-item">
-                        <i class="bi bi-eye"></i>
-                        <span th:text="${post.viewCount}"></span>
-                    </div>
-                    <div class="kurly-post-meta-item">
-                        <i class="bi bi-calendar3"></i>
-                        <span th:text="${#dates.format(post.createdAt, 'yyyy-MM-dd')}"></span>
-                    </div>
-                </div>
-            </div>
+
+    <div class="post-list">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>번호</th>
+                <th>제목</th>
+                <th>작성자</th>
+                <th>조회수</th>
+                <th>작성일</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="post : ${posts}">
+                <td th:text="${post.postId}"></td>
+                <td>
+                    <a th:href="@{'/post/' + ${post.postId}}" th:text="${post.title}"></a>
+                    <span th:if="${#dates.createNow().getTime() - post.createdAt.getTime() < 86400000}"
+                          class="badge-new">NEW</span>
+                </td>
+                <td th:text="${post.userName}"></td>
+                <td th:text="${post.viewCount}"></td>
+                <td>
+        <span th:if="${#dates.createNow().getTime() - post.createdAt.getTime() < 86400000}"
+              th:text="${#dates.format(post.createdAt, 'HH:mm:ss')}"></span>
+                    <span th:unless="${#dates.createNow().getTime() - post.createdAt.getTime() < 86400000}"
+                          th:text="${#dates.format(post.createdAt, 'yyyy-MM-dd')}"></span>
+                </td>
+            </tr>
+            </tbody>
+
+        </table>
+
+        <div th:if="${#lists.isEmpty(posts)}" class="empty-state">
+            <i class="bi bi-journal-x"></i>
+            <p>등록된 게시글이 없습니다.</p>
+            <a href="/post/new" class="btn-primary">첫 번째 글 작성하기</a>
         </div>
-    </div>
-    
-    <div th:if="${#lists.isEmpty(posts)}" class="kurly-empty-state">
-        <i class="bi bi-journal-x"></i>
-        <p>등록된 게시글이 없습니다.</p>
-        <a href="/post/new" class="kurly-btn-primary">첫 번째 글 작성하기</a>
-    </div>
+
     
     <!-- 페이지네이션 예시 (실제 구현은 컨트롤러에서 페이징 정보를 전달해야 함) -->
-    <div class="kurly-pagination" th:if="${!#lists.isEmpty(posts)}">
-        <a href="#" class="kurly-page-link"><i class="bi bi-chevron-left"></i></a>
-        <a href="#" class="kurly-page-link active">1</a>
-        <a href="#" class="kurly-page-link">2</a>
-        <a href="#" class="kurly-page-link">3</a>
-        <a href="#" class="kurly-page-link">4</a>
-        <a href="#" class="kurly-page-link">5</a>
-        <a href="#" class="kurly-page-link"><i class="bi bi-chevron-right"></i></a>
+    <div class="pagination" th:if="${!#lists.isEmpty(posts)}">
+        <a href="#" class="page-link"><i class="bi bi-chevron-left"></i></a>
+        <a href="#" class="page-link active">1</a>
+        <a href="#" class="page-link">2</a>
+        <a href="#" class="page-link">3</a>
+        <a href="#" class="page-link">4</a>
+        <a href="#" class="page-link">5</a>
+        <a href="#" class="page-link"><i class="bi bi-chevron-right"></i></a>
     </div>
 </div>
 
