@@ -176,12 +176,27 @@ table.table {
     margin-bottom: 20px;
 }
 
+.pagination-flex {
+    position: relative;  /* 자식 요소의 absolute 기준 */
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;  /* 작성 버튼은 우측 끝으로 */
+    margin-top: 30px;
+}
+
+.pagination-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
 .pagination {
     display: flex;
     justify-content: center;
     gap: 4px;
-    margin-top: 30px;
 }
+
+
 
 .page-link {
     display: flex;
@@ -216,3 +231,4 @@ table.table {
         padding: 10px 6px;
     }
 }
+
