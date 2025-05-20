@@ -137,7 +137,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
                     <h3 th:text="${roomName}">채팅방</h3>
-                    <div id="roomInfo">참여자: <span id="participants"></span></div>
+<!--                    <div id="roomInfo">참여자: <span id="participants"></span></div>-->
                 </div>
                 <div>
                     <button id="leaveRoomBtn" class="leave-room-btn">채팅방 나가기</button>
@@ -222,7 +222,7 @@
             }
         </style>
         
-        <!-- 확인 모달 -->
+        <!-- 채팅방 나가기 확인 모달 -->
         <div id="leaveRoomModal" class="modal-backdrop">
             <div class="modal-content">
                 <div class="modal-header">
@@ -230,7 +230,8 @@
                     <button class="close-btn" onclick="closeLeaveRoomModal()">&times;</button>
                 </div>
                 <div class="modal-body">
-                    정말로 이 채팅방을 나가시겠습니까? 모든 대화 내용은 유지되지만 다시 입장하려면 상대방이 새 메시지를 보내야 합니다.
+                    정말로 이 채팅방을 나가시겠습니까?
+                    모든 대화 내용은 유지되지만 다시 입장하려면 상대방이 새 메시지를 보내야 합니다.
                 </div>
                 <div class="modal-footer">
                     <button class="modal-btn modal-btn-cancel" onclick="closeLeaveRoomModal()">취소</button>
