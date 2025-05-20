@@ -33,9 +33,21 @@ public class ChatViewController {
         this.userMapper = userMapper;
     }
 
-    /**
-     * 채팅방 페이지 로드
-     */
+    //채팅 메인화면 - 목록표시
+    @GetMapping("/room")
+    public String chatRoomList(Model model) {
+        try {
+            String email = SecurityContextHolder.getContext().getAuthentication().getName();
+            model.addAttribute("username", email);
+            return "chat/room";
+        } catch (Exception e) {
+            log.error("채팅방 목록 페이지 로드 중 오류 발생", e);
+            return "redirect:/";
+        }
+    }
+
+
+    //채팅방 접속
     @GetMapping("/room/{roomId}")
     public String chatRoom(@PathVariable Long roomId, Model model, Principal principal) {
         log.info("채팅방 접속: roomId={}, user={}", roomId, principal.getName());
@@ -66,7 +78,7 @@ public class ChatViewController {
             
             String roomName = room.getRoomName();
             
-            // 모델에 필요한 데이터 추가
+            // 필요한 데이터
             model.addAttribute("roomId", roomId);
             model.addAttribute("username", email);
             model.addAttribute("roomName", roomName);
@@ -82,24 +94,8 @@ public class ChatViewController {
         }
     }
 
-    /**
-     * 채팅방 목록 페이지
-     */
-    @GetMapping("/rooms")
-    public String chatRoomList(Model model) {
-        try {
-            String email = SecurityContextHolder.getContext().getAuthentication().getName();
-            model.addAttribute("username", email);
-            return "chat/rooms";
-        } catch (Exception e) {
-            log.error("채팅방 목록 페이지 로드 중 오류 발생", e);
-            return "redirect:/";
-        }
-    }
 
-    /**
-     * 1:1 채팅 페이지 접속
-     */
+    //1:1 채팅 개설
     @GetMapping("/oneonone")
     public String oneOnOneChat(@RequestParam Integer otherUserId, Model model, Principal principal) {
         log.info("1:1 채팅 접속 요청: otherUserId={}, 현재 사용자={}", otherUserId, principal.getName());
