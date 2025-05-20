@@ -14,8 +14,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.*;
 
 @Slf4j
 @Controller
@@ -39,6 +40,31 @@ public class OAuth2RegisterController {
         model.addAttribute("email", attributes.getEmail());
         model.addAttribute("name", attributes.getName());
 
+        // 생년월일 정보 확인 및 추가 (있는 경우)
+        Map<String, Object> attr = attributes.getAttributes();
+        String registrationId = (String) session.getAttribute("registrationId");
+
+        // 소셜 로그인 제공자별로 생년월일 정보 추출 시도
+        if ("naver".equals(registrationId)) {
+            Map<String, Object> response = (Map<String, Object>) attr.get("response");
+            if (response != null && response.containsKey("birthyear") && response.containsKey("birthday")) {
+                String birthYear = (String) response.get("birthyear");
+                String birthday = (String) response.get("birthday");
+                // 예: 1990-01-01 형태로 변환
+                model.addAttribute("birthDate", birthYear + "-" + birthday.replace(".", "-"));
+            }
+        } else if ("kakao".equals(registrationId)) {
+            Map<String, Object> kakaoAccount = (Map<String, Object>) attr.get("kakao_account");
+            if (kakaoAccount != null && kakaoAccount.containsKey("birthday")) {
+                // 카카오는 생일만 제공하는 경우가 많음
+                String birthday = (String) kakaoAccount.get("birthday");
+                // 형식에 맞게 처리
+                if (birthday != null) {
+                    model.addAttribute("birthDate", "2000-" + birthday.substring(0, 2) + "-" + birthday.substring(2, 4));
+                }
+            }
+        }
+
         return "oauth2/additional-info";
     }
 
@@ -46,15 +72,8 @@ public class OAuth2RegisterController {
     public String processAdditionalInfo(@RequestParam String phone,
                                         @RequestParam(required = false) String nickname,
                                         @RequestParam(required = false) String address,
-                                        @RequestParam String password,
-                                        @RequestParam String confirmPassword,
+                                        @RequestParam String birthDate,
                                         HttpSession session) {
-
-        // 비밀번호 검증
-        if (!password.equals(confirmPassword)) {
-            return "redirect:/oauth2/signup/additional-info?error=passwordMismatch";
-        }
-
         // 세션에서 OAuth2 사용자 정보 가져오기
         OAuthAttributes attributes = (OAuthAttributes) session.getAttribute("oauthAttributes");
         String registrationId = (String) session.getAttribute("registrationId");
@@ -75,8 +94,16 @@ public class OAuth2RegisterController {
             newUser.setSocialId(attributes.getOauth2UserInfo().getId());
             newUser.setReceiveMail(true); // 기본값
 
-            // 비밀번호 암호화하여 저장
-            String encodedPassword = passwordEncoder.encode(password);
+            // 생년월일 설정
+            if (birthDate != null && !birthDate.isEmpty()) {
+                LocalDate localDate = LocalDate.parse(birthDate);
+                Date date = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+                newUser.setBirthDate(date);
+            }
+
+            // 임시 비밀번호 생성 (소셜 로그인이므로 실제로는 사용되지 않음)
+            String tempPassword = UUID.randomUUID().toString();
+            String encodedPassword = passwordEncoder.encode(tempPassword);
             newUser.setPassword(encodedPassword);
 
             UserRole role = new UserRole();
