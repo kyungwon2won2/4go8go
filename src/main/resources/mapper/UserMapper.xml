@@ -95,6 +95,9 @@
         address = #{address},
         birth_date = #{birthDate},
         receive_mail = #{receiveMail},
+        <if test="status != null">
+            status = #{status},
+        </if>
         <if test="password != null and password != ''">
             password = #{password},
         </if>
