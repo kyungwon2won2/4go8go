@@ -19,27 +19,35 @@ public class CommentService {
     private final CommentMapper commentMapper;
 
     @Transactional
-    public Map<String, Object> createComment(int postId, String commentContent, CustomerUser loginUser){
+    public Map<String, Object> createComment(int postId, String commentContent, CustomerUser loginUser) {
         if (loginUser == null) {
             throw new IllegalStateException("로그인이 필요합니다.");
         }
         if (commentContent == null || commentContent.trim().isEmpty()) {
             throw new IllegalArgumentException("댓글 내용이 비어있습니다.");
         }
+
+        // 1. 댓글 엔티티 생성
         Comment comment = new Comment(
                 postId,
                 loginUser.getUserId(),
                 commentContent,
-                new Date()    // createdAt
+                new Date() // createdAt
         );
-        commentMapper.insertComment(comment);
-        List<CommentDTO> comments = commentMapper.selectCommentsByPostWithNickname(postId, 0, Integer.MAX_VALUE);
-        CommentDTO newComment = comments.get(comments.size() - 1);
+
+        // 2. DB에 삽입 (insertComment가 생성된 ID를 세팅해주어야 함)
+        commentMapper.insertComment(comment);  // 이 시점에 comment.getCommentId() 값이 있어야 함
+
+        // 3. 삽입된 댓글 ID로 조회
+        CommentDTO newComment = commentMapper.selectCommentWithNickname(comment.getCommentId());
+
+        // 4. 응답 구성
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("comment", newComment);
         return response;
     }
+
 
     @Transactional
     public Map<String, Object> updateComment(int commentId, String commentContent, int userId){
