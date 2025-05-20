@@ -1,4 +1,4 @@
-package com.example.demo.common.email;
+package com.example.demo.common.email.helper;
 
 import com.example.demo.domain.coupon.model.BirthdayCoupon;
 import com.example.demo.domain.user.model.Users;
@@ -15,10 +15,10 @@ import org.thymeleaf.spring6.SpringTemplateEngine;
 
 import java.text.SimpleDateFormat;
 
-@Slf4j
 @Service
+@Slf4j
 @RequiredArgsConstructor
-public class EmailService {
+public class EmailHelper {
 
     private final JavaMailSender mailSender;
     private final SpringTemplateEngine templateEngine;
@@ -43,7 +43,7 @@ public class EmailService {
             context.setVariable("name", user.getNickname());
             context.setVariable("couponCode", coupon.getCouponCode());
             context.setVariable("discountAmount", coupon.getDiscountAmount());
-            
+
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy년 MM월 dd일");
             context.setVariable("validTo", sdf.format(coupon.getValidTo()));
 
@@ -65,4 +65,5 @@ public class EmailService {
     private String generateBirthdayEmailContent(Context context) {
         return templateEngine.process("email/birthday-email", context);
     }
+
 }

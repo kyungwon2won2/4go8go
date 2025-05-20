@@ -118,4 +118,12 @@
         WHERE MONTH(u.birth_date) = MONTH(CURRENT_DATE)
         AND DAY(u.birth_date) = DAY(CURRENT_DATE)
     </select>
+
+    <!-- 이메일이 존재하는지 여부 -->
+    <select id="existsByEmail" resultType="boolean">
+        SELECT EXISTS (
+        SELECT 1 FROM user WHERE email = #{email}
+        )
+    </select>
+
 </mapper>

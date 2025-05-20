@@ -85,7 +85,7 @@
         }
 
         /*     주소 검색 버튼 영역   */
-        #searchAddressBtn {
+        #searchAddressBtn, #emailVerifyBtn {
             background-color: var(--primary-color);
             color: #fff;
             border-color: var(--primary-color);
@@ -95,20 +95,22 @@
         }
 
         #searchAddressBtn:hover,
-        #searchAddressBtn:focus {
+        #searchAddressBtn:focus,
+        #emailVerifyBtn:hover,
+        #emailVerifyBtn:focus {
             background-color: var(--primary-hover);
             border-color: var(--primary-hover);
             color: #fff;
         }
 
-        #address {
+        #address, #email {
             border-top-right-radius: 0.375rem;
             border-bottom-right-radius: 0.375rem;
         }
 
     </style>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/header.css}" />
-    <link rel="stylesheet" type="text/css" th:href="@{/css/footer.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/header.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/footer.css}"/>
 </head>
 <body>
 
@@ -123,12 +125,17 @@
         <form action="/join" method="post">
             <!-- CSRF 토큰 -->
             <input type="hidden" th:name="${_csrf != null ? _csrf.parameterName : '_csrf'}"
-                   th:value="${_csrf != null ? _csrf.token : ''}">
+                   th:value="${_csrf != null ? _csrf.token : ''}"
+                   id="csrfTokenField">
 
             <div class="mb-3">
                 <label for="email" class="form-label required">이메일</label>
-                <input type="email" class="form-control" id="email" name="email" required>
+                <div class="input-group">
+                    <input type="email" class="form-control" id="email" name="email">
+                    <button type="button" class="btn btn-outline-secondary" id="emailVerifyBtn">이메일 인증</button>
+                </div>
                 <div class="error-message" id="emailError"></div>
+                <div id="emailTimer" style="color:#6c757d; font-size:14px; margin-top:3px;"></div>
             </div>
 
             <div class="mb-3">
@@ -179,7 +186,7 @@
             </div>
 
             <div class="mb-3 form-check">
-                <input type="hidden" name="receiveMail" value="false" />
+                <input type="hidden" name="receiveMail" value="false"/>
                 <input type="checkbox" class="form-check-input" id="receiveMail" name="receiveMail" value="true">
                 <label class="form-check-label" for="receiveMail">이메일 수신 동의</label>
                 <small class="form-text text-muted d-block">4고8고마켓의 할인/이벤트 정보를 받아보실 수 있습니다.</small>
@@ -210,34 +217,39 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // 전체 동의 체크박스 기능
-    document.getElementById('termsAll').addEventListener('change', function() {
+
+    const csrfTokenField = document.getElementById('csrfTokenField');
+    const csrfToken = csrfTokenField.value;
+    const csrfHeaderName = 'X-CSRF-TOKEN'; // Spring Security의 기본 헤더 이름
+
+        // 전체 동의 체크박스 기능
+        document.getElementById('termsAll').addEventListener('change', function() {
         const allChecked = this.checked;
         document.querySelectorAll('.terms').forEach(checkbox => {
             checkbox.checked = allChecked;
         });
-    });
+        });
 
-    // 개별 체크박스 변경시 전체 동의 상태 업데이트
-    document.querySelectorAll('.terms').forEach(checkbox => {
+        // 개별 체크박스 변경시 전체 동의 상태 업데이트
+        document.querySelectorAll('.terms').forEach(checkbox => {
         checkbox.addEventListener('change', function() {
             const allChecked = [...document.querySelectorAll('.terms')].every(c => c.checked);
             document.getElementById('termsAll').checked = allChecked;
         });
-    });
+        });
 
-    // 주소 API 스크립트 동적 로드 - 카카오만 사용
-    function loadDaumPostcode() {
+        // 주소 API 스크립트 동적 로드 - 카카오만 사용
+        function loadDaumPostcode() {
         if (!window.daumPostLoaded) {
             const script = document.createElement('script');
             script.src = 'https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';
             script.onload = () => { window.daumPostLoaded = true; };
             document.body.appendChild(script);
         }
-    }
+        }
 
-    // 주소 검색 버튼 클릭 이벤트
-    document.getElementById('searchAddressBtn').addEventListener('click', function() {
+        // 주소 검색 버튼 클릭 이벤트
+        document.getElementById('searchAddressBtn').addEventListener('click', function() {
         loadDaumPostcode();
         setTimeout(() => {
             if (window.daum && window.daum.Postcode) {
@@ -250,11 +262,11 @@
                 }).open();
             }
         }, 300);
-    });
+        });
 
 
-    // validation 강화: shake, 컬러, 아이콘
-    function showValidationError(inputId, errorId, message) {
+        // validation 강화: shake, 컬러, 아이콘
+        function showValidationError(inputId, errorId, message) {
         const input = document.getElementById(inputId);
         const error = document.getElementById(errorId);
         error.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + message;
@@ -262,96 +274,164 @@
         input.style.backgroundColor = '#ffe6e6';
         input.style.borderColor = '#dc3545';
         setTimeout(() => { input.classList.remove('shake'); }, 600);
-    }
-    // shake 애니메이션 추가
-    const style = document.createElement('style');
-    style.innerHTML = `
-    .shake {
+        }
+        // shake 애니메이션 추가
+        const style = document.createElement('style');
+        style.innerHTML = `
+        .shake {
         animation: shake 0.6s;
-    }
-    @keyframes shake {
+        }
+        @keyframes shake {
         0% { transform: translateX(0); }
         20% { transform: translateX(-8px); }
         40% { transform: translateX(8px); }
         60% { transform: translateX(-8px); }
         80% { transform: translateX(8px); }
         100% { transform: translateX(0); }
-    }
-    .is-invalid {
+        }
+        .is-invalid {
         border-color: #dc3545 !important;
         background-color: #ffe6e6 !important;
-    }
-    .error-message i {
+        }
+        .error-message i {
         color: #dc3545;
         margin-right: 4px;
-    }
-    `;
-    document.head.appendChild(style);
-    // 기존 validation 코드 수정
-    document.querySelector('form').addEventListener('submit', function(event) {
-        let isValid = true;
-        // 이메일 검사
-        const email = document.getElementById('email');
+        }
+        `;
+        document.head.appendChild(style);
+        
+        //validation
+        document.querySelector('form').addEventListener('submit', function(event) {
+            let isValid = true;
+            // 이메일 검사
+            const email = document.getElementById('email');
+            const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+            
+            if (!emailPattern.test(email.value)) {
+                showValidationError('email', 'emailError', '올바른 이메일 형식이 아닙니다.');
+                isValid = false;
+            } else {
+                document.getElementById('emailError').textContent = '';
+                email.classList.remove('is-invalid');
+                email.style.backgroundColor = '';
+                email.style.borderColor = '';
+            }
+            // 비밀번호 검사
+            const password = document.getElementById('password');
+            const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,16}$/;
+            if (!passwordPattern.test(password.value)) {
+                showValidationError('password', 'passwordError', '비밀번호는 영문, 숫자, 특수문자를 포함하여 8-16자로 입력해주세요.');
+                isValid = false;
+            } else {
+                document.getElementById('passwordError').textContent = '';
+                password.classList.remove('is-invalid');
+                password.style.backgroundColor = '';
+                password.style.borderColor = '';
+            }
+            // 비밀번호 확인
+            const passwordConfirm = document.getElementById('passwordConfirm');
+            if (password.value !== passwordConfirm.value) {
+                showValidationError('passwordConfirm', 'passwordConfirmError', '비밀번호가 일치하지 않습니다.');
+                isValid = false;
+            } else {
+                document.getElementById('passwordConfirmError').textContent = '';
+                passwordConfirm.classList.remove('is-invalid');
+                passwordConfirm.style.backgroundColor = '';
+                passwordConfirm.style.borderColor = '';
+            }
+            // 전화번호 검사
+            const phone = document.getElementById('phone');
+            const phonePattern = /^[0-9]{10,11}$/;
+            if (!phonePattern.test(phone.value)) {
+                showValidationError('phone', 'phoneError', '올바른 전화번호 형식이 아닙니다.');
+                isValid = false;
+            } else {
+                document.getElementById('phoneError').textContent = '';
+                phone.classList.remove('is-invalid');
+                phone.style.backgroundColor = '';
+                phone.style.borderColor = '';
+            }
+            // 주소 검사
+            const address = document.getElementById('address');
+            if (!address.value) {
+                showValidationError('address', 'addressError', '주소를 입력해주세요.');
+                isValid = false;
+            } else {
+                document.getElementById('addressError').textContent = '';
+                address.classList.remove('is-invalid');
+                address.style.backgroundColor = '';
+                address.style.borderColor = '';
+            }
+            if (!isValid) {
+                event.preventDefault();
+            }
+        });
+
+        // 이메일 인증 타이머 및 인증 요청
+        let emailTimerInterval = null;
+        let emailTimerSeconds = 0;
+        function startEmailTimer() {
+        emailTimerSeconds = 180;
+        updateEmailTimer();
+        if (emailTimerInterval) clearInterval(emailTimerInterval);
+        emailTimerInterval = setInterval(() => {
+            emailTimerSeconds--;
+            updateEmailTimer();
+            if (emailTimerSeconds <= 0) {
+                clearInterval(emailTimerInterval);
+                document.getElementById('emailTimer').textContent = '인증 시간이 만료되었습니다.';
+            }
+        }, 1000);
+        }
+        function updateEmailTimer() {
+        if (emailTimerSeconds > 0) {
+            const min = String(Math.floor(emailTimerSeconds / 60)).padStart(2, '0');
+            const sec = String(emailTimerSeconds % 60).padStart(2, '0');
+            document.getElementById('emailTimer').textContent = `남은 시간: ${min}:${sec}`;
+        }
+        }
+        document.getElementById('emailVerifyBtn').addEventListener('click', function() {
+        const email = document.getElementById('email').value.trim();
         const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-        if (!emailPattern.test(email.value)) {
+        if (!emailPattern.test(email)) {
             showValidationError('email', 'emailError', '올바른 이메일 형식이 아닙니다.');
-            isValid = false;
-        } else {
-            document.getElementById('emailError').textContent = '';
-            email.classList.remove('is-invalid');
-            email.style.backgroundColor = '';
-            email.style.borderColor = '';
+            return;
         }
-        // 비밀번호 검사
-        const password = document.getElementById('password');
-        const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,16}$/;
-        if (!passwordPattern.test(password.value)) {
-            showValidationError('password', 'passwordError', '비밀번호는 영문, 숫자, 특수문자를 포함하여 8-16자로 입력해주세요.');
-            isValid = false;
-        } else {
-            document.getElementById('passwordError').textContent = '';
-            password.classList.remove('is-invalid');
-            password.style.backgroundColor = '';
-            password.style.borderColor = '';
-        }
-        // 비밀번호 확인
-        const passwordConfirm = document.getElementById('passwordConfirm');
-        if (password.value !== passwordConfirm.value) {
-            showValidationError('passwordConfirm', 'passwordConfirmError', '비밀번호가 일치하지 않습니다.');
-            isValid = false;
-        } else {
-            document.getElementById('passwordConfirmError').textContent = '';
-            passwordConfirm.classList.remove('is-invalid');
-            passwordConfirm.style.backgroundColor = '';
-            passwordConfirm.style.borderColor = '';
-        }
-        // 전화번호 검사
-        const phone = document.getElementById('phone');
-        const phonePattern = /^[0-9]{10,11}$/;
-        if (!phonePattern.test(phone.value)) {
-            showValidationError('phone', 'phoneError', '올바른 전화번호 형식이 아닙니다.');
-            isValid = false;
-        } else {
-            document.getElementById('phoneError').textContent = '';
-            phone.classList.remove('is-invalid');
-            phone.style.backgroundColor = '';
-            phone.style.borderColor = '';
-        }
-        // 주소 검사
-        const address = document.getElementById('address');
-        if (!address.value) {
-            showValidationError('address', 'addressError', '주소를 입력해주세요.');
-            isValid = false;
-        } else {
-            document.getElementById('addressError').textContent = '';
-            address.classList.remove('is-invalid');
-            address.style.backgroundColor = '';
-            address.style.borderColor = '';
-        }
-        if (!isValid) {
-            event.preventDefault();
-        }
-    });
+        document.getElementById('emailError').textContent = '';
+        document.getElementById('email').classList.remove('is-invalid');
+        // 이메일 인증 요청
+        fetch('/email/send', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                [csrfHeaderName]: csrfToken
+            },
+            body: JSON.stringify({ email })
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('이메일 인증 요청 실패');
+            return res.json ? res.json() : res;
+        })
+        .then(() => {
+            // 인증번호 입력란과 타이머 UI 생성
+            let verifyBox = document.getElementById('emailVerifyBox');
+            if (!verifyBox) {
+                verifyBox = document.createElement('div');
+                verifyBox.id = 'emailVerifyBox';
+                verifyBox.className = 'input-group mt-2';
+                verifyBox.innerHTML = `
+                    <input type="text" class="form-control" id="emailCode" placeholder="인증번호 입력">
+                    <button type="button" class="btn btn-outline-secondary" id="emailCodeBtn">인증 확인</button>
+                    <span id="emailTimer" style="color:#6c757d; font-size:14px; min-width:90px; display:flex; align-items:center; margin-left:10px;"></span>
+                `;
+                document.getElementById('emailError').after(verifyBox);
+            }
+            startEmailTimer();
+        })
+        .catch(() => {
+            showValidationError('email', 'emailError', '이메일 인증 요청에 실패했습니다.');
+        });
+        });
 </script>
 </body>
 </html>
