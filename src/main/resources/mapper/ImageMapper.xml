@@ -9,16 +9,14 @@
     </resultMap>
 
     <!--이미지 삽입-->
-    <insert id="insertImage" parameterType="com.example.demo.domain.post.model.Image">
+    <insert id="insertImage" parameterType="com.example.demo.domain.post.model.Image" useGeneratedKeys="true" keyProperty="imageId">
         insert into image
         (
-        image_id,
         url,
         post_id
         )
         values
         (
-        image_seq.NEXTVAL,
         #{url},
         #{postId}
         )
@@ -30,4 +28,17 @@
         FROM image
         WHERE post_id = #{postId}
     </select>
+
+    <delete id="deleteImagesByPostId" parameterType="int">
+        DELETE
+        FROM image
+        WHERE post_id = #{postId}
+    </delete>
+
+    <select id="getImageById" parameterType="long" resultType="com.example.demo.domain.post.model.Image">
+        SELECT *
+        FROM image
+        WHERE image_id = #{imageId}
+    </select>
+
 </mapper>

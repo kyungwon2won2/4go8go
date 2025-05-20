@@ -22,4 +22,9 @@ public class ImageService {
     public List<Image> getImagesByPostId(int postId){
         return imageMapper.getImagesByPostId(postId);
     }
+
+    // 이미지 ID로 단일 이미지 조회
+    public Image getImageById(Long imageId){
+        return imageMapper.getImageById(imageId);
+    }
 }

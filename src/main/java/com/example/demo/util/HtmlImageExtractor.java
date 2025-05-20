@@ -14,8 +14,12 @@ public class HtmlImageExtractor {
         Document doc = Jsoup.parse(html);
         Elements imgs = doc.select("img");
         for (Element img : imgs) {
-            urls.add(img.attr("src"));
+            String src = img.attr("src");
+            if(src != null && !src.isEmpty()) {
+                urls.add(src);
+            }
         }
+        System.out.println("추출된 이미지 URL 수 : " + urls.size());
         return urls;
     }
 }

@@ -17,7 +17,7 @@
     </resultMap>
 
     <!-- GeneralPostDto용 resultMap 정의 -->
-    <resultMap id="GeneralPostDtoMap" type="com.example.demo.domain.post.DTO.GeneralPostDto">
+    <resultMap id="GeneralPostDtoMap" type="com.example.demo.domain.post.dto.GeneralPostDto">
         <id property="postId" column="post_id" />
         <result property="title" column="title" />
         <result property="userName" column="name" />
@@ -27,7 +27,7 @@
     </resultMap>
 
     <!-- GeneralDetailDto용 resultMap 정의 -->
-    <resultMap id="GeneralDetailDtoMap" type="com.example.demo.domain.post.DTO.GeneralDetailDto">
+    <resultMap id="GeneralDetailDtoMap" type="com.example.demo.domain.post.dto.GeneralDetailDto">
         <id property="postId" column="post_id"/>
         <result property="postCategoryId" column="post_category_id"/>
         <result property="title" column="title"/>

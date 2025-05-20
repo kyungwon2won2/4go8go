@@ -21,11 +21,10 @@ public class ImageController {
         return imageService.getImagesByPostId(postId);
     }
 
-    // 이미지 삽입
-    @PostMapping("/add")
-    public void addImage(@RequestBody Image image) {
-        imageService.saveImage(image);
+    // imageId로 단일 이미지 조회(detail.html에서 사용 중)
+    @GetMapping("/{imageId}")
+    public Image getImageById(@PathVariable Long imageId){
+        return imageService.getImageById(imageId);
     }
-
 
 }

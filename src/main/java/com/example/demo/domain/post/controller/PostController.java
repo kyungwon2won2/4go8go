@@ -69,7 +69,7 @@ public class PostController {
     @PostMapping
     public String createPost(@ModelAttribute Post post, @AuthenticationPrincipal CustomerUser loginUser){
         System.out.println(post);
-        postService.addPost(post, loginUser.getUserId());
+        postService.insertPost(post, loginUser.getUserId());
         return "redirect:/post";
     }
 
@@ -95,7 +95,7 @@ public class PostController {
     //게시글 삭제 처리
     @PostMapping("/{postId}/delete")
     public String deletePost(@PathVariable int postId){
-        postService.deletePost(postId);
+        postService.deletePostById(postId);
         return "redirect:/post";
     }
 

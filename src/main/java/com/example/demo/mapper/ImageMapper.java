@@ -12,4 +12,9 @@ public interface ImageMapper {
 
     //게시물 ID로 이미지 목록 조회
     List<Image> getImagesByPostId(int postId);
+
+    //이미지 삭제
+    void deleteImagesByPostId(int postId);
+
+    Image getImageById(Long imageId);
 }
