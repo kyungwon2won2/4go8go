@@ -1,4 +1,9 @@
     /* 헤더 스타일 */
+    :root {
+        --primary-color: #5f0080;
+        --border-color: #ddd;
+    }
+
     .top-banner {
         background-color: var(--primary-color);
         color: white;
