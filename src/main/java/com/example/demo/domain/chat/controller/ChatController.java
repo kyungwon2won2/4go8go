@@ -44,6 +44,13 @@ public class ChatController {
 //        chatService.addParticipantToGroupChat(roomId);
 //        return ResponseEntity.ok().build();
 //    }
+//
+//    //    그룹 채팅방 나가기
+//    @DeleteMapping("/room/group/{roomId}/leave")
+//    public ResponseEntity<?> leaveGroupChatRoom(@PathVariable Long roomId){
+//        chatService.leaveGroupChatRoom(roomId);
+//        return ResponseEntity.ok().build();
+//    }
 
     //    이전 메시지 조회
     @GetMapping("/history/{roomId}")
@@ -73,14 +80,7 @@ public class ChatController {
         return ResponseEntity.ok().build();
     }
 
-    //    그룹 채팅방 나가기
-    @DeleteMapping("/room/group/{roomId}/leave")
-    public ResponseEntity<?> leaveGroupChatRoom(@PathVariable Long roomId){
-        chatService.leaveGroupChatRoom(roomId);
-        return ResponseEntity.ok().build();
-    }
-
-    //    개인 채팅방 개설 또는 기존roomId return
+    //    개인 채팅방 개설 or 기존 채팅방 roomId return
     @PostMapping("/room/private/create")
     public ResponseEntity<?> getOrCreatePrivateRoom(@RequestParam int otherMemberId, @AuthenticationPrincipal CustomerUser currentUser){
         try {

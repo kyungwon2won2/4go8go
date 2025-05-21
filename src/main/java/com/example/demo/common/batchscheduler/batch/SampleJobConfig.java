@@ -1,6 +1,7 @@
 package com.example.demo.common.batchscheduler.batch;
 
-import com.example.demo.common.email.EmailService;
+import com.example.demo.common.email.helper.EmailHelper;
+import com.example.demo.common.email.service.EmailService;
 import com.example.demo.domain.coupon.model.BirthdayCoupon;
 import com.example.demo.domain.coupon.service.CouponService;
 import com.example.demo.domain.user.model.Users;
@@ -74,7 +75,7 @@ public class SampleJobConfig {
     
     @Bean
     @Transactional
-    public ItemWriter<Users> birthdayUserWriter(EmailService emailService, CouponService couponService, CouponMapper couponMapper) {
+    public ItemWriter<Users> birthdayUserWriter(EmailHelper emailHelper, CouponService couponService, CouponMapper couponMapper) {
         return users -> {
             for (Users user : users) {
                 try {
@@ -83,7 +84,7 @@ public class SampleJobConfig {
                     int result = couponMapper.insertBirthdayCoupon(birthdayCoupon);
 
                     if (result > 0) {
-                        boolean emailSent = emailService.sendBirthdayEmail(user, birthdayCoupon);
+                        boolean emailSent = emailHelper.sendBirthdayEmail(user, birthdayCoupon);
                         if (emailSent) {
                             log.info("생일 축하 이메일 발송 완료: {}님, 이메일: {}", user.getNickname(), user.getEmail());
                         } else {

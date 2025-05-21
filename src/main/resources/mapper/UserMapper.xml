@@ -37,8 +37,8 @@
 
     <!-- 자동 생성된 키(user_id)를 반환받도록 useGeneratedKeys와 keyProperty 추가 -->
     <insert id="join" useGeneratedKeys="true" keyProperty="userId">
-        INSERT INTO user(email, name, phone, password, nickname, address, birth_date, receive_mail, email_verified)
-        VALUES(#{email}, #{name}, #{phone}, #{password}, #{nickname}, #{address}, #{birthDate}, #{receiveMail}, #{emailVerified})
+        INSERT INTO user(email, name, phone, password, nickname, address, birth_date, receive_mail, email_verified, social_type, social_id)
+        VALUES(#{email}, #{name}, #{phone}, #{password}, #{nickname}, #{address}, #{birthDate}, #{receiveMail}, #{emailVerified}, #{socialType}, #{socialId})
     </insert>
 
     <insert id="insertAuth">
@@ -95,6 +95,9 @@
         address = #{address},
         birth_date = #{birthDate},
         receive_mail = #{receiveMail},
+        <if test="status != null">
+            status = #{status},
+        </if>
         <if test="password != null and password != ''">
             password = #{password},
         </if>
@@ -115,4 +118,12 @@
         WHERE MONTH(u.birth_date) = MONTH(CURRENT_DATE)
         AND DAY(u.birth_date) = DAY(CURRENT_DATE)
     </select>
+
+    <!-- 이메일이 존재하는지 여부 -->
+    <select id="existsByEmail" resultType="boolean">
+        SELECT EXISTS (
+        SELECT 1 FROM user WHERE email = #{email}
+        )
+    </select>
+
 </mapper>

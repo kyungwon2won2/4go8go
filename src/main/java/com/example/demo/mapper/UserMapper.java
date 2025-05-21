@@ -44,4 +44,6 @@ public interface UserMapper {
 
     List<Users> findUsersByBirthdayToday();
 
+    public boolean existsByEmail(String email);
+
 }

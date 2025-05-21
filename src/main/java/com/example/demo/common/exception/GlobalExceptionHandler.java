@@ -1,5 +1,6 @@
 package com.example.demo.common.exception;
 
+import com.example.demo.common.exception.custom.CustomException;
 import com.example.demo.common.stringcode.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -125,13 +126,12 @@ public class GlobalExceptionHandler {
         );
     }
 
-    // 기타 모든 예외 처리
-    @ExceptionHandler(Exception.class)
-    public ModelAndView handleException(Exception ex, HttpServletRequest request) {
-        log.error("Unhandled Exception: {}, Request URI: {}", ex.getMessage(), request.getRequestURI(), ex);
+    @ExceptionHandler(CustomException.class)
+    public ModelAndView handleEmailAlreadyExistsException(CustomException ex, HttpServletRequest request) {
+        log.error("EmailAlreadyExistsException: {}, Request URI: {}", ex.getMessage(), request.getRequestURI());
         return buildErrorModelAndView(
-                ErrorCode.INTERNAL_SERVER_ERROR,
-                "처리 중 예상치 못한 오류가 발생했습니다.",
+                ErrorCode.DUPLICATE_EMAIL_EXIST,
+                ex.getMessage(),
                 request.getRequestURI(),
                 ex
         );

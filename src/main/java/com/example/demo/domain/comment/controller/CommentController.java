@@ -58,4 +58,14 @@ public class CommentController {
             @AuthenticationPrincipal CustomerUser user) {
         return ResponseEntity.ok(commentService.deleteComment(commentId, user.getUserId()));
     }
+
+    // 예외 핸들러 추가
+    @ExceptionHandler({IllegalStateException.class, IllegalArgumentException.class})
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> handleIllegalState(Exception ex) {
+        Map<String, Object> error = new java.util.HashMap<>();
+        error.put("success", false);
+        error.put("message", ex.getMessage());
+        return ResponseEntity.badRequest().body(error);
+    }
 }

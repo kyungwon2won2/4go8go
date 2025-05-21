@@ -37,15 +37,3 @@ public class CustomerDetailService implements UserDetailsService {
 	}
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
