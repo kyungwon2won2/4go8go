@@ -1,7 +1,8 @@
 package com.example.demo.mapper;
 
-import com.example.demo.domain.post.DTO.GeneralDetailDto;
-import com.example.demo.domain.post.DTO.GeneralPostDto;
+import com.example.demo.domain.post.dto.GeneralDetailDto;
+
+import com.example.demo.domain.post.dto.GeneralPostDto;
 import com.example.demo.domain.post.model.Post;
 import org.apache.ibatis.annotations.Mapper;
 

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.mapper.ImageMapper">
+    <resultMap id="imageResultMap" type="com.example.demo.domain.post.model.Image">
+        <id property="imageId" column="image_id" />
+        <result property="postId" column="post_id" />
+        <result property="url" column="url" />
+    </resultMap>
+
+    <!--이미지 삽입-->
+    <insert id="insertImage" parameterType="com.example.demo.domain.post.model.Image" useGeneratedKeys="true" keyProperty="imageId">
+        insert into image
+        (
+        url,
+        post_id
+        )
+        values
+        (
+        #{url},
+        #{postId}
+        )
+    </insert>
+
+    <!--게시물 ID로 이미지 목록 조회-->
+    <select id="getImagesByPostId" resultType="com.example.demo.domain.post.model.Image">
+        SELECT *
+        FROM image
+        WHERE post_id = #{postId}
+    </select>
+
+    <delete id="deleteImagesByPostId" parameterType="int">
+        DELETE
+        FROM image
+        WHERE post_id = #{postId}
+    </delete>
+
+    <select id="getImageById" parameterType="long" resultType="com.example.demo.domain.post.model.Image">
+        SELECT *
+        FROM image
+        WHERE image_id = #{imageId}
+    </select>
+
+    <delete id="deleteImageById" parameterType="long">
+        DELETE FROM image WHERE image_id = #{imageId}
+    </delete>
+
+</mapper>

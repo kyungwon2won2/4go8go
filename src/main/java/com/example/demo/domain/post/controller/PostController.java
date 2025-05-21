@@ -2,8 +2,8 @@ package com.example.demo.domain.post.controller;
 
 import com.example.demo.domain.comment.dto.CommentDTO;
 import com.example.demo.domain.comment.helper.CommentHelper;
-import com.example.demo.domain.post.DTO.GeneralDetailDto;
-import com.example.demo.domain.post.DTO.GeneralPostDto;
+import com.example.demo.domain.post.dto.GeneralDetailDto;
+import com.example.demo.domain.post.dto.GeneralPostDto;
 import com.example.demo.domain.post.model.Post;
 import com.example.demo.domain.post.service.PostService;
 import com.example.demo.domain.user.model.CustomerUser;
@@ -32,7 +32,6 @@ public class PostController {
     @GetMapping
     public String getAllPosts(Model model){
         List<GeneralPostDto> posts = postService.getAllPostsDto();
-        System.out.println("Posts : " + posts);
         model.addAttribute("posts", posts);
         return "post/list";
     }
@@ -68,8 +67,7 @@ public class PostController {
     //게시글 생성 처리
     @PostMapping
     public String createPost(@ModelAttribute Post post, @AuthenticationPrincipal CustomerUser loginUser){
-        System.out.println(post);
-        postService.addPost(post, loginUser.getUserId());
+        postService.insertPost(post, loginUser.getUserId());
         return "redirect:/post";
     }
 
@@ -95,7 +93,7 @@ public class PostController {
     //게시글 삭제 처리
     @PostMapping("/{postId}/delete")
     public String deletePost(@PathVariable int postId){
-        postService.deletePost(postId);
+        postService.deletePostById(postId);
         return "redirect:/post";
     }
 

@@ -7,7 +7,16 @@ import java.util.List;
 
 @Mapper
 public interface ImageMapper {
+    //이미지 삽입
     void insertImage(Image image);
+
+    //게시물 ID로 이미지 목록 조회
+    List<Image> getImagesByPostId(int postId);
+
+    //이미지 삭제
     void deleteImagesByPostId(int postId);
-    List<Image> selectImagesByPostId(int postId);
+
+    Image getImageById(Long imageId);
+
+    void deleteImageById(Long imageId);
 }

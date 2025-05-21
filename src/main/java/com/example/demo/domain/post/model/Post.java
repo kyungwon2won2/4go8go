@@ -3,6 +3,7 @@ package com.example.demo.domain.post.model;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 public class Post {
@@ -10,7 +11,6 @@ public class Post {
     private int postCategoryId;
     private int userId;
     private String title;
-    //private String imageId; 스키마 컬럼삭제
     private int viewCount;
     private int commentCount;
     private Date createdAt;

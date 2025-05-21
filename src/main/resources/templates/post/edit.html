@@ -47,6 +47,24 @@
         <label for="content" class="form-label">내용</label>
         <textarea id="content" name="content">[[${post.content}]]</textarea>
     </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function(){
+            document.querySelectorAll("img[data-id]").forEach(function(img){
+                const imageId = img.getAttribute("data-id");
+
+                fetch(`/images/${imageId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                      if(data.url){
+                        img.setAttribute("src", data.url);
+                      }
+                    })
+                    .catch(error => {
+                        console.error("이미지 로딩 실패:", error);
+                    });
+            });
+        });
+    </script>
 
     <button type="submit" class="btn btn-primary">수정 완료</button>
     <a href="/post" class="btn btn-secondary">취소</a>
@@ -62,7 +80,17 @@
         $('#content').summernote({
             placeholder: '내용을 입력하세요',
             tabsize: 2,
-            height: 200
+            height: 200,
+            callbacks: {
+                onInit: function(){
+                    document.querySelectorAll("img[data-id]").forEach(function (img){
+                        const id = img.getAttribute("data-id");
+                        fetch(`/images/${id}`)
+                            .then(res => res.json())
+                            .then(data => img.src = data.url);
+                    });
+                }
+            }
         });
     });
 </script>
