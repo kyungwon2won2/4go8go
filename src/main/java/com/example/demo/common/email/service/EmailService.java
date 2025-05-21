@@ -44,17 +44,23 @@ public class EmailService {
             throw new CustomException(ErrorCode.DUPLICATE_EMAIL_EXIST);
         }
 
+        // 1. 기존 인증 요청 삭제
+        emailVerificationMapper.deleteByEmail(normalizedEmail);
+
+        // 2. 새 인증 코드 생성 및 저장
         String code = generateRandomCode();
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(3);
 
-        EmailVerification emailVerification = new EmailVerification(
-                normalizedEmail,
-                code,
-                LocalDateTime.now().plusMinutes(3)
-        );
+        EmailVerification verification = new EmailVerification(normalizedEmail, code, expiresAt);
+        emailVerificationMapper.insert(verification);
 
-        emailVerificationMapper.insert(emailVerification);
-        sendVerificationEmail(normalizedEmail, code);
+        // 3. 이메일 전송
+//        sendVerificationEmail(normalizedEmail, code);
+
+        // 테스트시 로그로 회원가입
+        log.info(">>>>  code : " + code);
     }
+
 
     // 이메일 코드 검증(코드 사용 후 삭제, 시도 횟수 제한, 타이밍 공격 대비, 이메일 대소문자 무시)
     @Transactional
@@ -67,27 +73,28 @@ public class EmailService {
             throw new CustomException(ErrorCode.EMAIL_VERIFICATION_NOT_FOUND);
         }
 
-        if (!verification.canAttempt(MAX_TRIES)) {
+        // 제한시간 만료 시
+        if (verification.isExpired()) {
             throw new CustomException(ErrorCode.EMAIL_VERIFICATION_EXPIRED_OR_LIMITED);
         }
 
-        verification.incrementAttempts();
-
+        // 인증번호 검증
         boolean matched = MessageDigest.isEqual(
                 verification.getCode().getBytes(StandardCharsets.UTF_8),
                 code.getBytes(StandardCharsets.UTF_8)
         );
 
+        // 인증번호가 일치하지 않을 시
         if (!matched) {
-            emailVerificationMapper.update(verification);
             throw new CustomException(ErrorCode.EMAIL_VERIFICATION_CODE_MISMATCH);
         }
 
-        verification.markUsed();
         emailVerificationMapper.deleteByEmail(normalizedEmail);
 
         return ResponseEntity.ok(new EmailResponse("이메일 인증이 성공했습니다.", true));
     }
+
+
 
 
 

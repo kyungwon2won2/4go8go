@@ -1,9 +1,11 @@
 package com.example.demo.common.exception;
 
 import com.example.demo.common.exception.custom.CustomException;
+import com.example.demo.common.exception.dto.ErrorResponse;
 import com.example.demo.common.stringcode.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -126,15 +128,20 @@ public class GlobalExceptionHandler {
         );
     }
 
+    // CustomException 일 경우 JSON 타입으로 Return
     @ExceptionHandler(CustomException.class)
-    public ModelAndView handleEmailAlreadyExistsException(CustomException ex, HttpServletRequest request) {
-        log.error("EmailAlreadyExistsException: {}, Request URI: {}", ex.getMessage(), request.getRequestURI());
-        return buildErrorModelAndView(
-                ErrorCode.DUPLICATE_EMAIL_EXIST,
-                ex.getMessage(),
-                request.getRequestURI(),
-                ex
+    public ResponseEntity<ErrorResponse> handleCustomException(
+            CustomException ex) {
+
+        ErrorResponse body = new ErrorResponse(
+                false,
+                ex.getErrorCode().getMessage(),
+                ex.getErrorCode().name()
         );
+
+        return ResponseEntity
+                .status(ex.getErrorCode().getStatus())
+                .body(body);
     }
 
     // ModelAndView 구성 메서드

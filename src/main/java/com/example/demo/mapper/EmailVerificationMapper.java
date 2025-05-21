@@ -10,7 +10,7 @@ public interface EmailVerificationMapper {
 
     EmailVerification selectByEmail(String email);
 
-    void update(EmailVerification verification);
+    int update(EmailVerification verification);
 
     void deleteByEmail(String email);
 
