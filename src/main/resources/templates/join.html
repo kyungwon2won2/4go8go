@@ -410,11 +410,8 @@
                 },
                 body: JSON.stringify({ email })
             })
-            .then(async res => {
-                const responseData = await res.json();
-                if (!res.ok) {
-                    throw new Error(responseData.message || '이메일 인증 요청 실패');
-                }
+            .then(res => {
+                if (!res.ok) throw new Error('이메일이 존재하거나 잘못된 요청입니다');
                 return res.json ? res.json() : res;
             })
 

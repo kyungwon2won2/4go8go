@@ -6,24 +6,24 @@
 <mapper namespace="com.example.demo.mapper.EmailVerificationMapper">
 
     <insert id="insert" parameterType="com.example.demo.common.email.model.EmailVerification">
-        INSERT INTO email_verification (email, code, expires_at, attempts, used)
-        VALUES (#{email}, #{code}, #{expiresAt}, #{attempts}, #{used})
+        INSERT INTO email_verification (email, code, expires_at)
+        VALUES (#{email}, #{code}, #{expiresAt})
     </insert>
 
     <select id="selectByEmail" resultType="com.example.demo.common.email.model.EmailVerification">
-        SELECT * FROM email_verification WHERE email = #{email}
+        SELECT email, code, expires_at
+        FROM email_verification
+        WHERE email = #{email}
     </select>
 
     <update id="update" parameterType="com.example.demo.common.email.model.EmailVerification">
         UPDATE email_verification
         SET code = #{code},
-        expires_at = #{expiresAt},
-        attempts = #{attempts},
-        used = #{used}
+        expires_at = #{expiresAt}
         WHERE email = #{email}
     </update>
 
-    <delete id="deleteByEmail">
+    <delete id="deleteByEmail" parameterType="String">
         DELETE FROM email_verification WHERE email = #{email}
     </delete>
 

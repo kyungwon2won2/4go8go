@@ -57,7 +57,8 @@ public class EmailService {
         // 3. 이메일 전송
 //        sendVerificationEmail(normalizedEmail, code);
 
-        log.info(">>>>  code : code");
+        // 테스트시 로그로 회원가입
+        log.info(">>>>  code : " + code);
     }
 
 
@@ -74,13 +75,6 @@ public class EmailService {
 
         // 제한시간 만료 시
         if (verification.isExpired()) {
-            verification.markUsed();
-            emailVerificationMapper.update(verification);
-            throw new CustomException(ErrorCode.EMAIL_VERIFICATION_EXPIRED_OR_LIMITED);
-        }
-
-        // 시도횟수 초과 시
-        if (!verification.canAttempt(MAX_TRIES)) {
             throw new CustomException(ErrorCode.EMAIL_VERIFICATION_EXPIRED_OR_LIMITED);
         }
 
@@ -90,24 +84,17 @@ public class EmailService {
                 code.getBytes(StandardCharsets.UTF_8)
         );
 
-
         // 인증번호가 일치하지 않을 시
         if (!matched) {
-            verification.incrementAttempts();
-//            updateVerificationAttempts(verification); // 별도 트랜잭션 → 커밋됨
-            throw new CustomException(ErrorCode.EMAIL_VERIFICATION_CODE_MISMATCH); // 이후 롤백돼도 영향 없음
+            throw new CustomException(ErrorCode.EMAIL_VERIFICATION_CODE_MISMATCH);
         }
 
-        verification.markUsed();
         emailVerificationMapper.deleteByEmail(normalizedEmail);
 
         return ResponseEntity.ok(new EmailResponse("이메일 인증이 성공했습니다.", true));
     }
 
-//    @Transactional(propagation = Propagation.REQUIRES_NEW)
-//    public void updateVerificationAttempts(EmailVerification verification) {
-//        emailVerificationMapper.update(verification);
-//    }
+
 
 
 
