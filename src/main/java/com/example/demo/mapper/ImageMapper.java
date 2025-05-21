@@ -17,4 +17,6 @@ public interface ImageMapper {
     void deleteImagesByPostId(int postId);
 
     Image getImageById(Long imageId);
+
+    void deleteImageById(Long imageId);
 }

@@ -287,7 +287,11 @@
                     if(id){
                         fetch(`/images/${id}`)
                             .then(res => res.json())
-                            .then(data => img.src = data.url);
+                            .then(data => {
+                                if(data.url){
+                                    img.setAttribute('src', data.url);
+                                }
+                            });
                     }
                 });
             </script>

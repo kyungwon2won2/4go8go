@@ -41,4 +41,8 @@
         WHERE image_id = #{imageId}
     </select>
 
+    <delete id="deleteImageById" parameterType="long">
+        DELETE FROM image WHERE image_id = #{imageId}
+    </delete>
+
 </mapper>

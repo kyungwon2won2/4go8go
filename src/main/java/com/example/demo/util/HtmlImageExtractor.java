@@ -15,11 +15,10 @@ public class HtmlImageExtractor {
         Elements imgs = doc.select("img");
         for (Element img : imgs) {
             String src = img.attr("src");
-            if(src != null && !src.isEmpty()) {
+            if(src != null && src.startsWith("data:image")) {
                 urls.add(src);
             }
         }
-        System.out.println("추출된 이미지 URL 수 : " + urls.size());
         return urls;
     }
 }

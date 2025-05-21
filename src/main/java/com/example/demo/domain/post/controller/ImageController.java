@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,8 +24,8 @@ public class ImageController {
 
     // imageId로 단일 이미지 조회(detail.html에서 사용 중)
     @GetMapping("/{imageId}")
-    public Image getImageById(@PathVariable Long imageId){
-        return imageService.getImageById(imageId);
+    public Map<String, String> getImageById(@PathVariable Long imageId){
+        Image image = imageService.getImageById(imageId);
+        return Map.of("url", image.getUrl());
     }
-
 }
