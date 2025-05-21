@@ -47,6 +47,7 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> auth
 				.requestMatchers("/ws/**").authenticated()	//웹소켓 경로 검증 허용
 				.requestMatchers("/chat/**").authenticated()	//chat 경로 검증 허용
+				.requestMatchers("/api/**").authenticated()	//알림
 				.requestMatchers("/email/**").permitAll()	// 테스트용
 				.requestMatchers("/admin/**").hasRole("ADMIN")
 				.requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
@@ -87,10 +88,10 @@ public class SecurityConfig {
 		);
 
 		//예외처리
-		http
-				.exceptionHandling(exception ->
-						exception.accessDeniedHandler(new CustomerAccessDeniedHandler())
-				);
+		http.exceptionHandling(exception -> exception
+				.accessDeniedHandler(accessDeniedHandler())
+		);
+
 		//remember me
 		http
 				.rememberMe(rememberMe -> rememberMe

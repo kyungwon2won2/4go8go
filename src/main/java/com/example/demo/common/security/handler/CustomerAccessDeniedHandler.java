@@ -17,8 +17,14 @@ public class CustomerAccessDeniedHandler implements AccessDeniedHandler {
                        AccessDeniedException accessDeniedException) throws IOException, ServletException {
         log.info("접근 거부 에러 처리");
 
-        int statusCode = response.getStatus(); //응답 상태코드
-
-        response.sendRedirect("/errorPage");
+        // 응답 상태코드
+        int statusCode = response.getStatus();
+        
+        // 에러 객체를 request에 저장하여 전달 (에러 메시지 형태로)
+        request.setAttribute("message", "접근 권한이 없습니다.");
+        request.setAttribute("status", 403);
+        
+        // /error 경로로 포워딩 (Thymeleaf 템플릿으로 처리)
+        request.getRequestDispatcher("/error").forward(request, response);
     }
 }

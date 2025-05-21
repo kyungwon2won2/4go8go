@@ -1,10 +1,13 @@
 package com.example.demo.domain.chat.controller;
 
+import com.example.demo.common.notification.service.NotificationService;
 import com.example.demo.domain.chat.dto.ChatMessageDto;
 import com.example.demo.domain.chat.dto.MyChatListResDto;
+import com.example.demo.domain.chat.model.ChatMessage;
 import com.example.demo.domain.chat.model.ChatParticipant;
 import com.example.demo.domain.chat.service.ChatService;
 import com.example.demo.domain.user.model.Users;
+import com.example.demo.mapper.ChatMessageMapper;
 import com.example.demo.mapper.ChatParticipantMapper;
 import com.example.demo.mapper.UserMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -29,16 +32,22 @@ public class ChatMessageController {
     private final ChatService chatService;
     private final UserMapper userMapper;
     private final ChatParticipantMapper chatParticipantMapper;
+    private final ChatMessageMapper chatMessageMapper;
+    private final com.example.demo.common.notification.service.NotificationService notificationService;
     
     public ChatMessageController(
             SimpMessagingTemplate messagingTemplate,
             ChatService chatService,
             UserMapper userMapper, 
-            ChatParticipantMapper chatParticipantMapper) {
+            ChatParticipantMapper chatParticipantMapper,
+            ChatMessageMapper chatMessageMapper,
+            com.example.demo.common.notification.service.NotificationService notificationService) {
         this.messagingTemplate = messagingTemplate;
         this.chatService = chatService;
         this.userMapper = userMapper;
         this.chatParticipantMapper = chatParticipantMapper;
+        this.chatMessageMapper = chatMessageMapper;
+        this.notificationService = notificationService;
     }
     
     /**
@@ -140,16 +149,50 @@ public class ChatMessageController {
             if (message.getRoomId() != null) {
                 Long messageId = chatService.saveMessage(message.getRoomId(), message);
                 
+                // 저장된 메시지의 시간 정보 가져오기
+                ChatMessage savedMessage = chatMessageMapper.findById(messageId);
+                message.setSentAt(savedMessage.getSentAt());
+                
                 // 메시지 브로드캐스팅
                 messagingTemplate.convertAndSend("/sub/chat/room/" + message.getRoomId(), message);
                 
                 // 참가자들에게 읽지 않은 메시지 개수 업데이트 알림
                 broadcastUnreadCountUpdates(message.getRoomId());
+                
+                // 채팅방 참가자들에게 알림 생성 (추가)
+                sendChatNotifications(message, user.getUserId());
             } else {
                 log.error("roomId가 null입니다.");
             }
         } catch (Exception e) {
             log.error("메시지 처리 오류", e);
+        }
+    }
+    
+    /**
+     * 채팅 알림 전송
+     */
+    private void sendChatNotifications(ChatMessageDto message, Integer senderId) {
+        try {
+            // 채팅방 참가자 조회
+            List<ChatParticipant> participants = chatParticipantMapper.findByChatRoomId(message.getRoomId());
+            
+            for (ChatParticipant participant : participants) {
+                // 발신자 본인은 제외
+                if (participant.getUserId().equals(senderId)) {
+                    continue;
+                }
+                
+                // 알림 생성
+                notificationService.createChatMessageNotification(
+                    participant.getUserId(),
+                    message.getRoomId(),
+                    message.getSenderNickname(),
+                    message.getMessage()
+                );
+            }
+        } catch (Exception e) {
+            log.error("채팅 알림 생성 중 오류", e);
         }
     }
     
@@ -200,6 +243,10 @@ public class ChatMessageController {
             
             // 메시지 저장
             Long messageId = chatService.saveMessage(roomId, message);
+            
+            // 저장된 메시지의 시간 정보 가져오기
+            ChatMessage savedMessage = chatMessageMapper.findById(messageId);
+            message.setSentAt(savedMessage.getSentAt());
             
             // 메시지 브로드캐스팅
             messagingTemplate.convertAndSend("/sub/chat/room/" + roomId, message);
