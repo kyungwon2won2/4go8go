@@ -410,8 +410,11 @@
                 },
                 body: JSON.stringify({ email })
             })
-            .then(res => {
-                if (!res.ok) throw new Error('이메일 인증 요청 실패');
+            .then(async res => {
+                const responseData = await res.json();
+                if (!res.ok) {
+                    throw new Error(responseData.message || '이메일 인증 요청 실패');
+                }
                 return res.json ? res.json() : res;
             })
 
@@ -431,8 +434,8 @@
                 }
                 startEmailTimer();
             })
-            .catch(() => {
-                showValidationError('email', 'emailError', '이메일 인증 요청에 실패했습니다.');
+            .catch(error => {
+                showValidationError('email', 'emailError', error.message || '이메일 인증 요청에 실패했습니다.');
             });
         });
 
