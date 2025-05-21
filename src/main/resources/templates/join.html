@@ -299,7 +299,7 @@
         }
         `;
         document.head.appendChild(style);
-        
+
         //validation
         document.querySelector('form').addEventListener('submit', function(event) {
             let isValid = true;
@@ -384,54 +384,103 @@
         }, 1000);
         }
         function updateEmailTimer() {
-        if (emailTimerSeconds > 0) {
-            const min = String(Math.floor(emailTimerSeconds / 60)).padStart(2, '0');
-            const sec = String(emailTimerSeconds % 60).padStart(2, '0');
-            document.getElementById('emailTimer').textContent = `남은 시간: ${min}:${sec}`;
-        }
-        }
-        document.getElementById('emailVerifyBtn').addEventListener('click', function() {
-        const email = document.getElementById('email').value.trim();
-        const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-        if (!emailPattern.test(email)) {
-            showValidationError('email', 'emailError', '올바른 이메일 형식이 아닙니다.');
-            return;
-        }
-        document.getElementById('emailError').textContent = '';
-        document.getElementById('email').classList.remove('is-invalid');
-        // 이메일 인증 요청
-        fetch('/email/send', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                [csrfHeaderName]: csrfToken
-            },
-            body: JSON.stringify({ email })
-        })
-        .then(res => {
-            if (!res.ok) throw new Error('이메일 인증 요청 실패');
-            return res.json ? res.json() : res;
-        })
-        .then(() => {
-            // 인증번호 입력란과 타이머 UI 생성
-            let verifyBox = document.getElementById('emailVerifyBox');
-            if (!verifyBox) {
-                verifyBox = document.createElement('div');
-                verifyBox.id = 'emailVerifyBox';
-                verifyBox.className = 'input-group mt-2';
-                verifyBox.innerHTML = `
-                    <input type="text" class="form-control" id="emailCode" placeholder="인증번호 입력">
-                    <button type="button" class="btn btn-outline-secondary" id="emailCodeBtn">인증 확인</button>
-                    <span id="emailTimer" style="color:#6c757d; font-size:14px; min-width:90px; display:flex; align-items:center; margin-left:10px;"></span>
-                `;
-                document.getElementById('emailError').after(verifyBox);
+            if (emailTimerSeconds > 0) {
+                const min = String(Math.floor(emailTimerSeconds / 60)).padStart(2, '0');
+                const sec = String(emailTimerSeconds % 60).padStart(2, '0');
+                document.getElementById('emailTimer').textContent = `남은 시간: ${min}:${sec}`;
             }
-            startEmailTimer();
-        })
-        .catch(() => {
-            showValidationError('email', 'emailError', '이메일 인증 요청에 실패했습니다.');
+        }
+
+        // 이메일 인증
+        document.getElementById('emailVerifyBtn').addEventListener('click', function() {
+            const email = document.getElementById('email').value.trim();
+            const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+            if (!emailPattern.test(email)) {
+                showValidationError('email', 'emailError', '올바른 이메일 형식이 아닙니다.');
+                return;
+            }
+            document.getElementById('emailError').textContent = '';
+            document.getElementById('email').classList.remove('is-invalid');
+            // 이메일 인증 요청
+            fetch('/email/send', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    [csrfHeaderName]: csrfToken
+                },
+                body: JSON.stringify({ email })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('이메일 인증 요청 실패');
+                return res.json ? res.json() : res;
+            })
+
+            .then(() => {
+                // 인증번호 입력란과 타이머 UI 생성
+                let verifyBox = document.getElementById('emailVerifyBox');
+                if (!verifyBox) {
+                    verifyBox = document.createElement('div');
+                    verifyBox.id = 'emailVerifyBox';
+                    verifyBox.className = 'input-group mt-2';
+                    verifyBox.innerHTML = `
+                        <input type="text" class="form-control" id="emailCode" placeholder="인증번호 입력">
+                        <button type="button" class="btn btn-outline-secondary" id="emailCodeBtn">인증 확인</button>
+                        <span id="emailTimer" style="color:#6c757d; font-size:14px; min-width:90px; display:flex; align-items:center; margin-left:10px;"></span>
+                    `;
+                    document.getElementById('emailError').after(verifyBox);
+                }
+                startEmailTimer();
+            })
+            .catch(() => {
+                showValidationError('email', 'emailError', '이메일 인증 요청에 실패했습니다.');
+            });
         });
+
+        // 이메일 확인버튼 이벤트
+        document.addEventListener('click', function (event) {
+            if (event.target && event.target.id === 'emailCodeBtn') {
+                const codeInput = document.getElementById('emailCode');
+                const emailInput = document.getElementById('email');
+                const code = codeInput.value.trim();
+                const email = emailInput.value.trim();
+
+                if (!code) {
+                    alert('인증번호를 입력해주세요.');
+                    return;
+                }
+
+                fetch('/email/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        [csrfHeaderName]: csrfToken // CSRF 적용 필요 시
+                    },
+                    body: JSON.stringify({ email: email, code: code })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => {
+                            throw new Error(err.message || '서버 오류');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message || '이메일 인증이 완료되었습니다.');
+                        // 예: UI 정리
+                        document.getElementById('emailVerifyBox')?.remove();
+                    } else {
+                        alert(data.message || '인증번호가 올바르지 않습니다.');
+                    }
+                })
+                .catch(error => {
+                    console.error('인증 요청 중 오류:', error);
+                    alert(error.message || '인증 요청 중 문제가 발생했습니다.');
+                });
+            }
         });
+
 </script>
 </body>
 </html>

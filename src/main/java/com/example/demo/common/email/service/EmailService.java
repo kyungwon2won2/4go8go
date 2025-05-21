@@ -1,22 +1,27 @@
 package com.example.demo.common.email.service;
 
-import com.example.demo.common.exception.custom.EmailAlreadyExistsException;
+import com.example.demo.common.email.dto.EmailRequest;
+import com.example.demo.common.email.dto.EmailResponse;
+import com.example.demo.common.email.model.EmailVerification;
+import com.example.demo.common.exception.custom.CustomException;
+import com.example.demo.common.stringcode.ErrorCode;
+import com.example.demo.mapper.EmailVerificationMapper;
 import com.example.demo.mapper.UserMapper;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @Slf4j
@@ -26,27 +31,66 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final SpringTemplateEngine templateEngine;
     private final UserMapper userMapper;
+    private final EmailVerificationMapper emailVerificationMapper;
 
-    private final Map<String, EmailVerificationInfo> verificationStorage = new ConcurrentHashMap<>();
+    private static final int MAX_TRIES = 5; // 로그인 시도횟수 제한
 
-    // 인증 코드 생성 + 메일 전송
+    // 인증 코드 생성 + 메일 전송 (이메일 대소문자 무시)
+    @Transactional
     public void generateAndSendCode(String email) {
-        if (userMapper.existsByEmail(email)) {
-            throw new EmailAlreadyExistsException("이미 등록된 이메일입니다.");
+        String normalizedEmail = email.toLowerCase();
+
+        if (userMapper.existsByEmail(normalizedEmail)) {
+            throw new CustomException(ErrorCode.DUPLICATE_EMAIL_EXIST);
         }
+
         String code = generateRandomCode();
-        verificationStorage.put(email, new EmailVerificationInfo(code, LocalDateTime.now().plusMinutes(3)));
-        sendVerificationEmail(email, code);
+
+        EmailVerification emailVerification = new EmailVerification(
+                normalizedEmail,
+                code,
+                LocalDateTime.now().plusMinutes(3)
+        );
+
+        emailVerificationMapper.insert(emailVerification);
+        sendVerificationEmail(normalizedEmail, code);
     }
 
-    // 인증 코드 검증
-    public boolean verifyCode(String email, String code) {
-        EmailVerificationInfo info = verificationStorage.get(email);
-        if (info == null || LocalDateTime.now().isAfter(info.getExpiresAt())) {
-            return false;
+    // 이메일 코드 검증(코드 사용 후 삭제, 시도 횟수 제한, 타이밍 공격 대비, 이메일 대소문자 무시)
+    @Transactional
+    public ResponseEntity<EmailResponse> verifyCode(EmailRequest emailRequest) {
+        String normalizedEmail = emailRequest.email().toLowerCase();
+        String code = emailRequest.code();
+        EmailVerification verification = emailVerificationMapper.selectByEmail(normalizedEmail);
+
+        if (verification == null) {
+            throw new CustomException(ErrorCode.EMAIL_VERIFICATION_NOT_FOUND);
         }
-        return info.getCode().equals(code);
+
+        if (!verification.canAttempt(MAX_TRIES)) {
+            throw new CustomException(ErrorCode.EMAIL_VERIFICATION_EXPIRED_OR_LIMITED);
+        }
+
+        verification.incrementAttempts();
+
+        boolean matched = MessageDigest.isEqual(
+                verification.getCode().getBytes(StandardCharsets.UTF_8),
+                code.getBytes(StandardCharsets.UTF_8)
+        );
+
+        if (!matched) {
+            emailVerificationMapper.update(verification);
+            throw new CustomException(ErrorCode.EMAIL_VERIFICATION_CODE_MISMATCH);
+        }
+
+        verification.markUsed();
+        emailVerificationMapper.deleteByEmail(normalizedEmail);
+
+        return ResponseEntity.ok(new EmailResponse("이메일 인증이 성공했습니다.", true));
     }
+
+
+
 
     // 메일 전송
     private void sendVerificationEmail(String toEmail, String code) {
@@ -78,11 +122,5 @@ public class EmailService {
         return String.valueOf((int)(Math.random() * 900000) + 100000); // 6자리 숫자
     }
 
-    @Data
-    @AllArgsConstructor
-    private static class EmailVerificationInfo {
-        private String code;
-        private LocalDateTime expiresAt;
-    }
 }
 

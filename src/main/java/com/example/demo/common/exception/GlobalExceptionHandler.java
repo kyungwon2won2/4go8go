@@ -1,6 +1,6 @@
 package com.example.demo.common.exception;
 
-import com.example.demo.common.exception.custom.EmailAlreadyExistsException;
+import com.example.demo.common.exception.custom.CustomException;
 import com.example.demo.common.stringcode.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -126,8 +126,8 @@ public class GlobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler(EmailAlreadyExistsException.class)
-    public ModelAndView handleEmailAlreadyExistsException(EmailAlreadyExistsException ex, HttpServletRequest request) {
+    @ExceptionHandler(CustomException.class)
+    public ModelAndView handleEmailAlreadyExistsException(CustomException ex, HttpServletRequest request) {
         log.error("EmailAlreadyExistsException: {}, Request URI: {}", ex.getMessage(), request.getRequestURI());
         return buildErrorModelAndView(
                 ErrorCode.DUPLICATE_EMAIL_EXIST,
