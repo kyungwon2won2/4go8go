@@ -55,29 +55,68 @@ public class ChatController {
     //    이전 메시지 조회
     @GetMapping("/history/{roomId}")
     public ResponseEntity<?> getChatHistory(@PathVariable Long roomId){
-        List<ChatMessageDto> chatMessageDtos = chatService.getChatHistory(roomId);
-        return new ResponseEntity<>(chatMessageDtos, HttpStatus.OK);
+        if (roomId == null) {
+            log.warn("채팅 이력 조회 시 roomId가 null입니다.");
+            return ResponseEntity.badRequest().body("유효하지 않은 채팅방 ID입니다.");
+        }
+        
+        try {
+            List<ChatMessageDto> chatMessageDtos = chatService.getChatHistory(roomId);
+            return new ResponseEntity<>(chatMessageDtos, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("채팅 이력 조회 오류: roomId={}", roomId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("채팅 이력 조회 중 오류가 발생했습니다: " + e.getMessage());
+        }
     }
 
     //    채팅메시지 읽음처리
     @PostMapping("/room/{roomId}/read")
     public ResponseEntity<?> messageRead(@PathVariable Long roomId){
-        chatService.messageRead(roomId);
-        return ResponseEntity.ok().build();
+        if (roomId == null) {
+            log.warn("메시지 읽음 처리 시 roomId가 null입니다.");
+            return ResponseEntity.badRequest().body("유효하지 않은 채팅방 ID입니다.");
+        }
+        
+        try {
+            chatService.messageRead(roomId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("메시지 읽음 처리 오류: roomId={}", roomId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("메시지 읽음 처리 중 오류가 발생했습니다.");
+        }
     }
 
     //    내채팅방목록조회 : roomId, roomName, 그룹채팅여부, 메시지읽음개수
     @GetMapping("/my/rooms")
     public ResponseEntity<?> getMyChatRooms(){
-        List<MyChatListResDto> myChatListResDtos = chatService.getMyChatRooms();
-        return new ResponseEntity<>(myChatListResDtos, HttpStatus.OK);
+        try {
+            List<MyChatListResDto> myChatListResDtos = chatService.getMyChatRooms();
+            return new ResponseEntity<>(myChatListResDtos, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("채팅방 목록 조회 오류", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("채팅방 목록 조회 중 오류가 발생했습니다.");
+        }
     }
 
     //    채팅방 나가기
     @PostMapping("/room/{roomId}/leave")
     public ResponseEntity<?> leaveRoom(@PathVariable Long roomId){
-        chatService.leaveRoom(roomId);
-        return ResponseEntity.ok().build();
+        if (roomId == null) {
+            log.warn("채팅방 나가기 시 roomId가 null입니다.");
+            return ResponseEntity.badRequest().body("유효하지 않은 채팅방 ID입니다.");
+        }
+        
+        try {
+            chatService.leaveRoom(roomId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("채팅방 나가기 오류: roomId={}", roomId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("채팅방 나가기 중 오류가 발생했습니다.");
+        }
     }
 
     //    개인 채팅방 개설 or 기존 채팅방 roomId return

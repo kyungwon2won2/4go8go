@@ -11,7 +11,7 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/images")
+@RequestMapping("/api/images") // 변경된 URL 경로
 public class ImageController {
 
     private final ImageService imageService;

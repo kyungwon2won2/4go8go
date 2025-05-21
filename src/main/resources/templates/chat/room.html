@@ -5,6 +5,7 @@
     <title>채팅방</title>
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/header.css}" />
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <style>
@@ -43,6 +44,9 @@
             background-color: white;
             flex-grow: 1;
         }
+        .message-container {
+            margin-bottom: 8px; /* 메시지 컨테이너 간격 조절 */
+        }
         .chat-form {
             display: flex;
             gap: 10px;
@@ -66,11 +70,12 @@
             background-color: #4a0060;
         }
         .message {
-            margin-bottom: 8px;
+            margin-bottom: 0;
             padding: 8px 12px;
             border-radius: 18px;
             max-width: 80%;
             word-break: break-word;
+            display: inline-block;
         }
         .my-message {
             background-color: #5f0080;
@@ -121,9 +126,16 @@
     </style>
 </head>
 <body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
 <div class="chat-container">
     <!-- 왼쪽: 채팅방 목록 -->
     <div class="sidebar">
+        <!-- 로고 추가 -->
+        <a href="/" class="logo" style="display: block; text-decoration: none; margin-bottom: 15px; text-align: center;">
+            <img src="/image/4go8go_logo.png" alt="4고8고마켓" height="40">
+        </a>
         <h3>내 채팅방</h3>
         <div id="connectionStatus" class="connection-status disconnected">연결 중...</div>
         <ul class="chat-room-list" id="roomList">
@@ -136,10 +148,10 @@
         <div class="chat-header">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <h3 th:text="${roomName}">채팅방</h3>
-<!--                    <div id="roomInfo">참여자: <span id="participants"></span></div>-->
+                    <h3 th:text="${roomName}" style="margin: 0;">채팅방</h3>
                 </div>
                 <div>
+                    <!-- 채팅방 나가기 버튼 -->
                     <button id="leaveRoomBtn" class="leave-room-btn">채팅방 나가기</button>
                 </div>
             </div>
@@ -213,8 +225,12 @@
                 cursor: pointer;
             }
             .modal-btn-cancel {
-                background-color: #f8f9fa;
-                border: 1px solid #ddd;
+                background-color: #e9ecef; /* 좀 더 진한 배경색으로 변경 */
+                border: 1px solid #ced4da;
+                color: #333;
+            }
+            .modal-btn-cancel:hover {
+                background-color: #dee2e6; /* hover 시 약간만 어둡게 */
             }
             .modal-btn-confirm {
                 background-color: #ff6b6b;
@@ -230,8 +246,8 @@
                     <button class="close-btn" onclick="closeLeaveRoomModal()">&times;</button>
                 </div>
                 <div class="modal-body">
-                    정말로 이 채팅방을 나가시겠습니까?
-                    모든 대화 내용은 유지되지만 다시 입장하려면 상대방이 새 메시지를 보내야 합니다.
+                    정말로 이 채팅방을 나가시겠습니까? <br>
+                    (재입장시, 대화 내용은 유지됩니다)
                 </div>
                 <div class="modal-footer">
                     <button class="modal-btn modal-btn-cancel" onclick="closeLeaveRoomModal()">취소</button>
@@ -280,8 +296,14 @@
         
         if (rooms.length === 0) {
             roomList.innerHTML = '<li>채팅방이 없습니다</li>';
+            // 채팅방이 없으면 아이콘 초기화
+            resetChatIconInParentWindow();
             return;
         }
+        
+        // 모든 채팅방의 읽지 않은 메시지 총합 계산
+        let totalUnread = 0;
+        let hasUnreadInCurrentRoom = false;
         
         rooms.forEach(room => {
             const li = document.createElement('li');
@@ -289,13 +311,20 @@
             a.href = `/chat/room/${room.roomId}`;
             a.textContent = room.roomName;
             
-            // 현재 채팅방은 강조 표시하고 읽지 않은 메시지 수를 표시하지 않음
+            // 현재 채팅방은 강조 표시
             if (room.roomId == roomId) {
                 a.style.fontWeight = 'bold';
                 a.style.backgroundColor = '#f0f0f0';
+                
+                // 현재 채팅방에 읽지 않은 메시지가 있는지 확인
+                if (room.unReadCount > 0) {
+                    hasUnreadInCurrentRoom = true;
+                }
             } 
-            // 현재 채팅방이 아니고 읽지 않은 메시지가 있는 경우에만 뱃지 표시
+            // 읽지 않은 메시지가 있는 경우에만 뱃지 표시
             else if (room.unReadCount > 0) {
+                totalUnread += room.unReadCount;
+                
                 const badge = document.createElement('span');
                 badge.textContent = room.unReadCount;
                 badge.style.backgroundColor = '#5f0080';
@@ -310,6 +339,82 @@
             li.appendChild(a);
             roomList.appendChild(li);
         });
+        
+        console.log('채팅방 목록 업데이트 - 읽지 않은 메시지 총합:', totalUnread, '현재 방 읽지 않은 메시지:', hasUnreadInCurrentRoom);
+        
+        // 1. 현재 채팅방의 메시지는 자동으로 읽음 처리됨
+        if (hasUnreadInCurrentRoom) {
+            // 현재 채팅방에 읽지 않은 메시지가 있으면 읽음 처리 요청
+            fetch(`/chat/room/${roomId}/read`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || ''
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log('채팅방 메시지 읽음 처리 성공');
+                    // 채팅방 목록 새로고침 (다시 목록을 가져와서 업데이트)
+                    loadChatRooms();
+                }
+            })
+            .catch(err => console.warn('메시지 읽음 처리 오류:', err));
+            
+            return; // 읽기 처리 후 목록이 다시 업데이트되므로 여기서 종료
+        }
+        
+        // 2. 다른 채팅방에 읽지 않은 메시지가 있는지 확인하여 아이콘 상태 결정
+        if (totalUnread > 0) {
+            updateChatIconInParentWindow(true);
+        } else {
+            resetChatIconInParentWindow();
+        }
+    }
+    
+    // 부모 창의 채팅 아이콘 업데이트
+    function updateChatIconInParentWindow(hasNew) {
+        try {
+            console.log('부모 창의 채팅 아이콘 업데이트 시도, 상태:', hasNew);
+            
+            // 1. window.parent.updateChatIcon 함수가 있으면 사용
+            if (window.parent && typeof window.parent.updateChatIcon === 'function') {
+                window.parent.updateChatIcon(hasNew);
+                return;
+            }
+            
+            // 2. 부모 창의 DOM 요소에 직접 접근
+            const chatIcon = window.parent.document.getElementById('chatMessageIcon');
+            
+            if (chatIcon) {
+                if (hasNew) {
+                    chatIcon.classList.add('has-new');
+                } else {
+                    chatIcon.classList.remove('has-new');
+                }
+            }
+            
+            // 3. LocalStorage 업데이트
+            try {
+                if (hasNew) {
+                    localStorage.setItem('hasChatMessage', 'true');
+                    window.parent.localStorage.setItem('hasChatMessage', 'true');
+                } else {
+                    localStorage.removeItem('hasChatMessage');
+                    window.parent.localStorage.removeItem('hasChatMessage');
+                }
+            } catch (e) {
+                console.warn('LocalStorage 업데이트 실패:', e);
+            }
+        } catch (e) {
+            console.warn('부모 창의 채팅 아이콘 업데이트 실패:', e);
+        }
+    }
+    
+    // 부모 창의 채팅 아이콘 초기화
+    function resetChatIconInParentWindow() {
+        console.log('부모 창의 채팅 아이콘 초기화 시도');
+        updateChatIconInParentWindow(false);
     }
     
     // STOMP 클라이언트 연결
@@ -348,7 +453,7 @@
                     displayMessage(messageData);
                 }
                 
-                // 현재 채팅방에 있으므로 새 메시지 자동 읽음 처리
+    // 현재 채팅방에 있으므로 새 메시지 자동 읽음 처리
                 if (messageData.senderEmail !== userEmail) {
                     fetch(`/chat/room/${roomId}/read`, {
                         method: 'POST',
@@ -356,7 +461,18 @@
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || ''
                         }
-                    }).catch(() => {
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            // 채팅 아이콘 초기화
+                            try {
+                                resetChatIconInParentWindow();
+                            } catch (e) {
+                                console.warn('채팅 아이콘 초기화 실패 (무시됨):', e);
+                            }
+                        }
+                    })
+                    .catch(() => {
                         // 읽음 처리 실패시 조용히 오류 처리
                     });
                 }
@@ -379,6 +495,12 @@
                 message: "입장했습니다."
             }));
             
+            // roomId가 유효한지 확인
+            if (!roomId || roomId === 'null' || roomId === 'undefined') {
+                console.error('유효하지 않은 채팅방 ID:', roomId);
+                return;
+            }
+            
             // 메시지 읽음 처리
             fetch(`/chat/room/${roomId}/read`, {
                 method: 'POST',
@@ -389,12 +511,22 @@
             })
             .then(response => {
                 if (response.ok) {
-                    // 채팅방 목록 새로고침 (읽지 않은 메시지 수 업데이트)
-                    loadChatRooms();
+                    console.log('초기 메시지 읽음 처리 완료');
+                    
+                    // 채팅방 목록 새로고침
+                    setTimeout(loadChatRooms, 500);
+                    
+                    // 채팅방 관련 알림 읽음 처리
+                    if (roomId) {
+                        fetch(`/api/notifications/chat/${roomId}/read-all`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || ''
+                            }
+                        });
+                    }
                 }
-            })
-            .catch(err => {
-                // 오류 발생 시 조용히 처리
             });
             
             // 채팅 이력 로드
@@ -405,22 +537,81 @@
         });
     }
     
+    // 마지막으로 메시지를 보낸 사용자의 이메일
+    let lastSenderEmail = null;
+    // 마지막 메시지 날짜 (연월일)
+    let lastMessageDate = null;
+    
+    // 날짜 포맷 함수
+    function formatDate(date) {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        if (year === today.getFullYear() && month === (today.getMonth() + 1).toString().padStart(2, '0') && day === today.getDate().toString().padStart(2, '0')) {
+            return '오늘';
+        } else if (year === yesterday.getFullYear() && month === (yesterday.getMonth() + 1).toString().padStart(2, '0') && day === yesterday.getDate().toString().padStart(2, '0')) {
+            return '어제';
+        } else {
+            return `${year}년 ${month}월 ${day}일`;
+        }
+    }
+    
     // 메시지 표시
     function displayMessage(message) {
+        // 날짜 확인 및 표시 (날짜가 변경된 경우)
+        if (message.sentAt) {
+            const messageDate = new Date(message.sentAt);
+            const messageDateStr = formatDate(messageDate);
+            
+            // 날짜가 변경된 경우 또는 첫 메시지인 경우
+            if (!lastMessageDate || lastMessageDate !== messageDateStr) {
+                const dateElement = document.createElement('div');
+                dateElement.classList.add('date-divider');
+                dateElement.style.textAlign = 'center';
+                dateElement.style.margin = '10px 0';
+                dateElement.style.color = '#888';
+                dateElement.style.fontSize = '0.8rem';
+                
+                // 날짜 디바이더 스타일
+                dateElement.style.position = 'relative';
+                dateElement.style.borderBottom = '1px solid #ddd';
+                dateElement.style.height = '0';
+                
+                // 날짜 텍스트 스타일
+                const dateText = document.createElement('span');
+                dateText.textContent = messageDateStr;
+                dateText.style.backgroundColor = 'white';
+                dateText.style.padding = '0 10px';
+                dateText.style.position = 'relative';
+                dateText.style.top = '-0.7em';
+                
+                dateElement.appendChild(dateText);
+                chatBox.appendChild(dateElement);
+                
+                // 현재 날짜 저장
+                lastMessageDate = messageDateStr;
+            }
+        }
+        
         const messageElement = document.createElement('div');
         messageElement.classList.add('message-container');
         
-        const messageContent = document.createElement('div');
-        messageContent.classList.add('message');
-        
         // 내 메시지인지 다른 사람의 메시지인지 구분
         const isMyMessage = message.senderEmail === userEmail;
-        if (isMyMessage) {
-            messageContent.classList.add('my-message');
-        } else {
-            messageContent.classList.add('other-message');
-            
-            // 발신자 정보 추가 (내 메시지가 아닌 경우만)
+        
+        // 연속된 메시지인지 확인 (동일한 발신자가 연속해서 보낸 메시지)
+        const isConsecutiveMessage = (lastSenderEmail === message.senderEmail);
+        
+        // 발신자 이메일 업데이트
+        lastSenderEmail = message.senderEmail;
+        
+        // 상대 메시지인 경우에만 발신자 정보 추가 (연속된 메시지가 아닌 경우에만)
+        if (!isMyMessage && !isConsecutiveMessage) {
             const senderElement = document.createElement('div');
             senderElement.style.fontSize = '0.8rem';
             senderElement.style.marginBottom = '3px';
@@ -428,8 +619,77 @@
             messageElement.appendChild(senderElement);
         }
         
-        messageContent.textContent = message.message;
-        messageElement.appendChild(messageContent);
+        if (isMyMessage) {
+            // 내 메시지인 경우: 시간은 오른쪽 정렬, 메시지는 오른쪽 정렬
+            messageElement.style.display = 'flex';
+            messageElement.style.flexDirection = 'column';
+            messageElement.style.alignItems = 'flex-end';
+            
+            // 메시지와 시간을 함께 표시할 컨테이너
+            const messageWithTimeContainer = document.createElement('div');
+            messageWithTimeContainer.style.display = 'flex';
+            messageWithTimeContainer.style.alignItems = 'center';
+            
+            // 시간 요소 (메시지 왼쪽에 표시)
+            if (message.sentAt) {
+                const timeElement = document.createElement('div');
+                timeElement.classList.add('message-time');
+                timeElement.style.fontSize = '0.7rem';
+                timeElement.style.color = '#888';
+                timeElement.style.marginRight = '5px';
+                
+                // 시간 포맷팅
+                const date = new Date(message.sentAt);
+                const hours = date.getHours().toString().padStart(2, '0');
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                timeElement.textContent = `${hours}:${minutes}`;
+                
+                messageWithTimeContainer.appendChild(timeElement);
+            }
+            
+            // 메시지 내용
+            const messageContent = document.createElement('div');
+            messageContent.classList.add('message', 'my-message');
+            messageContent.textContent = message.message;
+            messageWithTimeContainer.appendChild(messageContent);
+            
+            messageElement.appendChild(messageWithTimeContainer);
+        } else {
+            // 상대 메시지인 경우: 메시지는 왼쪽 정렬, 시간은 메시지 오른쪽에 표시
+            messageElement.style.display = 'flex';
+            messageElement.style.flexDirection = 'column';
+            messageElement.style.alignItems = 'flex-start';
+            
+            // 메시지와 시간을 함께 표시할 컨테이너
+            const messageWithTimeContainer = document.createElement('div');
+            messageWithTimeContainer.style.display = 'flex';
+            messageWithTimeContainer.style.alignItems = 'center';
+            
+            // 메시지 내용
+            const messageContent = document.createElement('div');
+            messageContent.classList.add('message', 'other-message');
+            messageContent.textContent = message.message;
+            messageWithTimeContainer.appendChild(messageContent);
+            
+            // 시간 요소 (메시지 오른쪽에 표시)
+            if (message.sentAt) {
+                const timeElement = document.createElement('div');
+                timeElement.classList.add('message-time');
+                timeElement.style.fontSize = '0.7rem';
+                timeElement.style.color = '#888';
+                timeElement.style.marginLeft = '5px';
+                
+                // 시간 포맷팅
+                const date = new Date(message.sentAt);
+                const hours = date.getHours().toString().padStart(2, '0');
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                timeElement.textContent = `${hours}:${minutes}`;
+                
+                messageWithTimeContainer.appendChild(timeElement);
+            }
+            
+            messageElement.appendChild(messageWithTimeContainer);
+        }
         
         chatBox.appendChild(messageElement);
         
@@ -443,9 +703,13 @@
             .then(response => response.json())
             .then(messages => {
                 chatBox.innerHTML = ''; // 기존 메시지 초기화
+                lastSenderEmail = null; // 마지막 발신자 초기화
+                lastMessageDate = null; // 마지막 메시지 날짜 초기화
+                
                 messages.forEach(message => {
                     displayMessage(message);
                 });
+                
                 chatBox.scrollTop = chatBox.scrollHeight;
             })
             .catch(() => {
@@ -479,6 +743,8 @@
         connect();
         loadChatRooms();
     };
+    
+    // 이전 코드들...
     
     // 페이지 언로드 시 연결 해제
     window.onbeforeunload = function() {

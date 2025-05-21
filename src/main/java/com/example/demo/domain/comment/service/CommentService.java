@@ -1,9 +1,14 @@
 package com.example.demo.domain.comment.service;
 
+import com.example.demo.common.notification.model.Notification;
+import com.example.demo.common.notification.service.NotificationService;
 import com.example.demo.domain.comment.dto.CommentDTO;
 import com.example.demo.domain.comment.model.Comment;
+import com.example.demo.domain.post.dto.GeneralDetailDto;
 import com.example.demo.domain.user.model.CustomerUser;
 import com.example.demo.mapper.CommentMapper;
+import com.example.demo.mapper.PostMapper;
+import com.example.demo.mapper.UserMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +22,9 @@ import java.util.HashMap;
 public class CommentService {
 
     private final CommentMapper commentMapper;
+    private final PostMapper postMapper;
+    private final NotificationService notificationService;
+    private final UserMapper userMapper; // 사용자 닉네임 조회용
 
     @Transactional
     public Map<String, Object> createComment(int postId, String commentContent, CustomerUser loginUser) {
@@ -41,12 +49,39 @@ public class CommentService {
         // 3. 삽입된 댓글 ID로 조회
         CommentDTO newComment = commentMapper.selectCommentWithNickname(comment.getCommentId());
 
-        // 4. 응답 구성
+        // 4. 게시글 정보 조회하여 작성자 ID 가져오기
+        GeneralDetailDto post = postMapper.selectPostByIdDto(postId);
+        if (post != null) {
+            int postWriterId = post.getUserId();
+
+            // 5. 댓글 작성자와 게시글 작성자가 다른 경우에만 알림 생성
+            if (postWriterId != loginUser.getUserId()) {
+                // 6. 알림 생성
+                String userNickname = loginUser.getNickname();
+
+                Notification notification = Notification.builder()
+                        .userId(postWriterId) // 수신자 ID (게시글 작성자)
+                        .type("POST_COMMENT") // 알림 유형
+                        .content(userNickname + "님이 회원님의 게시글에 댓글을 남겼습니다: " +
+                                (commentContent.length() > 20 ? commentContent.substring(0, 20) + "..." : commentContent))
+                        .url("/post/" + postId) // 클릭 시 이동할 URL (게시글 상세 페이지)
+                        .referenceId((long) postId) // 참조 ID (게시글 ID)
+                        .isRead(false) // 읽음 여부
+                        .createdAt(new Date()) // 생성 시간
+                        .build();
+
+                // 7. 알림 서비스를 통해 알림 저장 및 전송
+                notificationService.createNotification(notification);
+            }
+        }
+
+        // 5. 응답 구성
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("comment", newComment);
         return response;
     }
+
 
 
     @Transactional

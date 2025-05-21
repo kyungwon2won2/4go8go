@@ -52,7 +52,7 @@
             document.querySelectorAll("img[data-id]").forEach(function(img){
                 const imageId = img.getAttribute("data-id");
 
-                fetch(`/images/${imageId}`)
+                fetch(`/api/images/${imageId}`)
                     .then(response => response.json())
                     .then(data => {
                       if(data.url){
@@ -85,7 +85,7 @@
                 onInit: function(){
                     document.querySelectorAll("img[data-id]").forEach(function (img){
                         const id = img.getAttribute("data-id");
-                        fetch(`/images/${id}`)
+                        fetch(`/api/images/${id}`)
                             .then(res => res.json())
                             .then(data => img.src = data.url);
                     });

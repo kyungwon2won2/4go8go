@@ -6,13 +6,14 @@
 <div class="top-banner">
     지금 가입하면 3,000원 적립금과 생일 축하 쿠폰을 드려요!
 </div>
-
 <!-- 헤더 (로그인/회원가입) -->
 <header class="container">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    
     <div class="header-top">
         <div></div>
         <ul class="user-menu">
-
             <!-- 비로그인 상태 -->
             <li sec:authorize="!isAuthenticated()">
                 <a href="/join">회원가입</a>
@@ -20,7 +21,6 @@
             <li sec:authorize="!isAuthenticated()">
                 <a href="/login">로그인</a>
             </li>
-
             <!-- 로그인 상태 -->
             <li sec:authorize="isAuthenticated()">
                 <span sec:authentication="name"></span>님
@@ -33,17 +33,13 @@
                     </button>
                 </form>
             </li>
-
             <!-- 공통 메뉴 -->
             <li><a href="#">고객센터</a></li>
-
         </ul>
-
     </div>
-
     <!-- 로고, 검색창, 아이콘 -->
     <div class="logo-area">
-        <a href="/" class="logo"><img src="/images/4go8go_logo.png" alt="4고8고마켓" height="40"></a>
+        <a href="/" class="logo"><img src="/image/4go8go_logo.png" alt="4고8고마켓" height="40"></a>
 <!--        <div class="search-box">-->
 <!--            <input type="text" placeholder="검색어를 입력해주세요">-->
 <!--            <button><i class="bi bi-search"></i></button>-->
@@ -51,10 +47,13 @@
         <div class="icons">
             <a href="/user/profile"><i class="bi bi-person"></i></a>
             <a href="#"><i class="bi bi-cart"></i></a>
-            <a href="/chat/room"><i class="bi bi-messenger"></i></a>
+            <a href="/chat/room" id="chatMessageIcon"><i class="bi bi-messenger"></i></a>
+            <a href="#" id="notificationIcon" class="notification-icon position-relative" sec:authorize="isAuthenticated()" onclick="openNotificationModal(event)">
+                <i class="bi bi-bell" id="notificationBellIcon"></i>
+                <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none; font-size: 0.7rem; padding: 0.2rem 0.4rem; border-radius: 50%;"></span>
+            </a>
         </div>
     </div>
-
     <!-- 메인 네비게이션 -->
     <nav class="main-nav">
         <ul>
@@ -63,15 +62,35 @@
             <li><a href="#">베스트</a></li>
             <li><a href="#">알뜰쇼핑</a></li>
             <li><a th:href="@{/post}">자유게시판</a></li>
-
-
             <!-- 관리자 메뉴 -->
             <th:block sec:authorize="hasRole('ROLE_ADMIN')">
-                <li><a href="/admin" style="color: var(--primary-color);">관리자</a></li>
+                <li><a href="/admin" style="color: var(--sub-color);">관리자</a></li>
 <!--                <li><a href="/user/list">사용자 목록</a></li>-->
             </th:block>
-
         </ul>
     </nav>
+    
+    <!-- 알림 모달 -->
+    <div id="notificationModal" class="notification-modal" style="display: none;">
+        <div class="notification-modal-content">
+            <div class="notification-modal-header">
+                <h5>최근 알림</h5>
+                <span class="notification-modal-close" onclick="closeNotificationModal()">&times;</span>
+            </div>
+            <div class="notification-modal-body" id="notificationList">
+                <!-- 여기에 알림 목록 동적으로 로드 -->
+                <div class="notification-loading">
+                    <i class="bi bi-arrow-repeat spin"></i> 알림을 불러오는 중...
+                </div>
+            </div>
+            <div class="notification-modal-footer">
+                <button onclick="markAllAsRead()" class="notification-modal-button" id="markAllReadButton">전체 읽음</button>
+                <a href="/notifications" class="notification-modal-link">모든 알림 보기</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/notification-chat.js"></script>
 </header>
-</div> 
+</div>
+</html>
