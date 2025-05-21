@@ -29,7 +29,11 @@ public enum ErrorCode {
     UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "지원하지 않는 미디어 타입입니다"),
 
     ACCOUNT_LOCKED(HttpStatus.FORBIDDEN, "계정이 잠겼습니다"),
-    ACCOUNT_DISABLED(HttpStatus.FORBIDDEN, "계정이 비활성화되었습니다");
+    ACCOUNT_DISABLED(HttpStatus.FORBIDDEN, "계정이 비활성화되었습니다"),
+
+    EMAIL_VERIFICATION_NOT_FOUND(HttpStatus.BAD_REQUEST, "인증 요청이 존재하지 않습니다"),
+    EMAIL_VERIFICATION_EXPIRED_OR_LIMITED(HttpStatus.BAD_REQUEST, "인증 시도 가능 횟수를 초과했거나 만료되었습니다"),
+    EMAIL_VERIFICATION_CODE_MISMATCH(HttpStatus.BAD_REQUEST, "인증번호가 일치하지 않습니다");
 
     private final HttpStatus status;
     private final String message;
