@@ -140,13 +140,28 @@ public class NotificationService {
         try {
             Users currentUser = getCurrentUser();
             if (currentUser == null) {
+                log.info("알림 조회: 현재 사용자 정보를 찾을 수 없음");
                 return List.of();
             }
             
-            List<Notification> notifications = notificationMapper.findByUserId(currentUser.getUserId(), page * size, size);
-            return notifications.stream()
+            int offset = page * size;
+            log.info("알림 조회 시도: userId={}, offset={}, limit={}", currentUser.getUserId(), offset, size);
+            
+            List<Notification> notifications = notificationMapper.findByUserId(currentUser.getUserId(), offset, size);
+            
+            if (notifications == null) {
+                log.warn("알림 조회 결과가 null입니다: userId={}", currentUser.getUserId());
+                return List.of();
+            }
+            
+            log.info("알림 조회 결과: userId={}, 개수={}", currentUser.getUserId(), notifications.size());
+            
+            List<NotificationDto> dtos = notifications.stream()
                     .map(this::convertToDto)
                     .collect(Collectors.toList());
+                    
+            log.info("알림 DTO 변환 완료: 개수={}", dtos.size());
+            return dtos;
         } catch (Exception e) {
             log.error("알림 목록 조회 중 오류 발생", e);
             return List.of();
@@ -169,6 +184,32 @@ public class NotificationService {
                     .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("읽지 않은 알림 조회 중 오류 발생", e);
+            return List.of();
+        }
+    }
+    
+    /**
+     * 읽지 않은 알림 페이징 조회
+     */
+    public List<NotificationDto> getUnreadNotificationsPaged(int page, int size) {
+        try {
+            Users currentUser = getCurrentUser();
+            if (currentUser == null) {
+                return List.of();
+            }
+            
+            int offset = page * size;
+            log.info("읽지 않은 알림 페이징 조회: userId={}, offset={}, limit={}", 
+                    currentUser.getUserId(), offset, size);
+            
+            List<Notification> notifications = notificationMapper.findUnreadByUserIdPaged(
+                    currentUser.getUserId(), offset, size);
+            
+            return notifications.stream()
+                    .map(this::convertToDto)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("읽지 않은 알림 페이징 조회 중 오류 발생", e);
             return List.of();
         }
     }
@@ -265,12 +306,19 @@ public class NotificationService {
 
 
     public Page<Notification> getNotificationsPaged(int userId, int page, int size) {
-        int offset = page * size;
+        try {
+            log.info("페이징된 알림 조회: userId={}, page={}, size={}", userId, page, size);
+            int offset = page * size;
 
-        List<Notification> notifications = notificationMapper.findByUserId(userId, size, offset);
-        int total = notificationMapper.countByUserId(userId);
+            List<Notification> notifications = notificationMapper.findByUserId(userId, offset, size);
+            int total = notificationMapper.countByUserId(userId);
 
-        return new PageImpl<>(notifications, PageRequest.of(page, size), total);
+            log.info("페이징된 알림 조회 결과: {}개 (총 {}개 중)", notifications.size(), total);
+            return new PageImpl<>(notifications, PageRequest.of(page, size), total);
+        } catch (Exception e) {
+            log.error("페이징된 알림 조회 중 오류 발생: userId={}", userId, e);
+            return Page.empty();
+        }
     }
 
 

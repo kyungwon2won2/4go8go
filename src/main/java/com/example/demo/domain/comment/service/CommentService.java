@@ -60,14 +60,15 @@ public class CommentService {
                 String userNickname = loginUser.getNickname();
 
                 Notification notification = Notification.builder()
-                        .userId(postWriterId) // 수신자 ID (게시글 작성자)
-                        .type("POST_COMMENT") // 알림 유형
-                        .content(userNickname + "님이 회원님의 게시글에 댓글을 남겼습니다: " +
-                                (commentContent.length() > 20 ? commentContent.substring(0, 20) + "..." : commentContent))
-                        .url("/post/" + postId) // 클릭 시 이동할 URL (게시글 상세 페이지)
-                        .referenceId((long) postId) // 참조 ID (게시글 ID)
-                        .isRead(false) // 읽음 여부
-                        .createdAt(new Date()) // 생성 시간
+                        .userId(postWriterId)
+                        .type("POST_COMMENT")
+//                        .content(userNickname + "님이 회원님의 게시글에 댓글을 남겼습니다: " +
+//                                (commentContent.length() > 20 ? commentContent.substring(0, 20) + "..." : commentContent))
+                        .content(userNickname + "님이 회원님의 게시글에 댓글을 남겼습니다")
+                        .url("/post/" + postId)
+                        .referenceId((long) postId)
+                        .isRead(false)
+                        .createdAt(new Date())
                         .build();
 
                 // 7. 알림 서비스를 통해 알림 저장 및 전송

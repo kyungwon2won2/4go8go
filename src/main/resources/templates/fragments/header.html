@@ -2,6 +2,20 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <div th:fragment="header">
+
+<!--&lt;!&ndash; CSS 임포트 (순서대로) &ndash;&gt;-->
+<!--<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">-->
+<!--<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">-->
+<!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">-->
+<!--<link rel="stylesheet" type="text/css" th:href="@{/css/index.css}" />-->
+<!--<link rel="stylesheet" type="text/css" th:href="@{/css/header.css}" />-->
+<!--<link rel="stylesheet" type="text/css" th:href="@{/css/footer.css}" />-->
+<!--<link rel="stylesheet" type="text/css" th:href="@{/css/notification.css}" />-->
+
+<!--&lt;!&ndash; CSRF 토큰 (필수) &ndash;&gt;-->
+<!--<meta name="_csrf" th:content="${_csrf.token}">-->
+<!--<meta name="_csrf_header" th:content="${_csrf.headerName}">-->
+
 <!-- 상단 배너 -->
 <div class="top-banner">
     지금 가입하면 3,000원 적립금과 생일 축하 쿠폰을 드려요!
@@ -9,9 +23,6 @@
 
 <!-- 헤더 (로그인/회원가입) -->
 <header class="container">
-    <meta name="_csrf" th:content="${_csrf.token}">
-    <meta name="_csrf_header" th:content="${_csrf.headerName}">
-
     <div class="header-top">
         <div></div>
         <ul class="user-menu">
@@ -46,19 +57,12 @@
 
     <!-- 로고, 검색창, 아이콘 -->
     <div class="logo-area">
-        <a href="/" class="logo"><img src="/images/4go8go_logo.png" alt="4고8고마켓" height="40"></a>
-        <div class="search-box">
-            <input type="text" placeholder="검색어를 입력해주세요">
-            <button><i class="bi bi-search"></i></button>
-        </div>
+        <a href="/" class="logo"><img src="/image/4go8go_logo.png" alt="4고8고마켓" height="40"></a>
         <div class="icons">
             <a href="/user/profile"><i class="bi bi-person"></i></a>
             <a href="#"><i class="bi bi-cart"></i></a>
-            <a href="/chat/room"><i class="bi bi-messenger"></i></a>
-            <a href="#" id="notificationIcon" class="notification-icon position-relative" sec:authorize="isAuthenticated()" onclick="openNotificationModal(event)">
-                <i class="bi bi-bell" id="notificationBellIcon"></i>
-                <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none; font-size: 0.7rem; padding: 0.2rem 0.4rem; border-radius: 50%;"></span>
-            </a>
+            <a href="/chat/room" id="chatMessageIcon"><i class="bi bi-messenger"></i></a>
+            <th:block sec:authorize="isAuthenticated()" th:replace="~{fragments/notification :: notification}"></th:block>
         </div>
     </div>
 
@@ -73,13 +77,12 @@
 
             <!-- 관리자 메뉴 -->
             <th:block sec:authorize="hasRole('ROLE_ADMIN')">
-                <li><a href="/admin" style="color: var(--primary-color);">관리자</a></li>
-<!--                <li><a href="/user/list">사용자 목록</a></li>-->
+                <li><a href="/admin" style="color: var(--sub-color);">관리자</a></li>
+
             </th:block>
 
         </ul>
     </nav>
-
     <!-- 알림 모달 -->
     <div id="notificationModal" class="notification-modal" style="display: none;">
         <div class="notification-modal-content">
@@ -101,6 +104,16 @@
     </div>
 
     <script src="/js/notification-chat.js"></script>
+
 </header>
+
+<!--&lt;!&ndash; JavaScript 임포트 (순서대로) &ndash;&gt;-->
+<!--<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>-->
+<!--&lt;!&ndash; 알림 관련 스크립트 (로드 순서 중요) &ndash;&gt;-->
+<!--<script th:src="@{/js/notification-utils.js}" sec:authorize="isAuthenticated()"></script>-->
+<!--<script th:src="@{/js/notification-chat.js}" sec:authorize="isAuthenticated()"></script>-->
+<!--<script th:src="@{/js/notification-ui.js}" sec:authorize="isAuthenticated()"></script>-->
+<!--<script th:src="@{/js/notification-sse.js}" sec:authorize="isAuthenticated()"></script>-->
+
 </div>
 </html>

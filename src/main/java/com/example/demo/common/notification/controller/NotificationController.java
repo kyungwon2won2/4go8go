@@ -31,17 +31,32 @@ public class NotificationController {
      */
     @GetMapping("/notifications")
     public String notificationsPage(@RequestParam(defaultValue = "0") int page,
-                                    @RequestParam(defaultValue = "10") int size,
+                                    @RequestParam(defaultValue = "5") int size,
                                     Model model,
                                     @AuthenticationPrincipal CustomerUser user) {
+        log.info("알림 페이지 요청: 사용자={}, page={}, size={}", user.getUserId(), page, size);
+        
         Page<Notification> notificationsPage = notificationService.getNotificationsPaged(user.getUserId(), page, size);
         int unreadCount = notificationService.countUnreadNotifications();
+
+        log.info("알림 데이터 조회 결과: 총 {}개, 읽지 않은 알림 {}개", 
+                notificationsPage.getTotalElements(), unreadCount);
+        
+        if (!notificationsPage.isEmpty()) {
+            log.info("알림 데이터 샘플: 첫 번째 알림 ID={}, 내용={}, 읽음상태={}", 
+                    notificationsPage.getContent().get(0).getNotificationId(),
+                    notificationsPage.getContent().get(0).getContent(),
+                    notificationsPage.getContent().get(0).isRead());
+        } else {
+            log.info("알림 데이터가 없습니다.");
+        }
 
         model.addAttribute("notificationsPage", notificationsPage);
         model.addAttribute("notifications", notificationsPage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", notificationsPage.getTotalPages());
         model.addAttribute("unreadCount", unreadCount);
+        model.addAttribute("size", size);  // 페이지 크기 추가
 
         return "notification/list";
     }
@@ -55,8 +70,38 @@ public class NotificationController {
     @ResponseBody
     public List<NotificationDto> getNotifications(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return notificationService.getNotifications(page, size);
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String limit) {
+        
+        // limit 파라미터가 제공된 경우, size로 변환
+        if (limit != null && !limit.isEmpty()) {
+            try {
+                size = Integer.parseInt(limit);
+                log.info("limit 파라미터를 size로 변환: limit={}, size={}", limit, size);
+            } catch (NumberFormatException e) {
+                log.warn("limit 파라미터 변환 실패, 기본 size 사용: {}", size);
+            }
+        }
+        
+        log.info("알림 목록 조회 요청: page={}, size={}", page, size);
+        List<NotificationDto> notifications = notificationService.getNotifications(page, size);
+        log.info("알림 목록 조회 결과: 개수={}", notifications.size());
+        return notifications;
+    }
+    
+    /**
+     * 읽지 않은 알림 목록 API
+     */
+    @GetMapping("/api/notifications/unread")
+    @ResponseBody
+    public List<NotificationDto> getUnreadNotifications(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+        
+        log.info("읽지 않은 알림 목록 조회 요청: page={}, size={}", page, size);
+        List<NotificationDto> notifications = notificationService.getUnreadNotificationsPaged(page, size);
+        log.info("읽지 않은 알림 목록 조회 결과: 개수={}", notifications.size());
+        return notifications;
     }
     
     /**

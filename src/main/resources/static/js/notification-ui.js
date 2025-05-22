@@ -1,3 +1,6 @@
+/**
+ * 알림 드롭다운 UI 관련 기능
+ */
 (function() {
     'use strict';
     
@@ -25,17 +28,9 @@
             setupEventListeners();
             
             // 페이지 로드 시 알림 개수 로드
-            fetch('/api/notifications/count')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.count > 0) {
-                        notificationBadge.textContent = data.count > 99 ? '99+' : data.count;
-                        notificationBadge.style.display = 'block';
-                    }
-                })
-                .catch(error => {
-                    console.error('알림 개수 로드 실패:', error);
-                });
+            if (window.NotificationUtils) {
+                window.NotificationUtils.loadNotificationCount();
+            }
         }
     });
     
@@ -44,12 +39,8 @@
         // 알림 아이콘 클릭 이벤트
         notificationIcon.addEventListener('click', function(e) {
             e.preventDefault();
+            e.stopPropagation();
             toggleDropdown();
-            
-            // 드롭다운이 열릴 때 알림 목록 로드
-            if (!isDropdownVisible) {
-                loadNotifications();
-            }
         });
         
         // 문서 클릭 시 드롭다운 닫기
@@ -70,16 +61,29 @@
         }
     }
     
-    // 알림 목록 로드
+    // 알림 목록 로드 - 읽지 않은 알림만 표시하도록 수정
     function loadNotifications() {
-        fetch('/api/notifications?limit=5')  // 5개씩만 로드
-            .then(response => response.json())
+        console.log('알림 목록 로드 시도');
+        if (!notificationList) return;
+        
+        notificationList.innerHTML = '<div class="notification-loading">알림을 불러오는 중...</div>';
+        
+        fetch('/api/notifications/unread?page=0&size=5')
+            .then(response => {
+                console.log('알림 API 응답:', response.status);
+                if (!response.ok) {
+                    throw new Error('API 응답 오류: ' + response.status);
+                }
+                return response.json();
+            })
             .then(data => {
+                console.log('알림 데이터 받음:', data);
                 notifications = data;
                 updateNotificationList();
             })
             .catch(error => {
                 console.error('알림 목록 로드 실패:', error);
+                notificationList.innerHTML = '<div class="empty-notification">알림을 불러오는 중 오류가 발생했습니다.</div>';
             });
     }
     
@@ -92,16 +96,22 @@
         
         if (notifications.length === 0) {
             notificationList.innerHTML = '<div class="empty-notification">새 알림이 없습니다.</div>';
+            // 읽지 않은 알림이 없으면 '모두 읽음' 버튼 숨기기
+            if (markAllAsReadBtn) {
+                markAllAsReadBtn.style.display = 'none';
+            }
             return;
+        } else {
+            // 읽지 않은 알림이 있으면 '모두 읽음' 버튼 표시
+            if (markAllAsReadBtn) {
+                markAllAsReadBtn.style.display = 'block';
+            }
         }
         
         // 알림 항목 추가
         notifications.forEach(notification => {
             const item = document.createElement('div');
-            item.className = 'notification-item';
-            if (!notification.isRead) {
-                item.classList.add('unread');
-            }
+            item.className = 'notification-item unread';
             
             // 알림 컨텐츠 컨테이너
             const contentContainer = document.createElement('div');
@@ -115,7 +125,9 @@
             // 알림 시간
             const time = document.createElement('div');
             time.className = 'notification-time';
-            time.textContent = formatTimestamp(notification.createdAt);
+            time.textContent = window.NotificationUtils ? 
+                               window.NotificationUtils.formatTimestamp(notification.createdAt) : 
+                               new Date(notification.createdAt).toLocaleString();
             
             // 컨텐츠 컨테이너에 추가
             contentContainer.appendChild(content);
@@ -139,10 +151,13 @@
             
             // 알림 클릭 이벤트 처리
             contentContainer.addEventListener('click', function() {
-                // 읽음 처리
-                if (!notification.isRead) {
-                    markAsRead(notification.notificationId);
+                // 클릭한 알림 요소 즉시 제거
+                if (item.parentNode) {
+                    item.parentNode.removeChild(item);
                 }
+                
+                // 알림 읽음 처리
+                markAsRead(notification.notificationId);
                 
                 // 알림 드롭다운 닫기
                 hideDropdown();
@@ -159,35 +174,18 @@
     
     // 알림 삭제 처리
     function deleteNotification(notificationId, itemElement) {
-        const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
-        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
-        
-        const headers = {
-            'Content-Type': 'application/json'
-        };
-        
-        // CSRF 토큰이 있는 경우에만 헤더에 추가
-        if (csrfToken && csrfHeader) {
-            headers[csrfHeader] = csrfToken;
-        } else {
-            console.warn('CSRF 토큰이 없습니다. 요청이 실패할 수 있습니다.');
-        }
+        const headers = window.NotificationUtils ? 
+                        window.NotificationUtils.getCsrfToken() : 
+                        { 'Content-Type': 'application/json' };
         
         fetch(`/api/notifications/${notificationId}`, {
-            method: 'POST', // DELETE에서 POST로 변경
+            method: 'POST',
             headers: headers,
-            credentials: 'same-origin' // 인증 정보 포함
+            credentials: 'same-origin'
         })
         .then(response => {
             if (!response.ok) {
-                const contentType = response.headers.get('content-type');
-                if (contentType && contentType.includes('application/json')) {
-                    return response.json().then(data => {
-                        throw new Error(data.message || '응답 오류: ' + response.status);
-                    });
-                } else {
-                    throw new Error('응답 오류: ' + response.status);
-                }
+                throw new Error('응답 오류: ' + response.status);
             }
             return response.json();
         })
@@ -207,60 +205,41 @@
                 // 알림이 없을 경우 메시지 표시
                 if (notifications.length === 0) {
                     notificationList.innerHTML = '<div class="empty-notification">새 알림이 없습니다.</div>';
+                    
+                    // 모두 읽음 버튼 숨기기
+                    if (markAllAsReadBtn) {
+                        markAllAsReadBtn.style.display = 'none';
+                    }
                 }
                 
                 // 뱃지 업데이트
-                updateNotificationBadge();
+                if (window.NotificationUtils) {
+                    window.NotificationUtils.loadNotificationCount();
+                }
             } else {
                 console.error('알림 삭제 실패:', data.message);
-                alert('알림 삭제 중 오류가 발생했습니다.');
             }
         })
         .catch(error => {
             console.error('알림 삭제 실패:', error);
-            alert('알림 삭제 중 오류가 발생했습니다. 다시 시도해주세요.');
         });
-    }
-    
-    // 뱃지 업데이트 함수
-    function updateNotificationBadge() {
-        if (!notificationBadge) return;
-        
-        const unreadCount = notifications.filter(n => !n.isRead).length;
-        if (unreadCount > 0) {
-            notificationBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
-            notificationBadge.style.display = 'block';
-        } else {
-            notificationBadge.style.display = 'none';
-        }
     }
     
     // 알림 읽음 처리
     function markAsRead(notificationId) {
-        const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
-        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
-        
-        const headers = {
-            'Content-Type': 'application/json'
-        };
-        
-        // CSRF 토큰이 있는 경우에만 헤더에 추가
-        if (csrfToken && csrfHeader) {
-            headers[csrfHeader] = csrfToken;
-        } else {
-            console.warn('CSRF 토큰이 없습니다. 요청이 실패할 수 있습니다.');
-        }
+        const headers = window.NotificationUtils ? 
+                        window.NotificationUtils.getCsrfToken() : 
+                        { 'Content-Type': 'application/json' };
         
         fetch(`/api/notifications/${notificationId}/read`, {
-            method: 'POST', // PATCH에서 POST로 변경
+            method: 'POST',
             headers: headers,
-            credentials: 'same-origin' // 인증 정보 포함
+            credentials: 'same-origin'
         })
         .then(response => {
             if (!response.ok) {
                 throw new Error('응답 오류: ' + response.status);
             }
-            // 수정 - 응답이 비어있을 수 있으므로 조건부로 JSON 파싱
             const contentType = response.headers.get('content-type');
             if (contentType && contentType.includes('application/json')) {
                 return response.json();
@@ -269,14 +248,16 @@
             }
         })
         .then(data => {
-            // 로컬 목록에서도 업데이트
+            // 로컬 목록에서 해당 알림 제거 (드롭다운에서만)
             const index = notifications.findIndex(n => n.notificationId === notificationId);
             if (index !== -1) {
-                notifications[index].isRead = true;
-                updateNotificationList();
+                notifications.splice(index, 1); // 목록에서 제거
+                updateNotificationList(); // UI 업데이트
                 
-                // 뱃지 업데이트
-                updateNotificationBadge();
+                // 알림 개수 업데이트
+                if (window.NotificationUtils) {
+                    window.NotificationUtils.loadNotificationCount();
+                }
             }
         })
         .catch(error => {
@@ -284,12 +265,54 @@
         });
     }
     
+    // 모든 알림 읽음 처리
+    function markAllAsRead() {
+        const headers = window.NotificationUtils ? 
+                        window.NotificationUtils.getCsrfToken() : 
+                        { 'Content-Type': 'application/json' };
+        
+        fetch('/api/notifications/read-all', {
+            method: 'POST',
+            headers: headers,
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('응답 오류: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                // 알림 목록 비우기
+                notifications = [];
+                notificationList.innerHTML = '<div class="empty-notification">새 알림이 없습니다.</div>';
+                
+                // 모두 읽음 버튼 숨기기
+                if (markAllAsReadBtn) {
+                    markAllAsReadBtn.style.display = 'none';
+                }
+                
+                // 뱃지 업데이트
+                if (window.NotificationUtils) {
+                    window.NotificationUtils.loadNotificationCount();
+                }
+            }
+        })
+        .catch(error => {
+            console.error('모든 알림 읽음 처리 실패:', error);
+        });
+    }
+    
     // 드롭다운 토글
     function toggleDropdown() {
+        console.log('드롭다운 토글:', isDropdownVisible);
+        
         if (isDropdownVisible) {
             hideDropdown();
         } else {
             showDropdown();
+            loadNotifications();
         }
     }
     
@@ -298,6 +321,11 @@
         if (notificationDropdown) {
             notificationDropdown.style.display = 'block';
             isDropdownVisible = true;
+            
+            // 새 알림 표시 제거
+            if (notificationIcon) {
+                notificationIcon.classList.remove('has-new');
+            }
         }
     }
     
@@ -308,44 +336,13 @@
             isDropdownVisible = false;
         }
     }
-    
-    // 타임스탬프 형식화
-    function formatTimestamp(timestamp) {
-        const date = new Date(timestamp);
-        const now = new Date();
-        const diffMs = now - date;
-        
-        // 1분 이내
-        if (diffMs < 60 * 1000) {
-            return '방금 전';
-        }
-        
-        // 1시간 이내
-        if (diffMs < 60 * 60 * 1000) {
-            const minutes = Math.floor(diffMs / (60 * 1000));
-            return `${minutes}분 전`;
-        }
-        
-        // 오늘 내
-        if (date.toDateString() === now.toDateString()) {
-            const hours = date.getHours().toString().padStart(2, '0');
-            const minutes = date.getMinutes().toString().padStart(2, '0');
-            return `오늘 ${hours}:${minutes}`;
-        }
-        
-        // 어제
-        const yesterday = new Date(now);
-        yesterday.setDate(now.getDate() - 1);
-        if (date.toDateString() === yesterday.toDateString()) {
-            const hours = date.getHours().toString().padStart(2, '0');
-            const minutes = date.getMinutes().toString().padStart(2, '0');
-            return `어제 ${hours}:${minutes}`;
-        }
-        
-        // 그 외
-        const year = date.getFullYear();
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const day = date.getDate().toString().padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    }
+
+    // 전역으로 노출
+    window.NotificationUI = {
+        loadNotifications: loadNotifications,
+        markAsRead: markAsRead,
+        deleteNotification: deleteNotification,
+        markAllAsRead: markAllAsRead,
+        toggleDropdown: toggleDropdown
+    };
 })();
