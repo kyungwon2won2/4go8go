@@ -3,6 +3,7 @@ package com.example.demo.domain.post.service;
 import com.example.demo.domain.post.dto.CreateProductDto;
 import com.example.demo.domain.post.dto.ProductListDto;
 import com.example.demo.domain.post.dto.ProductDetailDto;
+import com.example.demo.domain.post.dto.UpdateProductDto;
 import com.example.demo.domain.post.helper.ImageHelper;
 import com.example.demo.domain.post.model.Post;
 import com.example.demo.domain.post.model.Product;
@@ -13,7 +14,9 @@ import com.example.demo.mapper.ProductMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -61,23 +64,30 @@ public class ProductService {
         productMapper.insert(product);
 
         // 이미지 업로드 및 DB 저장
-//        imageHelper.productImageSave(productDto.getImageFiles(), post.getPostId());
+        imageHelper.productImageSave(productDto.getImageFiles(), post.getPostId());
+    }
+    public UpdateProductDto getProductByPostId(int postId) {
+        UpdateProductDto dto = productMapper.selectByUpdateProductDto(postId);
+        List<Image> images = imageHelper.getImagesByPostId(postId);
+        dto.setImage(images); // 이미지 목록 추가
+        return dto;
     }
 
-    public Product getProductByPostId(int postId) {
-        return productMapper.selectByPostId(postId);
-    }
+    @Transactional
+    public void updateProduct(int postId, UpdateProductDto dto, MultipartFile[] images) {
+        // 1. post 테이블 업데이트
+        postMapper.updatePostContentAndTitle(postId, dto.getTitle(), dto.getContent());
 
-    public void updateProduct(int postId, CreateProductDto productDto) {
-        Product product = productMapper.selectByPostId(postId);
-        if (product != null) {
-            product.setCategory(productDto.getCategory());
-            product.setPrice(productDto.getPrice());
-            product.setCondition(productDto.getCondition());
-            productMapper.update(product);
+        // 2. product 테이블 업데이트
+        productMapper.updateProductDetails(postId, dto.getPrice(), dto.getCondition(), dto.getCategory());
+
+        // 3. 이미지 업데이트
+        if (images != null && images.length > 0) {
+            imageHelper.productImageSave(images, postId);
         }
     }
 
+    @Transactional
     public void deleteProduct(int postId) {
         productMapper.delete(postId);
     }
@@ -85,10 +95,10 @@ public class ProductService {
     public ProductDetailDto getProductDetailByPostId(int postId) {
         // 1. 상품 상세 정보 조회
         ProductDetailDto detailDto = productMapper.selectByPostIdDetail(postId);
-
+        List<Image> images = new ArrayList<>();
         // 2. 이미지 목록 조회 및 URL만 추출하여 세팅
         if (detailDto != null) {
-            List<Image> images = imageHelper.getImagesByPostId(postId);
+            images = imageHelper.getImagesByPostId(postId);
             if (images != null && !images.isEmpty()) {
                 List<String> imageUrls = images.stream()
                         .map(Image::getUrl)
@@ -97,6 +107,8 @@ public class ProductService {
             } else {
                 detailDto.setImageUrls(Collections.emptyList());
             }
+        } else {
+            // 기본 이미지 추가
         }
 
         return detailDto;
