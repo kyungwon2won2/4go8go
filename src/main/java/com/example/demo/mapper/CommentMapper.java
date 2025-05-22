@@ -30,4 +30,7 @@ public interface CommentMapper {
 
     // 게시글에 달린 전체 댓글 개수
     int selectCommentCountByPostId(int postId);
+
+    // 게시글에 달린 전체 댓글 삭제
+    void deleteByPostId(int postId);
 }

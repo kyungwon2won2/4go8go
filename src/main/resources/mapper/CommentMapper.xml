@@ -82,4 +82,9 @@
         SELECT COUNT(*) FROM comments WHERE post_id = #{postId}
     </select>
 
+    <!-- 게시글에 달린 전체 댓글 삭제 -->
+    <delete id="deleteByPostId">
+        DELETE FROM comments WHERE post_id = #{postId}
+    </delete>
+
 </mapper>
