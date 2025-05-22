@@ -39,6 +39,7 @@
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
+      position: relative;
     }
     .carousel-inner img {
       max-height: 370px;
@@ -81,11 +82,27 @@
       font-size: 0.97rem;
       margin-bottom: 18px;
     }
+    .main-action-btn {
+      background: #ff6f0f;
+      color: #fff;
+      font-weight: 600;
+      border-radius: 8px;
+      width: 100%;
+      padding: 12px 0;
+      font-size: 1.08rem;
+      border: none;
+      margin-bottom: 8px;
+      transition: background 0.2s;
+    }
+    .main-action-btn:hover {
+      background: #ff8a3d;
+      color: #fff;
+    }
     .seller-card {
       background: #fff;
       border-radius: 14px;
       box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-      margin: 32px auto 0 auto;
+      margin: 40px auto 0 auto;
       max-width: 420px;
       padding: 22px 28px 18px 28px;
       display: flex;
@@ -126,6 +143,7 @@
       color: #ff6f0f;
       font-weight: 600;
     }
+    .mt-40 { margin-top: 40px; }
   </style>
 </head>
 <body>
@@ -133,12 +151,15 @@
 
 <!-- 브레드크럼 -->
 <nav aria-label="breadcrumb">
-
+  <ol class="breadcrumb breadcrumb-custom">
+    <li class="breadcrumb-item"><a href="/">홈</a></li>
+    <li class="breadcrumb-item"><a href="/product">중고거래</a></li>
+    <li class="breadcrumb-item active" aria-current="page" th:text="${product.title}">상품명</li>
+  </ol>
 </nav>
 
 <div class="product-main-card d-flex flex-row">
   <!-- 좌측: 이미지 캐러셀 -->
-  <!-- 좌측: 이미지 -->
   <div class="product-image-col">
     <div th:if="${product.imageUrls != null && !#lists.isEmpty(product.imageUrls)}">
       <div id="productImageCarousel" class="carousel slide" data-bs-ride="carousel">
@@ -167,13 +188,12 @@
 
   <!-- 우측: 정보 -->
   <div class="product-info-col">
+
     <div class="product-title" th:text="${product.title}">제목</div>
     <div class="product-meta" th:text="${product.categoryName}">카테고리</div>
     <div class="product-meta" th:text="${#dates.format(product.createdAt, 'yyyy-MM-dd HH:mm')}">등록일</div>
     <div class="product-price" th:text="${#numbers.formatInteger(product.price, 3, 'COMMA')} + '원'">가격</div>
     <div class="product-desc" th:text="${product.content}">상품 설명</div>
-  </div>
-
 
     <div class="product-interaction">
       <span><i class="bi bi-chat"></i> 채팅 0</span>
@@ -181,16 +201,6 @@
       <span><i class="bi bi-eye"></i> 조회 0</span>
     </div>
 
-    <!-- 하단: 판매자 정보 카드 -->
-    <div class="seller-card">
-      <img class="seller-profile-img" src="/img/profile-placeholder.png" alt="프로필">
-      <div class="seller-info">
-        <div class="seller-nickname">소라숲</div>
-        <div class="seller-location">신정4동</div>
-        <div class="seller-temp">99.0°C <span class="seller-temp-badge">온도</span></div>
-      </div>
-    </div>
-    <!-- 수정 삭제버튼 -->
     <div class="d-flex gap-2 mt-2">
       <a th:href="@{'/product/edit/' + ${product.postId}}" class="btn btn-outline-primary btn-sm flex-fill">수정</a>
       <form th:action="@{'/product/delete/' + ${product.postId}}" method="post" style="display:inline;" class="flex-fill">
@@ -198,6 +208,17 @@
       </form>
     </div>
   </div>
+</div>
+
+<!-- 하단: 판매자 정보 카드 -->
+<div class="seller-card mt-40">
+  <img class="seller-profile-img" src="/img/profile-placeholder.png" alt="프로필">
+  <div class="seller-info">
+    <div class="seller-nickname">소라숲</div>
+    <div class="seller-location">신정4동</div>
+    <div class="seller-temp">99.0°C <span class="seller-temp-badge">온도</span></div>
+  </div>
+</div>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
