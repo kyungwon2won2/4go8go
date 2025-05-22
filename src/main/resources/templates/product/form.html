@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 등록</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/header.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/footer.css}" />
+    <style>
+        .product-form-card {
+            max-width: 600px;
+            margin: 40px auto;
+            border-radius: 18px;
+            box-shadow: 0 2px 16px rgba(95,0,128,0.07);
+            background: #fff;
+            padding: 36px 32px 32px 32px;
+        }
+        .form-label {
+            font-weight: 500;
+            color: #5f0080;
+        }
+        .img-preview {
+            width: 100%;
+            max-width: 400px;
+            height: 220px;
+            object-fit: cover;
+            border-radius: 10px;
+            background: #f7f7f7;
+            display: block;
+            margin-bottom: 12px;
+        }
+        .img-upload-label {
+            display: inline-block;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 8px 18px;
+            cursor: pointer;
+            color: #5f0080;
+            font-weight: 500;
+            margin-bottom: 0;
+        }
+        .img-upload-label:hover {
+            background: #ece6f6;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="container">
+    <div class="product-form-card">
+        <h2 class="mb-4 text-center" style="color:#5f0080; font-weight:700;">상품 등록</h2>
+        <form th:action="@{/product}" th:object="${productDto}" method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="title" class="form-label">제목</label>
+                <input type="text" th:field="*{title}" class="form-control" id="title" placeholder="상품 제목을 입력하세요" required>
+            </div>
+            <div class="mb-3">
+                <label for="content" class="form-label">내용</label>
+                <textarea th:field="*{content}" class="form-control" id="content" rows="5" placeholder="상품 설명을 입력하세요" required></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="category" class="form-label">카테고리</label>
+                <select th:field="*{category}" class="form-select" id="category" required>
+                    <option th:each="cat : ${T(com.example.demo.domain.post.model.Product.Category).values()}"
+                            th:value="${cat}" th:text="${cat.displayName}">카테고리</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="price" class="form-label">가격</label>
+                <input type="number" th:field="*{price}" class="form-control" id="price" placeholder="가격을 입력하세요" min="0" required>
+            </div>
+            <div class="mb-3">
+                <label for="condition" class="form-label">상품상태</label>
+                <select th:field="*{condition}" class="form-select" id="condition" required>
+                    <option th:each="cond : ${T(com.example.demo.domain.post.model.Product.ProductCondition).values()}"
+                            th:value="${cond}" th:text="${cond.displayName}">상품상태</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">상품 이미지</label><br>
+                <img id="imgPreview" class="img-preview" src="https://via.placeholder.com/400x220?text=이미지+미리보기" alt="미리보기">
+                <label for="imageFilesInput" class="img-upload-label">이미지 선택</label>
+                <input type="file" th:field="*{imageFiles}" id="imageFilesInput" accept="image/*" class="form-control d-none" multiple onchange="previewImage(event)">
+            </div>
+            <div class="d-grid mt-4">
+                <button type="submit" class="btn btn-primary py-2" style="font-weight:600;">등록하기</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function previewImage(event) {
+        const input = event.target;
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('imgPreview').src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+    document.querySelector('.img-upload-label').onclick = function() {
+        document.getElementById('imageFiles').click();
+    };
+</script>
+</body>
+</html>

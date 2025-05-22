@@ -29,6 +29,15 @@
         WHERE post_id = #{postId}
     </select>
 
+    <!-- 게시물 ID로 image URL 단일 조회 -->
+    <select id="selectFirstImageByPostId" resultType="string">
+        SELECT url
+        FROM image
+        WHERE post_id = #{postId}
+        ORDER BY image_id ASC
+        LIMIT 1
+    </select>
+
     <delete id="deleteImagesByPostId" parameterType="int">
         DELETE
         FROM image
