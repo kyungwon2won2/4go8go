@@ -81,10 +81,25 @@
             </div>
             <div class="mb-3">
                 <label class="form-label">상품 이미지</label><br>
-                <img id="imgPreview" class="img-preview" src="https://via.placeholder.com/400x220?text=이미지+미리보기" alt="미리보기">
+
+                <!-- 미리보기 영역 -->
+                <div id="imgPreviewContainer" class="img-preview-container" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <img class="img-preview" src="https://via.placeholder.com/400x220?text=이미지+미리보기" alt="미리보기" style="width: 200px; height: auto;">
+                </div>
+
+                <!-- 파일 선택 버튼 -->
                 <label for="imageFilesInput" class="img-upload-label">이미지 선택</label>
-                <input type="file" th:field="*{imageFiles}" id="imageFilesInput" accept="image/*" class="form-control d-none" multiple onchange="previewImage(event)">
+                <input
+                        type="file"
+                        id="imageFilesInput"
+                        accept="image/*"
+                        class="form-control d-none"
+                        multiple
+                        onchange="previewImage(event)"
+                        name="imageFiles"
+                >
             </div>
+
             <div class="d-grid mt-4">
                 <button type="submit" class="btn btn-primary py-2" style="font-weight:600;">등록하기</button>
             </div>
@@ -108,6 +123,32 @@
     document.querySelector('.img-upload-label').onclick = function() {
         document.getElementById('imageFiles').click();
     };
+
+    function previewImage(event) {
+        const files = event.target.files;
+        const previewContainer = document.getElementById('imgPreviewContainer');
+
+        // 초기 미리보기 제거
+        previewContainer.innerHTML = '';
+
+        Array.from(files).forEach(file => {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.classList.add('img-preview');
+                    img.style.width = '200px';
+                    img.style.marginRight = '10px';
+                    img.style.marginBottom = '10px';
+                    previewContainer.appendChild(img);
+                };
+
+                reader.readAsDataURL(file);
+            }
+        });
+    }
 </script>
 </body>
 </html>
