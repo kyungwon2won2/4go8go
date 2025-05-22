@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -85,10 +86,11 @@ public class SecurityConfig {
 				.successHandler(oAuth2AuthenticationSuccessHandler())
 				.failureHandler((request, response, exception) -> {
 					log.error("소셜 로그인 실패: {}", exception.getMessage());
+					String errorMessage = exception.getMessage();
 
 					// 탈퇴한 회원인 경우
-					if (exception.getMessage().contains("탈퇴한 회원")) {
-						request.getSession().setAttribute("loginError", "탈퇴한 회원입니다.");
+					// NullPointerException 방지를 위한 null 체크
+					if (errorMessage != null && errorMessage.contains("탈퇴한 회원")) {
 						response.sendRedirect("/login?error=deleted");
 					}
 					// 추가 정보 필요한 경우
@@ -96,7 +98,7 @@ public class SecurityConfig {
 						response.sendRedirect("/oauth2/signup/additional-info");
 					} else {
 						request.getSession().setAttribute("loginError", "소셜 로그인 중 오류가 발생했습니다.");
-						response.sendRedirect("/login?error");
+						response.sendRedirect("/login?error=social");
 					}
 				})
 		);
@@ -124,18 +126,18 @@ public class SecurityConfig {
 	@Bean
 	public AuthenticationFailureHandler authenticationFailureHandler() {
 		return (request, response, exception) -> {
-			String errorMessage = "로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.";
+			String errorMessage;
 
-			if (exception instanceof UsernameNotFoundException) {
-				if (exception.getMessage().contains("탈퇴한 회원")) {
-					errorMessage = "탈퇴한 회원입니다. 동일한 이메일로 재가입을 원하시면 관리자에게 문의하세요.";
-					response.sendRedirect("/login?error=deleted");
-					return;
-				}
+			if (exception instanceof InternalAuthenticationServiceException &&
+					exception.getMessage().contains("탈퇴한 회원")) {
+				errorMessage = "탈퇴한 회원입니다.";
+				request.getSession().setAttribute("loginError", errorMessage);
+				response.sendRedirect("/login?error=deleted");
+			} else {
+				errorMessage = "아이디 또는 비밀번호가 올바르지 않습니다.";
+				request.getSession().setAttribute("loginError", errorMessage);
+				response.sendRedirect("/login?error=true");
 			}
-
-			request.getSession().setAttribute("loginError", errorMessage);
-			response.sendRedirect("/login?error");
 		};
 	}
 
