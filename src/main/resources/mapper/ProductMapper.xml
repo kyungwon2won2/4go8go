@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.mapper.ProductMapper">
+
+    <!-- 상세 DTO 매핑 -->
+    <resultMap id="ProductDetailDtoMap" type="com.example.demo.domain.post.dto.ProductDetailDto">
+        <id property="postId" column="post_id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="category" column="category"/>
+        <result property="price" column="price"/>
+        <result property="condition" column="condition"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="location" column="address"/>
+    </resultMap>
+
+    <!-- INSERT -->
+    <insert id="insert" parameterType="com.example.demo.domain.post.model.Product">
+        INSERT INTO product (post_id, price, `condition`, category, trade_status)
+        VALUES (#{postId}, #{price}, #{condition}, #{category}, #{tradeStatus})
+    </insert>
+    <!-- 상세 조회 -->
+    <select id="selectByPostIdDetail" resultMap="ProductDetailDtoMap">
+        SELECT
+        p.post_id,
+        p.title,
+        p.content,
+        pr.category,
+        pr.price,
+        pr.`condition`,
+        p.created_at,
+        u.address
+        FROM post p
+        JOIN product pr ON p.post_id = pr.post_id
+        JOIN user u ON p.user_id = u.user_id
+        WHERE p.post_id = #{postId}
+    </select>
+
+    <!-- 목록 DTO 매핑 -->
+    <resultMap id="ProductListDtoMap" type="com.example.demo.domain.post.dto.ProductListDto">
+        <id property="postId" column="post_id"/>
+        <result property="title" column="title"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="location" column="address"/>
+        <result property="price" column="price"/>
+    </resultMap>
+
+    <!-- 페이징 조회 -->
+    <select id="selectByPage" resultMap="ProductListDtoMap">
+        SELECT
+        p.post_id,
+        p.title,
+        p.created_at,
+        u.address,
+        pr.price
+        FROM post p
+        JOIN product pr ON p.post_id = pr.post_id
+        JOIN user u ON p.user_id = u.user_id
+        WHERE p.post_category_id = 1
+        ORDER BY p.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- UPDATE -->
+    <update id="update" parameterType="com.example.demo.domain.post.model.Product">
+        UPDATE product
+        SET price = #{price},
+        `condition` = #{condition}
+        WHERE post_id = #{postId}
+    </update>
+
+    <!-- DELETE -->
+    <delete id="delete">
+        DELETE FROM product WHERE post_id = #{postId}
+    </delete>
+
+</mapper>

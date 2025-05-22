@@ -1,15 +1,17 @@
-package com.example.demo.domain.post.DTO;
+package com.example.demo.domain.post.dto;
 
 import com.example.demo.domain.post.model.Product;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 public class CreateProductDto {
     private int postId;
     private int userId;
+    private String title; // 제목
+    private String content; // 내용
     private Product.Category category;
     private int price;
-    private Product.TradeStatus tradeStatus;
     private Product.ProductCondition condition;
-    // location(거래위치)는 user.address에서 가져오므로 별도 필드 불필요
+    private MultipartFile[] imageFiles; // 이미지 배열
 }
