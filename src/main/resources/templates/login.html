@@ -147,6 +147,13 @@
                             <label class="form-check-label" for="remember-me">자동 로그인</label>
                         </div>
                         <button type="submit" class="btn btn-primary w-100 py-2">로그인</button>
+                        <!-- 에러 메시지 표시 영역 -->
+                        <div class="alert alert-danger mt-3" th:if="${param.error == 'deleted'}" th:text="${session.loginError ?: '탈퇴한 회원입니다.'}">
+                            탈퇴한 회원입니다.
+                        </div>
+                        <div class="alert alert-danger mt-3" th:if="${param.error != null and param.error != 'deleted'}" th:text="${session.loginError ?: '로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.'}">
+                            로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.
+                        </div>
                     </form>
 
                     <!-- 소셜 로그인 버튼 -->

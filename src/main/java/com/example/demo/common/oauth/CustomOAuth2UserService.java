@@ -1,68 +1,107 @@
 package com.example.demo.common.oauth;
 
 import com.example.demo.domain.user.model.CustomerUser;
+import com.example.demo.domain.user.model.UserRole;
 import com.example.demo.domain.user.model.Users;
 import com.example.demo.mapper.UserMapper;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
+public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserMapper userMapper;
 
     @Override
-    @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        OAuth2UserService<OAuth2UserRequest, OAuth2User> delegate = new DefaultOAuth2UserService();
-        OAuth2User oAuth2User = delegate.loadUser(userRequest);
+        OAuth2User oauth2User = super.loadUser(userRequest);
 
+        try {
+            return processOAuth2User(userRequest, oauth2User);
+        } catch (AuthenticationException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new InternalAuthenticationServiceException(ex.getMessage(), ex.getCause());
+        }
+    }
+
+    private OAuth2User processOAuth2User(OAuth2UserRequest userRequest, OAuth2User oauth2User) {
+        // OAuth2 로그인 플랫폼(google, naver, kakao) 구분
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
         String userNameAttributeName = userRequest.getClientRegistration().getProviderDetails()
                 .getUserInfoEndpoint().getUserNameAttributeName();
 
-        log.info("registrationId: {}", registrationId);
-        log.info("userNameAttributeName: {}", userNameAttributeName);
+        OAuthAttributes attributes = OAuthAttributes.of(registrationId, userNameAttributeName, oauth2User.getAttributes());
 
-        if ("naver".equals(registrationId)) {
-            Map<String, Object> attributes = oAuth2User.getAttributes();
-            log.info("네이버 응답 데이터 확인: {}", attributes.get("response"));
+        Users user = saveOrUpdate(attributes);
+
+        // 탈퇴한 회원인지 확인 - SecurityConfig에서 설정한 failureHandler로 예외 전달
+        if ("DELETED".equals(user.getStatus())) {
+            throw new OAuth2AuthenticationException("탈퇴한 회원입니다.");
         }
 
-        OAuthAttributes oAuthAttributes = OAuthAttributes.of(registrationId, userNameAttributeName, oAuth2User.getAttributes());
+        return new CustomerUser(user, oauth2User.getAttributes());
+    }
 
-        // 현재 요청 컨텍스트에서 HttpServletRequest 가져오기
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+    private Users saveOrUpdate(OAuthAttributes attributes) {
+        Users user = userMapper.getUserByEmail(attributes.getEmail());
 
-        // 신규 사용자인지 확인
-        String email = oAuthAttributes.getEmail();
-        Users existingUser = userMapper.getUserByEmail(email);
+        if (user == null) {
+            // 회원 정보가 없으면 새로 생성
+            user = Users.builder()
+                    .email(attributes.getEmail())
+                    .name(attributes.getName())
+                    .socialType(getSocialType(attributes.getOauth2UserInfo()))
+                    .socialId(attributes.getOauth2UserInfo().getId())
+                    .nickname(attributes.getName()) // 기본적으로 이름을 닉네임으로 설정
+                    .status("ACTIVE") // 상태를 ACTIVE로 설정
+                    .build();
 
-        // 신규 사용자면 추가 정보 입력 필요
-        if (existingUser == null) {
-            // 세션에 OAuth2 정보 저장
-            request.getSession().setAttribute("oauthAttributes", oAuthAttributes);
-            request.getSession().setAttribute("registrationId", registrationId);
-            request.getSession().setAttribute("requireAdditionalInfo", true);
+            // 회원 가입
+            try {
+                userMapper.join(user);
 
-            // 리다이렉트를 위한 예외 발생
-            throw new OAuth2AuthenticationException("추가 정보 입력 필요");
+                // 권한 추가
+                UserRole role = new UserRole();
+                role.setUserId(user.getUserId());
+                role.setRoleName("ROLE_USER");
+                userMapper.insertAuth(role);
+
+                // 권한 목록 생성
+                List<UserRole> roleList = new ArrayList<>();
+                roleList.add(role);
+                user.setRoleList(roleList);
+
+            } catch (Exception e) {
+                log.error("OAuth2 회원가입 실패: {}", e.getMessage());
+            }
         }
 
-        return new CustomerUser(existingUser, oAuthAttributes.getAttributes());
+        return user;
+    }
+
+    private String getSocialType(OAuth2UserInfo userInfo) {
+        if (userInfo instanceof GoogleOAuth2UserInfo) {
+            return "GOOGLE";
+        } else if (userInfo instanceof NaverOAuth2UserInfo) {
+            return "NAVER";
+        } else if (userInfo instanceof KakaoOAuth2UserInfo) {
+            return "KAKAO";
+        }
+        return "UNKNOWN";
     }
 }

@@ -3,6 +3,7 @@ package com.example.demo.common.security.config;
 import com.example.demo.common.oauth.CustomOAuth2UserService;
 import com.example.demo.common.security.handler.CustomerAccessDeniedHandler;
 import com.example.demo.common.security.handler.LoginSuccessHandler;
+import com.example.demo.common.security.handler.OAuth2AuthenticationFailureHandler;
 import com.example.demo.common.security.handler.OAuth2LoginSuccessHandler;
 import com.example.demo.common.security.service.CustomerDetailService;
 import lombok.RequiredArgsConstructor;
@@ -13,10 +14,12 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.web.filter.HiddenHttpMethodFilter;
 import org.springframework.security.config.Customizer;
@@ -36,6 +39,8 @@ public class SecurityConfig {
 	private final CustomerDetailService customerDetailService;
 
 	private final CustomOAuth2UserService customOAuth2UserService;
+
+	private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
 
 
 	//권한처리
@@ -68,6 +73,7 @@ public class SecurityConfig {
 				.usernameParameter("email")
 				.passwordParameter("password")
 				.successHandler(authenticationSuccessHandler())
+				.failureHandler(authenticationFailureHandler())
 				.permitAll()
 		)
 				.csrf(Customizer.withDefaults());
@@ -76,13 +82,21 @@ public class SecurityConfig {
 		http.oauth2Login(oauth2 -> oauth2
 				.loginPage("/login")
 				.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-				.successHandler(oAuth2AuthenticationSuccessHandler()) // 수정: oauth2LoginSuccessHandler() -> oAuth2AuthenticationSuccessHandler()
+				.successHandler(oAuth2AuthenticationSuccessHandler())
 				.failureHandler((request, response, exception) -> {
-					// 추가 정보 입력이 필요한 경우
-					if (request.getSession().getAttribute("requireAdditionalInfo") != null) {
+					log.error("소셜 로그인 실패: {}", exception.getMessage());
+
+					// 탈퇴한 회원인 경우
+					if (exception.getMessage().contains("탈퇴한 회원")) {
+						request.getSession().setAttribute("loginError", "탈퇴한 회원입니다.");
+						response.sendRedirect("/login?error=deleted");
+					}
+					// 추가 정보 필요한 경우
+					else if (request.getSession().getAttribute("requireAdditionalInfo") != null) {
 						response.sendRedirect("/oauth2/signup/additional-info");
 					} else {
-						response.sendRedirect("/login?error=true");
+						request.getSession().setAttribute("loginError", "소셜 로그인 중 오류가 발생했습니다.");
+						response.sendRedirect("/login?error");
 					}
 				})
 		);
@@ -105,6 +119,24 @@ public class SecurityConfig {
 		http.cors(withDefaults());
 
 		return http.build();
+	}
+
+	@Bean
+	public AuthenticationFailureHandler authenticationFailureHandler() {
+		return (request, response, exception) -> {
+			String errorMessage = "로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.";
+
+			if (exception instanceof UsernameNotFoundException) {
+				if (exception.getMessage().contains("탈퇴한 회원")) {
+					errorMessage = "탈퇴한 회원입니다. 동일한 이메일로 재가입을 원하시면 관리자에게 문의하세요.";
+					response.sendRedirect("/login?error=deleted");
+					return;
+				}
+			}
+
+			request.getSession().setAttribute("loginError", errorMessage);
+			response.sendRedirect("/login?error");
+		};
 	}
 
 	// HiddenHttpMethodFilter 빈만 별도 등록

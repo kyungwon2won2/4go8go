@@ -46,8 +46,11 @@ public class UserService {
         return userMapper.updateUser(user);
     }
 
-    public int deleteUser(String userId) {
-        return userMapper.deleteUser(userId);
+    @Transactional
+    public int deleteUser(String email) {
+        Users user = userMapper.getUserByEmail(email);
+        user.setStatus("DELETED");
+        return userMapper.updateUser(user);
     }
 
     public Users getUserByEmail(String email){

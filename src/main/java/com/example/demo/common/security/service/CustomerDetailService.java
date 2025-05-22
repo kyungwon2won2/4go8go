@@ -24,16 +24,20 @@ import org.springframework.stereotype.Service;
 public class CustomerDetailService implements UserDetailsService {
 
 	private final UserMapper userMapper;
-	
+
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		
+
 		Users user = userMapper.login(username);
 		if(user == null) {
 			throw new UsernameNotFoundException("요청하신 ID 가 없습니다 " + username);
 		}
 
+		// 탈퇴한 회원인 경우
+		if ("DELETED".equals(user.getStatus())) {
+			throw new UsernameNotFoundException("탈퇴한 회원입니다.");
+		}
+
 		return new CustomerUser(user);
 	}
-
 }
