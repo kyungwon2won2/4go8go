@@ -1,3 +1,6 @@
+/**
+ * 알림 SSE(Server-Sent Events) 연결 및 실시간 알림 처리
+ */
 (function() {
     'use strict';
     
@@ -12,21 +15,25 @@
     
     // 초기화
     document.addEventListener('DOMContentLoaded', function() {
-        // 인증된 사용자인지 확인 (body 태그에 data-authenticated 속성이 있어야 함)
+        // 인증된 사용자인지 확인
         const isAuthenticated = document.body.hasAttribute('data-authenticated') && 
                                document.body.getAttribute('data-authenticated') === 'true';
         
         if (isAuthenticated) {
+            // 브라우저 알림 권한 요청
+            if (window.NotificationUtils) {
+                window.NotificationUtils.requestNotificationPermission();
+            }
+            
+            // 알림 개수 초기 로드
+            if (window.NotificationUtils) {
+                window.NotificationUtils.loadNotificationCount();
+            }
+            
             // SSE 연결 설정
             connectToSSE();
             
-            // 브라우저 알림 권한 요청
-            requestNotificationPermission();
-            
-            // 알림 개수 초기 로드
-            loadNotificationCount();
-            
-            // 연결 상태 로깅 (디버깅용)
+            // 연결 상태 모니터링 (디버깅용)
             startConnectionMonitoring();
             
             // 브라우저 가시성 변경 시 연결 관리
@@ -118,6 +125,7 @@
         // 채팅 메시지 알림
         eventSource.addEventListener('CHAT_MESSAGE', function(event) {
             try {
+                console.log('채팅 메시지 알림 수신:', event.data);
                 const notification = JSON.parse(event.data);
                 handleNotification(notification);
             } catch (e) {
@@ -128,36 +136,18 @@
         // 채팅 아이콘 업데이트 이벤트
         eventSource.addEventListener('CHAT_MESSAGE_ICON_UPDATE', function(event) {
             try {
-                console.log('채팅 메시지 알림 수신:', event.data);
+                console.log('채팅 아이콘 업데이트 알림 수신:', event.data);
                 const notification = JSON.parse(event.data);
                 
-                // 채팅 아이콘 업데이트 및 뱃지 표시
-                // 직접 DOM 요소에 접근
-                const chatIcon = document.getElementById('chatMessageIcon');
-                const chatBadge = document.getElementById('chatMessageBadge');
-                
-                if (chatIcon) {
-                    chatIcon.classList.add('has-new');
-                }
-                
-                if (chatBadge) {
-                    chatBadge.style.display = 'block';
-                }
-                
-                // 외부 함수 사용 (있는 경우)
-                if (typeof window.updateChatIcon === 'function') {
-                    window.updateChatIcon(true);
-                }
-                
-                // 상태 저장 (페이지 전환 시 유지)
-                try {
-                    localStorage.setItem('hasChatMessage', 'true');
-                } catch (e) {
-                    console.warn('채팅 상태 저장 실패:', e);
+                // 채팅 아이콘 업데이트
+                if (window.NotificationChat && typeof window.NotificationChat.updateChatIcon === 'function') {
+                    window.NotificationChat.updateChatIcon(true);
                 }
                 
                 // 브라우저 알림 표시
-                showBrowserNotification(notification);
+                if (window.NotificationUtils) {
+                    window.NotificationUtils.showBrowserNotification(notification);
+                }
             } catch (e) {
                 console.error('채팅 아이콘 업데이트 오류:', e);
             }
@@ -166,15 +156,13 @@
         // 댓글 작성 알림
         eventSource.addEventListener('POST_COMMENT', function(event) {
             try {
+                console.log('댓글 알림 수신:', event.data);
                 const notification = JSON.parse(event.data);
                 handleNotification(notification);
             } catch (e) {
                 console.error('알림 처리 오류:', e);
             }
         });
-
-        // 댓글 작성 아이콘 업데이트 이벤트
-
         
         // 일반 메시지
         eventSource.onmessage = function(event) {
@@ -208,139 +196,27 @@
         });
     }
     
-    // 알림 처리
+    // 알림 처리 함수
     function handleNotification(notification) {
+        console.log('새 알림 처리:', notification.type);
+        
         // 브라우저 알림 표시
-        showBrowserNotification(notification);
+        if (window.NotificationUtils) {
+            window.NotificationUtils.showBrowserNotification(notification);
+        }
         
-        // 알림 뱃지 업데이트
-        loadNotificationCount();
+        // 알림 개수 업데이트
+        if (window.NotificationUtils) {
+            window.NotificationUtils.loadNotificationCount();
+        }
         
-        // 알림 아이콘 색상 변경
-        updateNotificationIcon(true);
-        
-        // 알림 모달이 열려있는 경우 목록 갱신
-        if (window.notificationModalOpen && typeof window.loadNotifications === 'function') {
-            window.loadNotifications();
-        }
-    }
-    
-    // 알림 아이콘 색상 업데이트
-    function updateNotificationIcon(hasNew) {
-        const notificationIcon = document.getElementById('notificationIcon');
-        if (notificationIcon) {
-            if (hasNew) {
-                notificationIcon.classList.add('has-new');
-            } else {
-                notificationIcon.classList.remove('has-new');
+        // 알림 드롭다운이 열려있는 경우 목록 갱신
+        if (window.NotificationUI && typeof window.NotificationUI.loadNotifications === 'function') {
+            const notificationDropdown = document.getElementById('notificationDropdown');
+            if (notificationDropdown && notificationDropdown.style.display === 'block') {
+                console.log('알림 드롭다운이 열려있어 목록 갱신');
+                window.NotificationUI.loadNotifications();
             }
         }
     }
-    
-    // 채팅 아이콘 업데이트
-    function updateChatIcon(hasNew) {
-        const chatIcon = document.getElementById('chatMessageIcon');
-        if (chatIcon) {
-            if (hasNew) {
-                chatIcon.classList.add('has-new');
-                
-                // 채팅 뱃지 표시
-                const chatBadge = document.getElementById('chatMessageBadge');
-                if (chatBadge) {
-                    chatBadge.style.display = 'block';
-                }
-            } else {
-                chatIcon.classList.remove('has-new');
-                
-                // 채팅 뱃지 숨기기
-                const chatBadge = document.getElementById('chatMessageBadge');
-                if (chatBadge) {
-                    chatBadge.style.display = 'none';
-                }
-            }
-        }
-    }
-    
-    // 브라우저 알림 표시
-    function showBrowserNotification(notification) {
-        if (Notification.permission === 'granted') {
-            const browserNotification = new Notification('4고8고마켓 알림', {
-                body: notification.content,
-                icon: '/images/4go8go_logo.png'
-            });
-            
-            // 클릭 시 해당 페이지로 이동
-            browserNotification.onclick = function() {
-                window.focus();
-                if (notification.url) {
-                    window.location.href = notification.url;
-                }
-                browserNotification.close();
-            };
-        }
-    }
-    
-    // 브라우저 알림 권한 요청
-    function requestNotificationPermission() {
-        if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-            Notification.requestPermission();
-        }
-    }
-    
-    // 알림 개수 로드
-    function loadNotificationCount() {
-        fetch('/api/notifications/count')
-            .then(response => response.json())
-            .then(data => {
-                updateNotificationBadge(data.count);
-                
-                // 읽지 않은 알림이 있으면 아이콘 색상 변경
-                updateNotificationIcon(data.count > 0);
-            })
-            .catch(error => {
-                console.error('알림 개수 로드 실패:', error);
-            });
-    }
-    
-    // 알림 뱃지 업데이트 (전역 함수로 노출하여 모달에서도 사용할 수 있게 함)
-    function updateNotificationBadge(count) {
-        const badge = document.getElementById('notificationBadge');
-        if (badge) {
-            if (count > 0) {
-                badge.textContent = count > 99 ? '99+' : count;
-                badge.style.display = 'block';
-            } else {
-                badge.style.display = 'none';
-            }
-        }
-    }
-    
-    // 전역 함수로 노출 (헤더의 스크립트에서 사용)
-    window.updateNotificationCount = function() {
-        loadNotificationCount();
-    };
-    
-    // 채팅 아이콘 업데이트 함수 전역으로 노출
-    window.updateChatIcon = function(hasNew) {
-        const chatIcon = document.getElementById('chatMessageIcon');
-        if (chatIcon) {
-            if (hasNew) {
-                chatIcon.classList.add('has-new');
-                
-                // 채팅 뱃지 표시
-                const chatBadge = document.getElementById('chatMessageBadge');
-                if (chatBadge) {
-                    chatBadge.style.display = 'block';
-                }
-            } else {
-                chatIcon.classList.remove('has-new');
-                
-                // 채팅 뱃지 숨기기
-                const chatBadge = document.getElementById('chatMessageBadge');
-                if (chatBadge) {
-                    chatBadge.style.display = 'none';
-                }
-            }
-        }
-    };
 })();

@@ -17,6 +17,9 @@ public interface NotificationMapper {
     
     // 사용자의 읽지 않은 알림 조회
     List<Notification> findUnreadByUserId(@Param("userId") Integer userId);
+    
+    // 사용자의 읽지 않은 알림 조회 (페이징 포함)
+    List<Notification> findUnreadByUserIdPaged(@Param("userId") Integer userId, @Param("offset") int offset, @Param("limit") int limit);
 
     //사용자의 알림 개수
     int countByUserId(@Param("userId") Integer userId);
