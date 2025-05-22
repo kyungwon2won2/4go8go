@@ -285,7 +285,7 @@
                 document.querySelectorAll('img').forEach(img => {
                     const id = img.getAttribute('data-id');
                     if(id){
-                        fetch(`/images/${id}`)
+                        fetch(`/api/images/${id}`)
                             .then(res => res.json())
                             .then(data => {
                                 if(data.url){

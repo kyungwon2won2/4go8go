@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.NotificationMapper">
+
+    <!-- 알림 ID로 조회 -->
+    <select id="findById" resultType="com.example.demo.common.notification.dto.NotificationDto">
+        SELECT * FROM notification
+        WHERE notification_id = #{notificationId}
+    </select>
+    
+    <!-- 사용자 ID로 조회 (페이징) -->
+    <select id="findByUserId" resultType="com.example.demo.common.notification.dto.NotificationDto">
+        SELECT * FROM notification
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+    
+    <!-- 사용자의 읽지 않은 알림 조회 -->
+    <select id="findUnreadByUserId" resultType="com.example.demo.common.notification.dto.NotificationDto">
+        SELECT * FROM notification
+        WHERE user_id = #{userId} AND is_read = false
+        ORDER BY created_at DESC
+    </select>
+
+    <!--countByUserId-->
+    <select id="countByUserId" resultType="int">
+        SELECT COUNT(*) FROM notification
+        WHERE user_id = #{userId}
+    </select>
+    
+    <!-- 사용자의 읽지 않은 알림 개수 -->
+    <select id="countUnreadByUserId" resultType="int">
+        SELECT COUNT(*) FROM notification
+        WHERE user_id = #{userId} AND is_read = false
+    </select>
+    
+    <!-- 알림 삽입 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="notificationId">
+        INSERT INTO notification (
+            user_id, type, content, url, reference_id, is_read, created_at
+        ) VALUES (
+            #{userId}, #{type}, #{content}, #{url}, #{referenceId}, #{isRead}, NOW()
+        )
+    </insert>
+    
+    <!-- 알림 읽음 상태 업데이트 -->
+    <update id="updateReadStatus">
+        UPDATE notification
+        SET is_read = #{isRead}, read_at = CASE WHEN #{isRead} = true THEN NOW() ELSE null END
+        WHERE notification_id = #{notificationId}
+    </update>
+    
+    <!-- 사용자 ID 기준 모든 알림 읽음 처리 -->
+    <update id="markAllReadByUserId">
+        UPDATE notification
+        SET is_read = true, read_at = NOW()
+        WHERE user_id = #{userId} AND is_read = false
+    </update>
+    
+    <!-- 채팅방 관련 모든 알림 읽음 처리 -->
+    <update id="markAllChatNotificationsAsRead">
+        UPDATE notification
+        SET is_read = true, read_at = NOW()
+        WHERE user_id = #{userId} 
+          AND is_read = false 
+          AND type = 'CHAT_MESSAGE'
+          AND reference_id = #{roomId}
+    </update>
+    
+    <!-- 알림 삭제 -->
+    <delete id="deleteById">
+        DELETE FROM notification
+        WHERE notification_id = #{notificationId}
+    </delete>
+</mapper>

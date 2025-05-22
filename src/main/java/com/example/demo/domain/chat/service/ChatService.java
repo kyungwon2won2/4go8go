@@ -42,9 +42,7 @@ public class ChatService {
         this.userMapper = userMapper;
     }
 
-    /**
-     * 메시지 저장 및 읽음 상태 설정
-     */
+    //메시지 저장, 읽음상대 변경
     public Long saveMessage(Long roomId, ChatMessageDto chatMessageDto) {
         log.info("메시지 저장 시작: roomId={}, message={}", roomId, chatMessageDto);
         
@@ -72,6 +70,10 @@ public class ChatService {
             
             chatMessageMapper.insert(newMessage);
             log.info("메시지 저장 완료: messageId={}", newMessage.getMessageId());
+            
+            // 저장된 메시지의 발신 시간을 DTO에 설정
+            ChatMessage savedMessage = chatMessageMapper.findById(newMessage.getMessageId());
+            chatMessageDto.setSentAt(savedMessage.getSentAt());
 
             // 4. 채팅방 참가자 별 읽음 상태 생성
             List<ChatParticipant> participants = chatParticipantMapper.findByChatRoomId(roomId);
@@ -97,9 +99,7 @@ public class ChatService {
         }
     }
 
-    /**
-     * 채팅방에 참가자 추가
-     */
+    //채팅방에 참여자 추가
     public void addParticipantToRoom(Long roomId, Integer userId) {
         log.info("채팅방 참가자 추가: roomId={}, userId={}", roomId, userId);
         
@@ -126,9 +126,7 @@ public class ChatService {
         }
     }
 
-    /**
-     * 채팅 이력 조회
-     */
+    //채팅 내역 불러오기(메시지)
     public List<ChatMessageDto> getChatHistory(Long roomId) {
         log.info("채팅 이력 조회: roomId={}", roomId);
         
@@ -156,6 +154,7 @@ public class ChatService {
                         .senderEmail(sender.getEmail())
                         .senderNickname(sender.getNickname())
                         .roomId(roomId)
+                        .sentAt(msg.getSentAt()) // 발신 시간 정보 추가
                         .build());
             }
             
@@ -166,9 +165,7 @@ public class ChatService {
         }
     }
 
-    /**
-     * 채팅방 참가자인지 확인
-     */
+    //채팅방 참가자인지 확인
     public boolean isRoomParticipant(String email, Long roomId) {
         log.info("채팅방 참가자 확인: email={}, roomId={}", email, roomId);
         
@@ -190,9 +187,7 @@ public class ChatService {
         }
     }
 
-    /**
-     * 메시지 읽음 처리 (현재 사용자)
-     */
+    //메시지 읽음처리(로그인 유저)
     public void messageRead(Long roomId) {
         log.info("메시지 읽음 처리: roomId={}", roomId);
         
@@ -206,9 +201,7 @@ public class ChatService {
         }
     }
     
-    /**
-     * 메시지 읽음 처리 (지정된 사용자)
-     */
+    //메시지 읽음처리 (지정한 유저)  ---> 일단은 사용 x
     public void messageRead(Long roomId, Integer userId) {
         log.info("메시지 읽음 처리: roomId={}, userId={}", roomId, userId);
         
@@ -221,9 +214,7 @@ public class ChatService {
         }
     }
 
-    /**
-     * 내 채팅방 목록 조회
-     */
+    //채팅방 목록조회(로그인 유저)
     public List<MyChatListResDto> getMyChatRooms() {
         try {
             Users user = getCurrentUser();
@@ -234,9 +225,7 @@ public class ChatService {
         }
     }
     
-    /**
-     * 이메일로 채팅방 목록 조회
-     */
+    //이메일로 채팅방 목록조회
     public List<MyChatListResDto> getMyChatRooms(String email) {
         try {
             Users user = userMapper.findByEmail(email);
@@ -269,9 +258,7 @@ public class ChatService {
         }
     }
 
-    /**
-     * 채팅방 나가기 (일반 및 그룹)
-     */
+    //채팅방 나가기
     public void leaveRoom(Long roomId) {
         try {
             Users user = getCurrentUser();
@@ -318,43 +305,7 @@ public class ChatService {
         }
     }
 
-    /**
-     * 그룹 채팅방 나가기
-     */
-    public void leaveGroupChatRoom(Long roomId) {
-        try {
-            Users user = getCurrentUser();
-            log.info("그룹 채팅방 나가기: userId={}, roomId={}", user.getUserId(), roomId);
-            
-            ChatRoom room = chatRoomMapper.findById(roomId);
-            if (room == null) {
-                log.error("채팅방을 찾을 수 없음: {}", roomId);
-                throw new EntityNotFoundException("room not found");
-            }
-
-            if (!"Y".equals(room.getIsGroupChat())) {
-                log.error("그룹 채팅방이 아님: {}", roomId);
-                throw new IllegalArgumentException("Not a group chat");
-            }
-
-            chatParticipantMapper.deleteByRoomIdAndUserId(roomId, user.getUserId());
-            log.info("채팅방에서 사용자 제거 완료");
-
-            // 남은 참가자가 없으면 채팅방 삭제
-            List<ChatParticipant> remain = chatParticipantMapper.findByChatRoomId(roomId);
-            if (remain.isEmpty()) {
-                log.info("채팅방에 참가자가 없으므로 채팅방 삭제: {}", roomId);
-                chatRoomMapper.deleteById(roomId);
-            }
-        } catch (Exception e) {
-            log.error("그룹 채팅방 나가기 중 오류 발생", e);
-            throw e;
-        }
-    }
-
-    /**
-     * 개인 채팅방 생성 또는 조회
-     */
+    //1:1 채팅방 조회&생성
     public Long getOrCreatePrivateRoom(int otherUserId) {
         try {
             Users me = getCurrentUser();
@@ -404,9 +355,7 @@ public class ChatService {
         }
     }
 
-    /**
-     * 현재 인증된 사용자 정보 조회
-     */
+    //로그인한 유저 정보
     private Users getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Users user = userMapper.findByEmail(email);
