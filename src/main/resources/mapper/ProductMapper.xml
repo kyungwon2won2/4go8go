@@ -105,4 +105,9 @@
         DELETE FROM product WHERE post_id = #{postId}
     </delete>
 
+    <!-- 상품 전체 개수 반환 -->
+    <select id="countAllProducts" resultType="int">
+        SELECT COUNT(*) FROM product
+    </select>
+
 </mapper>

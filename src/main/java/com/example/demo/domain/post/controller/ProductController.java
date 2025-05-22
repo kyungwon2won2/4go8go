@@ -22,17 +22,24 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
-    private final ImageUploadService imageUploadService;
 
     // 상품 list 가져오기
     @GetMapping
     public String productList(@RequestParam(defaultValue = "1") int page, Model model) {
-        int pageSize = 20;
+        int pageSize = 4;
         int offset = (page - 1) * pageSize;
 
         List<ProductListDto> products = productService.getProductsByPage(offset, pageSize);
+        int totalCount = productService.getTotalProductCount();
+        int totalPages = (int) Math.ceil((double) totalCount / pageSize);
+        boolean hasNext = page < totalPages;
+        boolean hasPrev = page > 1;
+
         model.addAttribute("products", products);
         model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("hasNext", hasNext);
+        model.addAttribute("hasPrev", hasPrev);
         return "product/index";
     }
 

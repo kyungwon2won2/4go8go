@@ -101,4 +101,9 @@ public class ProductService {
 
         return detailDto;
     }
+
+    // 상품 전체 개수 반환
+    public int getTotalProductCount() {
+        return productMapper.countAllProducts();
+    }
 }

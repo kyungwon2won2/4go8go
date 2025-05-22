@@ -24,4 +24,7 @@ public interface ProductMapper {
     void delete(@Param("postId") int postId);
 
     ProductDetailDto selectByPostIdDetail(@Param("postId") int postId);
+
+    // 상품 전체 개수 반환
+    int countAllProducts();
 }
