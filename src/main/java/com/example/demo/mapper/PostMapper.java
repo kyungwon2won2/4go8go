@@ -2,8 +2,10 @@ package com.example.demo.mapper;
 
 import com.example.demo.domain.post.dto.GeneralDetailDto;
 import com.example.demo.domain.post.dto.GeneralPostDto;
+import com.example.demo.domain.post.dto.UpdateProductDto;
 import com.example.demo.domain.post.model.Post;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -32,5 +34,9 @@ public interface PostMapper {
     void deletePostById(int postId);
 
     void incrementViewCount(int postId);
+
+    void updatePostContentAndTitle(@Param("postId") int postId,
+                                   @Param("title") String title,
+                                   @Param("content") String content);
 }
 

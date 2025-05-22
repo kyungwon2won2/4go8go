@@ -36,6 +36,7 @@
             <result property="tradeStatus" column="trade_status"/>
             <result property="condition" column="product_condition"/>
 
+            <result property="userId" column="user_id" />
             <result property="nickname" column="nickname"/>
             <result property="address" column="address"/>
             <result property="rating" column="rating"/>
@@ -55,6 +56,7 @@
         pr.trade_status,
         pr.condition AS product_condition,
 
+        u.email,
         u.nickname,
         u.address,
         u.rating
@@ -64,6 +66,21 @@
         JOIN user u ON p.user_id = u.user_id
 
         WHERE pr.post_id = #{postId}
+    </select>
+
+    <!-- 업데이트를 위한 값 가져오기 -->
+    <select id="selectByUpdateProductDto" parameterType="int" resultType="com.example.demo.domain.post.dto.UpdateProductDto">
+        SELECT
+        p.post_id,
+        ps.user_id,
+        ps.title,
+        ps.`content`,
+        p.price,
+        p.`condition`,
+        p.category
+        FROM product p
+        JOIN post ps ON p.post_id = ps.post_id
+        WHERE p.post_id = #{postId}
     </select>
 
 
@@ -109,5 +126,15 @@
     <select id="countAllProducts" resultType="int">
         SELECT COUNT(*) FROM product
     </select>
+
+    <!-- product 테이블 업데이트 -->
+    <update id="updateProductDetails">
+        UPDATE product
+        SET price = #{price},
+        `condition` = #{condition},
+        category = #{category}
+        WHERE post_id = #{postId}
+    </update>
+
 
 </mapper>

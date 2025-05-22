@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <title>상품 수정</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+  <div class="product-form-card">
+    <h2 class="mb-4 text-center" style="color:#5f0080; font-weight:700;">상품 수정</h2>
+
+    <form th:action="@{'/product/' + ${productDto.postId} + '/edit'}"
+          th:object="${productDto}" method="post" enctype="multipart/form-data">
+      <input type="hidden" th:field="*{postId}" />
+      <input type="hidden" th:field="*{userId}" />
+
+      <div class="mb-3">
+        <label for="title" class="form-label">제목</label>
+        <input type="text" th:field="*{title}" class="form-control" id="title" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="content" class="form-label">내용</label>
+        <textarea th:field="*{content}" class="form-control" id="content" rows="5" required></textarea>
+      </div>
+
+      <div class="mb-3">
+        <label for="category" class="form-label">카테고리</label>
+        <select th:field="*{category}" class="form-select" id="category" required>
+          <option th:each="cat : ${T(com.example.demo.domain.post.model.Product.Category).values()}"
+                  th:value="${cat}" th:text="${cat.displayName}">카테고리</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label for="price" class="form-label">가격</label>
+        <input type="number" th:field="*{price}" class="form-control" id="price" min="0" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="condition" class="form-label">상품 상태</label>
+        <select th:field="*{condition}" class="form-select" id="condition" required>
+          <option th:each="cond : ${T(com.example.demo.domain.post.model.Product.ProductCondition).values()}"
+                  th:value="${cond}" th:text="${cond.displayName}">상품 상태</option>
+        </select>
+      </div>
+
+      <!-- ✅ 기존 이미지 목록 출력 -->
+      <div class="mb-3">
+        <label class="form-label">기존 이미지</label>
+        <div class="row">
+          <div class="col-6 mb-2" th:each="img : ${productDto.image}">
+            <img th:src="@{${img.url}}" class="img-thumbnail" style="max-height: 200px;" alt="기존 이미지">
+          </div>
+        </div>
+      </div>
+
+      <div class="d-grid mt-4">
+        <button type="submit" class="btn btn-warning py-2">수정하기</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+</body>
+</html>

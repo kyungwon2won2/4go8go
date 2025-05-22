@@ -3,6 +3,7 @@ package com.example.demo.domain.post.controller;
 import com.example.demo.domain.post.dto.CreateProductDto;
 import com.example.demo.domain.post.dto.ProductDetailDto;
 import com.example.demo.domain.post.dto.ProductListDto;
+import com.example.demo.domain.post.dto.UpdateProductDto;
 import com.example.demo.domain.post.model.Product;
 import com.example.demo.domain.post.service.ImageUploadService;
 import com.example.demo.domain.post.service.ProductService;
@@ -13,6 +14,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -68,15 +70,16 @@ public class ProductController {
     // 상품 수정 폼
     @GetMapping("/{postId}/edit")
     public String editProductForm(@PathVariable int postId, Model model) {
-        Product product = productService.getProductByPostId(postId);
-        model.addAttribute("product", product);
+        UpdateProductDto productDto = productService.getProductByPostId(postId);
+        System.out.println("DTO FROM DB: " + productDto); // 디버깅 로그 추가
+        model.addAttribute("productDto", productDto);
         return "product/editForm";
     }
 
     // 상품 수정 처리
     @PostMapping("/{postId}/edit")
-    public String updateProduct(@PathVariable int postId, @ModelAttribute CreateProductDto productDto) {
-        productService.updateProduct(postId, productDto);
+    public String updateProduct(@PathVariable int postId, @ModelAttribute UpdateProductDto productDto, MultipartFile[] images) {
+        productService.updateProduct(postId, productDto, images);
         return "redirect:/product";
     }
 
