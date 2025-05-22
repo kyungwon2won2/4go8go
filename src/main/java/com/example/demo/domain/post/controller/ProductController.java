@@ -26,7 +26,7 @@ public class ProductController {
     // 상품 list 가져오기
     @GetMapping
     public String productList(@RequestParam(defaultValue = "1") int page, Model model) {
-        int pageSize = 4;
+        int pageSize = 20;
         int offset = (page - 1) * pageSize;
 
         List<ProductListDto> products = productService.getProductsByPage(offset, pageSize);
