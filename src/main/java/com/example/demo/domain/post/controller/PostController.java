@@ -10,11 +10,13 @@ import com.example.demo.domain.user.model.CustomerUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.security.access.AccessDeniedException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,12 +49,19 @@ public class PostController {
         if(post == null){
             return "redirect:/post";
         }
+        //작성자, 관리자 여부 확인
+        int currentUserId = customerUser.getUserId();
+        boolean isOwner = (currentUserId == post.getUserId());
+        boolean isAdmin = customerUser.hasRole("ROLE_ADMIN");
+
         // 댓글 가져오기 (닉네임 포함)
         List<CommentDTO> commentList = commentHelper.getCommentWithNicknameByPostId(postId);
 
         model.addAttribute("post", post);
         model.addAttribute("comment_list", commentList);
-        model.addAttribute("userId", customerUser.getUserId());
+        model.addAttribute("userId", currentUserId);
+        model.addAttribute("isOwner", isOwner);
+        model.addAttribute("isAdmin", isAdmin);
         log.info("customerUser.getUserId(): " + customerUser.getUserId());
         log.info("post.getUserId(): " + post.getUserId());
         return "post/detail";
@@ -73,7 +82,7 @@ public class PostController {
 
     //게시글 수정 폼
     @GetMapping("/{postId}/edit")
-    public String updatePostForm(@PathVariable int postId, Model model){
+    public String updatePostForm(@PathVariable int postId, Model model, @AuthenticationPrincipal CustomerUser customerUser){
         GeneralDetailDto post = postService.selectPostByIdDto(postId);
         if(post == null){
             return "redirect:/post";
@@ -84,7 +93,14 @@ public class PostController {
 
     //게시글 수정 처리
     @PutMapping("/{postId}")
-    public String updatePost(@PathVariable int postId, @ModelAttribute Post post){
+    public String updatePost(@PathVariable int postId, @ModelAttribute Post post, @AuthenticationPrincipal CustomerUser customerUser){
+        //권한 체크
+        GeneralDetailDto generalDetailDto = postService.selectPostByIdDto(postId);
+        System.out.println("게시글의 유저아이디============================" + generalDetailDto.getUserId());
+        System.out.println("로그인 유저아이디==============================" + customerUser.getUserId());
+        if(generalDetailDto.getUserId() != customerUser.getUserId()){
+            throw new AccessDeniedException("작성자만 수정할 수 있습니다.");
+        }
         post.setPostId(postId);
         postService.updatePost(post);
         return "redirect:/post/{postId}";
@@ -92,7 +108,16 @@ public class PostController {
 
     //게시글 삭제 처리
     @PostMapping("/{postId}/delete")
-    public String deletePost(@PathVariable int postId){
+    public String deletePost(@PathVariable int postId, @AuthenticationPrincipal CustomerUser customerUser, Model model){
+        GeneralDetailDto generalDetailDto = postService.selectPostByIdDto(postId);
+
+        boolean isOwner = generalDetailDto.getUserId() == customerUser.getUserId();
+        boolean isAdmin = customerUser.hasRole("ROLE_ADMIN");
+
+        if (!isOwner && !isAdmin) {
+            throw new AccessDeniedException("작성자 또는 관리자만 삭제할 수 있습니다.");
+        }
+
         postService.deletePostById(postId);
         return "redirect:/post";
     }

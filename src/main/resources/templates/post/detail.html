@@ -306,14 +306,27 @@
                 </a>
             </div>
             <div class="d-flex gap-2">
-                <a th:href="@{'/post/' + ${post.postId} + '/edit'}" class="kurly-btn">
-                    <i class="fas fa-edit me-1"></i> 수정
-                </a>
-                <form th:action="@{'/post/' + ${post.postId} + '/delete'}" method="post" style="display:inline;">
-                    <button type="submit" class="kurly-btn" style="color: #e74c3c; border-color: #e74c3c;">
-                        <i class="fas fa-trash me-1"></i> 삭제
-                    </button>
-                </form>
+                <th:block th:if="${isOwner}">
+                    <a th:href="@{'/post/' + ${post.postId} + '/edit'}" class="kurly-btn">
+                        <i class="fas fa-edit me-1"></i> 수정
+                    </a>
+                </th:block>
+
+                <th:block th:if="${isOwner or isAdmin}">
+                    <form th:action="@{'/post/' + ${post.postId} + '/delete'}" method="post" style="display:inline;">
+                        <button type="submit" class="kurly-btn" style="color: #e74c3c; border-color: #e74c3c;">
+                            <i class="fas fa-trash me-1"></i> 삭제
+                        </button>
+                    </form>
+                </th:block>
+                <!-- 숨김버튼-->
+                <th:block th:if="${isAdmin}">
+                    <form th:action="@{'/post/' + ${post.postId} + '/hide'}" method="post" style="display:inline;">
+                        <button type="submit" class="kurly-btn" style="color: gray; border-color: gray;">
+                            <i class="fas fa-eye-slash me-1"></i> 숨김
+                        </button>
+                    </form>
+                </th:block>
 
                 <button class="kurly-btn"
                         th:if="${post.userId != userId}"

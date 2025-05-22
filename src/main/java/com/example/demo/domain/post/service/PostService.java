@@ -4,6 +4,7 @@ import com.example.demo.domain.post.dto.GeneralDetailDto;
 import com.example.demo.domain.post.dto.GeneralPostDto;
 import com.example.demo.domain.post.model.Image;
 import com.example.demo.domain.post.model.Post;
+import com.example.demo.mapper.CommentMapper;
 import com.example.demo.mapper.ImageMapper;
 import com.example.demo.mapper.PostMapper;
 import com.example.demo.util.HtmlImageExtractor;
@@ -30,6 +31,7 @@ public class PostService {
     private final PostMapper postMapper;
     private final ImageMapper imageMapper;
     private final ImageUploadService imageUploadService;
+    private final CommentMapper commentMapper;
 
     //전체조회
     public List<GeneralPostDto> getAllPostsDto(){
@@ -175,7 +177,10 @@ public class PostService {
     //게시글 삭제
     @Transactional
     public void deletePostById(int postId){
-        // 1. 이미지 S3 삭제 + DB 삭제
+        // 1. 댓글 삭제
+        commentMapper.deleteByPostId(postId);
+
+        // 2. 이미지 S3 삭제 + DB 삭제
         List<Image> images = imageMapper.getImagesByPostId(postId);
         for (Image image : images){
             imageUploadService.deleteByUrl(image.getUrl());

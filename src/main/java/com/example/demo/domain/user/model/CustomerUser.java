@@ -84,4 +84,11 @@ public class CustomerUser implements UserDetails, OAuth2User {
 	public String getName() {
 		return user.getName() != null ? user.getName() : user.getEmail();
 	}
+
+	// 관리자 게시글 접근권한 확인용
+	public boolean hasRole(String roleName){
+		return getAuthorities().stream()
+				.anyMatch(auth -> auth.getAuthority().equals(roleName));
+	}
+
 }

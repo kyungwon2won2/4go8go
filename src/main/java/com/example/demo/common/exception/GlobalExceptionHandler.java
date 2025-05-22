@@ -5,13 +5,14 @@ import com.example.demo.common.exception.dto.ErrorResponse;
 import com.example.demo.common.stringcode.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.NoHandlerFoundException;
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -39,10 +40,12 @@ public class GlobalExceptionHandler {
         log.error("NullPointerException: {}, Request URI: {}", ex.getMessage(), request.getRequestURI(), ex);
 
         // loginUser 가 null일 경우
-        if (ex.getMessage() != null && ex.getMessage().contains("loginUser")) {
+        if (ex.getMessage() != null &&
+                (ex.getMessage().contains("loginUser") || ex.getMessage().contains("customerUser"))) {
             return buildErrorModelAndView(
                     ErrorCode.LOGIN_REQUIRED,
-                    ex.getMessage(),
+                    //ex.getMessage(),
+                    "로그인 후 이용해주세요.",
                     request.getRequestURI(),
                     ex
             );
@@ -144,6 +147,7 @@ public class GlobalExceptionHandler {
                 .body(body);
     }
 
+
     // ModelAndView 구성 메서드
     private ModelAndView buildErrorModelAndView(ErrorCode errorCode, String message, String path, Exception ex) {
         ModelAndView modelAndView = new ModelAndView("errorPage");
@@ -163,5 +167,34 @@ public class GlobalExceptionHandler {
         }
         modelAndView.setStatus(errorCode.getStatus());
         return modelAndView;
+    }
+
+    // AccessDeniedException 처리
+    @ExceptionHandler(AccessDeniedException.class)
+    public ModelAndView handleAccessDeniedException(AccessDeniedException ex, HttpServletRequest request){
+        log.warn("AccessDeniedException: {}, Request URI: {}", ex.getMessage(),request.getRequestURI());
+        return buildErrorModelAndView(
+                ErrorCode.ACCESS_DENIED,
+                ex.getMessage(),            //여기에 "작성자만 수정할 수 있습니다."가 들어옴
+                request.getRequestURI(),
+                ex
+        );
+    }
+
+    //HttpRequestMethodNotSupportedException 처리
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ModelAndView handleMethodNotSupported(HttpRequestMethodNotSupportedException ex, HttpServletRequest request) {
+        log.warn("MethodNotSupported: {}, Request URI: {}", ex.getMethod(),request.getRequestURI());
+
+        String message = request.getRequestURI().endsWith("/delete")
+                ? "작성자 또는 관리자만 삭제할 수 있습니다."
+                : "허용되지 않는 HTTP 메서드입니다.";
+
+        return buildErrorModelAndView(
+                ErrorCode.ACCESS_DENIED,
+                message,
+                request.getRequestURI(),
+                ex
+        );
     }
 }
