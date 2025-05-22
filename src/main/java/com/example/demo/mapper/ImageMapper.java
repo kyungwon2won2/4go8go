@@ -19,4 +19,7 @@ public interface ImageMapper {
     Image getImageById(Long imageId);
 
     void deleteImageById(Long imageId);
+
+    // 게시물 기준으로 이미지 한장 가져오기
+    String selectFirstImageByPostId(int postId);
 }

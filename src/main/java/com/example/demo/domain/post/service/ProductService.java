@@ -27,7 +27,17 @@ public class ProductService {
     private final PostMapper postMapper;
 
     public List<ProductListDto> getProductsByPage(int offset, int limit) {
-        return productMapper.selectByPage(offset, limit);
+        List<ProductListDto> products = productMapper.selectByPage(offset, limit);
+
+        for (ProductListDto product : products) {
+            String imageUrl = imageHelper.selectFirstImageByPostId(product.getPostId());
+            imageUrl = (imageUrl != null)
+                    ? imageUrl
+                    : "https://4go8go-bucket.s3.ap-northeast-2.amazonaws.com/post-images/253a2530-c603-4a0e-8156-ace42e72bd45.png";
+            product.setImageUrl(imageUrl);
+        }
+
+        return products;
     }
 
     @Transactional

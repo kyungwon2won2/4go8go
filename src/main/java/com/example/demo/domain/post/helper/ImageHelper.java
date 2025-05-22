@@ -45,4 +45,8 @@ public class ImageHelper {
         public Image getImageById(Long imageId){
             return imageMapper.getImageById(imageId);
         }
+
+        // 게시물 ID로 단일 이미지 조회
+        public String selectFirstImageByPostId(int postId){ return imageMapper.selectFirstImageByPostId(postId); }
+
 }
