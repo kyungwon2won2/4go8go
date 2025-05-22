@@ -22,22 +22,50 @@
         INSERT INTO product (post_id, price, `condition`, category, trade_status)
         VALUES (#{postId}, #{price}, #{condition}, #{category}, #{tradeStatus})
     </insert>
+
     <!-- 상세 조회 -->
-    <select id="selectByPostIdDetail" resultMap="ProductDetailDtoMap">
+        <resultMap id="ProductDetailResultMap" type="com.example.demo.domain.post.dto.ProductDetailDto">
+            <result property="postId" column="post_id"/>
+            <result property="title" column="title"/>
+            <result property="viewCount" column="view_count"/>
+            <result property="commentCount" column="comment_count"/>
+            <result property="createdAt" column="created_at"/>
+
+            <result property="categoryName" column="category_name"/>
+            <result property="price" column="price"/>
+            <result property="tradeStatus" column="trade_status"/>
+            <result property="condition" column="product_condition"/>
+
+            <result property="nickname" column="nickname"/>
+            <result property="address" column="address"/>
+            <result property="rating" column="rating"/>
+        </resultMap>
+
+    <select id="selectByPostIdDetail" resultMap="ProductDetailResultMap">
         SELECT
-        p.post_id,
+        pr.post_id,
         p.title,
-        p.content,
-        pr.category,
-        pr.price,
-        pr.`condition`,
+        p.view_count,
+        p.comment_count,
         p.created_at,
-        u.address
-        FROM post p
-        JOIN product pr ON p.post_id = pr.post_id
+        p.content,
+
+        pr.price,
+        pr.category AS category_name,
+        pr.trade_status,
+        pr.condition AS product_condition,
+
+        u.nickname,
+        u.address,
+        u.rating
+
+        FROM product pr
+        JOIN post p ON pr.post_id = p.post_id
         JOIN user u ON p.user_id = u.user_id
-        WHERE p.post_id = #{postId}
+
+        WHERE pr.post_id = #{postId}
     </select>
+
 
     <!-- 목록 DTO 매핑 -->
     <resultMap id="ProductListDtoMap" type="com.example.demo.domain.post.dto.ProductListDto">

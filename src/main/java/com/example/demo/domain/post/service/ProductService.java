@@ -14,8 +14,10 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -71,12 +73,22 @@ public class ProductService {
     }
 
     public ProductDetailDto getProductDetailByPostId(int postId) {
+        // 1. 상품 상세 정보 조회
         ProductDetailDto detailDto = productMapper.selectByPostIdDetail(postId);
-        // 이미지 URL 리스트 추가
-        List<Image> images = imageHelper.getImagesByPostId(postId);
+
+        // 2. 이미지 목록 조회 및 URL만 추출하여 세팅
         if (detailDto != null) {
-            detailDto.setImageUrls(images.stream().map(Image::getUrl).toList());
+            List<Image> images = imageHelper.getImagesByPostId(postId);
+            if (images != null && !images.isEmpty()) {
+                List<String> imageUrls = images.stream()
+                        .map(Image::getUrl)
+                        .collect(Collectors.toList());
+                detailDto.setImageUrls(imageUrls);
+            } else {
+                detailDto.setImageUrls(Collections.emptyList());
+            }
         }
+
         return detailDto;
     }
 }
