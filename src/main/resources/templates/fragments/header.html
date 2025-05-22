@@ -26,6 +26,7 @@
     <div class="header-top">
         <div></div>
         <ul class="user-menu">
+
             <!-- 비로그인 상태 -->
             <li sec:authorize="!isAuthenticated()">
                 <a href="/join">회원가입</a>
@@ -33,6 +34,7 @@
             <li sec:authorize="!isAuthenticated()">
                 <a href="/login">로그인</a>
             </li>
+
             <!-- 로그인 상태 -->
             <li sec:authorize="isAuthenticated()">
                 <span sec:authentication="name"></span>님
@@ -45,10 +47,14 @@
                     </button>
                 </form>
             </li>
+
             <!-- 공통 메뉴 -->
             <li><a href="#">고객센터</a></li>
+
         </ul>
+
     </div>
+
     <!-- 로고, 검색창, 아이콘 -->
     <div class="logo-area">
         <a href="/" class="logo"><img src="/image/4go8go_logo.png" alt="4고8고마켓" height="40"></a>
@@ -59,6 +65,7 @@
             <th:block sec:authorize="isAuthenticated()" th:replace="~{fragments/notification :: notification}"></th:block>
         </div>
     </div>
+
     <!-- 메인 네비게이션 -->
     <nav class="main-nav">
         <ul>
@@ -67,12 +74,38 @@
             <li><a href="#">베스트</a></li>
             <li><a href="#">알뜰쇼핑</a></li>
             <li><a th:href="@{/post}">자유게시판</a></li>
+
+
             <!-- 관리자 메뉴 -->
             <th:block sec:authorize="hasRole('ROLE_ADMIN')">
                 <li><a href="/admin" style="color: var(--sub-color);">관리자</a></li>
+
             </th:block>
+
         </ul>
     </nav>
+    <!-- 알림 모달 -->
+    <div id="notificationModal" class="notification-modal" style="display: none;">
+        <div class="notification-modal-content">
+            <div class="notification-modal-header">
+                <h5>최근 알림</h5>
+                <span class="notification-modal-close" onclick="closeNotificationModal()">&times;</span>
+            </div>
+            <div class="notification-modal-body" id="notificationList">
+                <!-- 여기에 알림 목록 동적으로 로드 -->
+                <div class="notification-loading">
+                    <i class="bi bi-arrow-repeat spin"></i> 알림을 불러오는 중...
+                </div>
+            </div>
+            <div class="notification-modal-footer">
+                <button onclick="markAllAsRead()" class="notification-modal-button" id="markAllReadButton">전체 읽음</button>
+                <a href="/notifications" class="notification-modal-link">모든 알림 보기</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/notification-chat.js"></script>
+
 </header>
 
 <!--&lt;!&ndash; JavaScript 임포트 (순서대로) &ndash;&gt;-->

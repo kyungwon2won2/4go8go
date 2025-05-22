@@ -8,8 +8,6 @@
 
 body {
     font-family: 'Noto Sans KR', sans-serif;
-    color: var(--dark-color);
-    font-weight: 400;
 }
 
 .post-container {
@@ -51,12 +49,7 @@ body {
     display: inline-block;
 }
 
-.btn-primary:hover {
-    background-color: #4a0061;
-}
-
 .search-box {
-    position: relative;
     margin-bottom: 25px;
     max-width: 500px;
     margin-left: auto;
@@ -79,7 +72,6 @@ body {
 }
 
 .search-button {
-    position: absolute;
     right: 6px;
     top: 6px;
     background-color: var(--primary-color);
@@ -92,10 +84,7 @@ body {
     align-items: center;
     justify-content: center;
     transition: background-color 0.2s;
-}
-
-.search-button:hover {
-    background-color: #4a0061;
+    position: absolute;
 }
 
 table.table {
@@ -155,7 +144,6 @@ table.table {
     text-transform: uppercase;
 }
 
-
 .empty-state {
     text-align: center;
     padding: 60px 20px;
@@ -177,10 +165,10 @@ table.table {
 }
 
 .pagination-flex {
-    position: relative;  /* 자식 요소의 absolute 기준 */
+    position: relative;
     display: flex;
     align-items: center;
-    justify-content: flex-end;  /* 작성 버튼은 우측 끝으로 */
+    justify-content: flex-end;
     margin-top: 30px;
 }
 
@@ -195,8 +183,6 @@ table.table {
     justify-content: center;
     gap: 4px;
 }
-
-
 
 .page-link {
     display: flex;
