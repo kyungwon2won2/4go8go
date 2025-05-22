@@ -1,4 +1,9 @@
 /* 알림 관련 스타일 업데이트 */
+.notification-component {
+    display: inline-block;
+    position: relative;
+}
+
 .notification-icon {
     position: relative;
     display: inline-block;
@@ -19,17 +24,27 @@
     background-color: #5f0080;
     color: white;
     border-radius: 50%;
-    padding: 2px 6px;
-    font-size: 0.7rem;
-    min-width: 16px;
-    height: 16px;
-    line-height: 16px;
-    text-align: center;
+    min-width: 18px;
+    height: 18px;
+    font-size: 11px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    border: none;
+    padding: 0;
+    line-height: 1;
+}
+
+/* JavaScript에서 숨길 때 사용하는 클래스 */
+.notification-badge.hidden {
+    display: none !important;
 }
 
 .notification-dropdown-container {
     position: relative;
+    display: inline-block;
 }
 
 .notification-dropdown {
@@ -86,17 +101,23 @@
 .notification-list {
     max-height: 350px;
     overflow-y: auto;
-    padding: 5px 0;
+    padding: 0;
+    margin: 0;
 }
 
 .notification-item {
-    padding: 12px 18px;
+    padding: 10px 16px;
     border-bottom: 1px solid #f0f0f0;
     cursor: pointer;
     transition: all 0.2s;
     display: flex;
     align-items: flex-start;
     position: relative;
+    margin: 0;
+}
+
+.notification-item:last-child {
+    border-bottom: none;
 }
 
 .notification-item:hover {
@@ -126,13 +147,14 @@
 .notification-content {
     margin-bottom: 4px;
     word-break: break-word;
-    font-weight: 500;
+    font-weight: 350;
     color: #333;
     line-height: 1.4;
 }
 
 .notification-item.unread .notification-content {
-    font-weight: 600;
+    font-weight: 350;
+    font-size: 15px;
 }
 
 .notification-time {
@@ -165,25 +187,32 @@
 }
 
 .empty-notification {
-    padding: 30px 20px;
+    padding: 20px;
     text-align: center;
     color: #999;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    line-height: 1.4;
 }
 
 .notification-footer {
-    padding: 12px;
+    padding: 10px;
     text-align: center;
     border-top: 1px solid #eee;
     background-color: #fcfcfc;
+    position: relative;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .view-all-link {
     color: #5f0080;
-    font-size: 0.9rem;
+    font-size: 18px;
     text-decoration: none;
     font-weight: 500;
     transition: color 0.2s;
+    line-height: 1;
 }
 
 .view-all-link:hover {

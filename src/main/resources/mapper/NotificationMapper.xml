@@ -2,14 +2,27 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.demo.mapper.NotificationMapper">
 
+    <!-- 결과 매핑 설정 -->
+    <resultMap id="notificationResultMap" type="com.example.demo.common.notification.model.Notification">
+        <id property="notificationId" column="notification_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="type" column="type"/>
+        <result property="content" column="content"/>
+        <result property="url" column="url"/>
+        <result property="referenceId" column="reference_id"/>
+        <result property="isRead" column="is_read"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="readAt" column="read_at"/>
+    </resultMap>
+
     <!-- 알림 ID로 조회 -->
-    <select id="findById" resultType="com.example.demo.common.notification.dto.NotificationDto">
+    <select id="findById" resultMap="notificationResultMap">
         SELECT * FROM notification
         WHERE notification_id = #{notificationId}
     </select>
     
     <!-- 사용자 ID로 조회 (페이징) -->
-    <select id="findByUserId" resultType="com.example.demo.common.notification.dto.NotificationDto">
+    <select id="findByUserId" resultMap="notificationResultMap">
         SELECT * FROM notification
         WHERE user_id = #{userId}
         ORDER BY created_at DESC
@@ -17,10 +30,18 @@
     </select>
     
     <!-- 사용자의 읽지 않은 알림 조회 -->
-    <select id="findUnreadByUserId" resultType="com.example.demo.common.notification.dto.NotificationDto">
+    <select id="findUnreadByUserId" resultMap="notificationResultMap">
         SELECT * FROM notification
         WHERE user_id = #{userId} AND is_read = false
         ORDER BY created_at DESC
+    </select>
+    
+    <!-- 사용자의 읽지 않은 알림 조회 (페이징) -->
+    <select id="findUnreadByUserIdPaged" resultMap="notificationResultMap">
+        SELECT * FROM notification
+        WHERE user_id = #{userId} AND is_read = false
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
     </select>
 
     <!--countByUserId-->

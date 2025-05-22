@@ -15,6 +15,19 @@ public class WebConfig implements WebMvcConfigurer {
         // Chrome DevTools 요청 처리
         registry.addResourceHandler("/.well-known/**")
                 .addResourceLocations("classpath:/static/.well-known/");
+        
+        // 정적 리소스 경로 명시적 설정
+        registry.addResourceHandler("/css/**")
+                .addResourceLocations("classpath:/static/css/");
+        
+        registry.addResourceHandler("/js/**")
+                .addResourceLocations("classpath:/static/js/");
+        
+        registry.addResourceHandler("/image/**")
+                .addResourceLocations("classpath:/static/image/");
+                
+        registry.addResourceHandler("/summernote/**")
+                .addResourceLocations("classpath:/static/summernote/");
     }
 
     
