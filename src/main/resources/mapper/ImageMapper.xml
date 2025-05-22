@@ -8,6 +8,17 @@
         <result property="url" column="url" />
     </resultMap>
 
+    <resultMap id="chatImageResultMap" type="com.example.demo.domain.chat.model.ChatImage">
+        <id property="chatImageId" column="chat_image_id" />
+        <result property="messageId" column="message_id" />
+        <result property="imageUrl" column="image_url" />
+        <result property="originalName" column="original_name" />
+        <result property="fileSize" column="file_size" />
+        <result property="contentType" column="content_type" />
+        <result property="uploadDate" column="upload_date" />
+        <result property="isDeleted" column="is_deleted" />
+    </resultMap>
+
     <!--이미지 삽입-->
     <insert id="insertImage" parameterType="com.example.demo.domain.post.model.Image" useGeneratedKeys="true" keyProperty="imageId">
         insert into image
@@ -53,5 +64,30 @@
     <delete id="deleteImageById" parameterType="long">
         DELETE FROM image WHERE image_id = #{imageId}
     </delete>
+
+    <!-- 채팅 이미지 관련 쿼리들 추가 -->
+    <insert id="insertChatImage" parameterType="com.example.demo.domain.chat.model.ChatImage" useGeneratedKeys="true" keyProperty="chatImageId">
+        INSERT INTO CHAT_IMAGE (MESSAGE_ID, IMAGE_URL, ORIGINAL_NAME, FILE_SIZE, CONTENT_TYPE, UPLOAD_DATE, IS_DELETED)
+        VALUES (#{messageId}, #{imageUrl}, #{originalName}, #{fileSize}, #{contentType}, NOW(), FALSE)
+    </insert>
+
+    <select id="getChatImagesByMessageId" parameterType="Long" resultMap="chatImageResultMap">
+        SELECT * FROM CHAT_IMAGE WHERE MESSAGE_ID = #{messageId} AND IS_DELETED = FALSE
+        ORDER BY UPLOAD_DATE ASC
+    </select>
+
+    <select id="getChatImageById" parameterType="Long" resultMap="chatImageResultMap">
+        SELECT * FROM CHAT_IMAGE WHERE CHAT_IMAGE_ID = #{chatImageId}
+    </select>
+
+    <delete id="deleteChatImageById" parameterType="Long">
+        DELETE FROM CHAT_IMAGE WHERE CHAT_IMAGE_ID = #{chatImageId}
+    </delete>
+
+    <update id="updateChatImageDeleted" parameterType="map">
+        UPDATE CHAT_IMAGE 
+        SET IS_DELETED = #{isDeleted}
+        WHERE CHAT_IMAGE_ID = #{chatImageId}
+    </update>
 
 </mapper>

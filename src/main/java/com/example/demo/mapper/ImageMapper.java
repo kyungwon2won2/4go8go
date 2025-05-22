@@ -1,5 +1,6 @@
 package com.example.demo.mapper;
 
+import com.example.demo.domain.chat.model.ChatImage;
 import com.example.demo.domain.post.model.Image;
 import org.apache.ibatis.annotations.Mapper;
 
@@ -22,4 +23,12 @@ public interface ImageMapper {
 
     // 게시물 기준으로 이미지 한장 가져오기
     String selectFirstImageByPostId(int postId);
+
+
+    // 채팅 이미지 관련
+    void insertChatImage(ChatImage chatImage);
+    List<ChatImage> getChatImagesByMessageId(Long messageId);
+    ChatImage getChatImageById(Long chatImageId);
+    void deleteChatImageById(Long chatImageId);
+    void updateChatImageDeleted(Long chatImageId, Boolean isDeleted);
 }

@@ -15,5 +15,6 @@ public class ChatMessage {
     private Integer userId;
     private String content;
     private String imageUrl; //이미지 경로
+    private String messageType; // "TEXT" or "IMAGE"
     private Date sentAt;
 }
