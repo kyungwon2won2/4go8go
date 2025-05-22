@@ -98,16 +98,14 @@
       background: #ff8a3d;
       color: #fff;
     }
-    .seller-card {
-      background: #fff;
-      border-radius: 14px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-      margin: 40px auto 0 auto;
-      max-width: 420px;
-      padding: 22px 28px 18px 28px;
+    /* 유저 정보(판매자 정보) - 이미지 하단, 상품 정보 상단 */
+    .seller-inline-row {
       display: flex;
       align-items: center;
       gap: 18px;
+      padding: 18px 0 18px 0;
+      border-bottom: 1px solid #f2f2f2;
+      margin-bottom: 18px;
     }
     .seller-profile-img {
       width: 54px;
@@ -148,15 +146,6 @@
 </head>
 <body>
 <div th:replace="~{fragments/header :: header}"></div>
-
-<!-- 브레드크럼 -->
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb breadcrumb-custom">
-    <li class="breadcrumb-item"><a href="/">홈</a></li>
-    <li class="breadcrumb-item"><a href="/product">중고거래</a></li>
-    <li class="breadcrumb-item active" aria-current="page" th:text="${product.title}">상품명</li>
-  </ol>
-</nav>
 
 <div class="product-main-card d-flex flex-row">
   <!-- 좌측: 이미지 캐러셀 -->
@@ -200,23 +189,24 @@
       <span><i class="bi bi-heart"></i> 관심 0</span>
       <span><i class="bi bi-eye"></i> 조회 0</span>
     </div>
-
+    <!-- 유저 정보(판매자 정보) - 채팅/관심/조회 밑, 수정/삭제 버튼 위 -->
+    <div class="seller-inline-row">
+      <img class="seller-profile-img" src="/img/profile-placeholder.png" alt="프로필">
+      <div class="seller-info">
+        <div class="seller-nickname" th:text="${product.nickname}">판매자 닉네임</div>
+        <div class="seller-location" th:text="${product.address}">판매자 지역</div>
+        <div class="seller-temp">
+          <span th:text="${#numbers.formatDecimal(product.rating, 1, 1)}">레이팅</span>
+          <span class="seller-temp-badge">점</span>
+        </div>
+      </div>
+    </div>
     <div class="d-flex gap-2 mt-2">
       <a th:href="@{'/product/edit/' + ${product.postId}}" class="btn btn-outline-primary btn-sm flex-fill">수정</a>
       <form th:action="@{'/product/delete/' + ${product.postId}}" method="post" style="display:inline;" class="flex-fill">
         <button type="submit" class="btn btn-outline-danger btn-sm w-100">삭제</button>
       </form>
     </div>
-  </div>
-</div>
-
-<!-- 하단: 판매자 정보 카드 -->
-<div class="seller-card mt-40">
-  <img class="seller-profile-img" src="/img/profile-placeholder.png" alt="프로필">
-  <div class="seller-info">
-    <div class="seller-nickname">소라숲</div>
-    <div class="seller-location">신정4동</div>
-    <div class="seller-temp">99.0°C <span class="seller-temp-badge">온도</span></div>
   </div>
 </div>
 
