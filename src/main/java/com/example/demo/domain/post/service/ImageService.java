@@ -1,5 +1,6 @@
 package com.example.demo.domain.post.service;
 
+import com.example.demo.domain.chat.model.ChatImage;
 import com.example.demo.domain.post.model.Image;
 import com.example.demo.mapper.ImageMapper;
 import lombok.RequiredArgsConstructor;

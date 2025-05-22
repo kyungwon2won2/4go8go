@@ -15,5 +15,7 @@ public class ChatMessageDto {
     private String message;
     private String senderEmail;
     private String senderNickname;
-    private Date sentAt; // 메시지 발신 시간 필드 추가
+    private Date sentAt;
+    private String imageUrl;
+    private String messageType;   // "TEXT" or "IMAGE"
 }

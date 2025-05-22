@@ -10,6 +10,8 @@
         <result property="chatRoomId" column="chat_room_id"/>
         <result property="userId" column="user_id"/>
         <result property="content" column="content"/>
+        <result property="imageUrl" column="image_url"/>
+        <result property="messageType" column="message_type"/>
         <result property="sentAt" column="sent_at"/>
     </resultMap>
 
@@ -24,8 +26,8 @@
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="messageId">
-        INSERT INTO chat_message (chat_room_id, user_id, content, sent_at)
-        VALUES (#{chatRoomId}, #{userId}, #{content}, NOW())
+        INSERT INTO chat_message (chat_room_id, user_id, content, image_url, message_type, sent_at)
+        VALUES (#{chatRoomId}, #{userId}, #{content}, #{imageUrl}, COALESCE(#{messageType}, 'TEXT'), NOW())
     </insert>
 
     <delete id="deleteById">
