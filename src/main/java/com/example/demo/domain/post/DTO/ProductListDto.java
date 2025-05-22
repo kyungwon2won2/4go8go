@@ -11,4 +11,5 @@ public class ProductListDto {
     private Date createdAt; //from post.createAt
     private String location; // from user.address
     private int price;
+    private String imageUrl;
 }
