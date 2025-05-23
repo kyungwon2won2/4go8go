@@ -1,7 +1,6 @@
 package com.example.demo.domain.chat.service;
 
 import com.example.demo.domain.chat.dto.ChatMessageDto;
-import com.example.demo.domain.chat.dto.ChatRoomListResDto;
 import com.example.demo.domain.chat.dto.MyChatListResDto;
 import com.example.demo.domain.chat.model.*;
 import com.example.demo.domain.post.service.ImageUploadService;

@@ -115,14 +115,14 @@ public class StompHandler implements ChannelInterceptor {
             return;
         }
         
-        // 채팅방 구독인 경우만 확인
-        if (destination.startsWith("/sub/chat/room/")) {
-            String[] parts = destination.split("/");
-            if (parts.length < 5) {
+        // 채팅방 구독인 경우만 확인 - RabbitMQ용 경로
+        if (destination.startsWith("/topic/chat.room.")) {
+            String[] parts = destination.split("\\.");
+            if (parts.length < 3) {
                 return;
             }
             
-            String roomId = parts[4];
+            String roomId = parts[2];  // chat.room.{roomId}에서 roomId 추출
             
             try {
                 Long roomIdLong = Long.parseLong(roomId);

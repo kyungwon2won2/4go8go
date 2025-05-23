@@ -19,74 +19,87 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequestMapping("/api/sse")
 @Slf4j
 public class NotificationSseController {
-    
+
     // SSE 연결 관리 (사용자 이메일 -> SseEmitter)
     private static final Map<String, SseEmitter> EMITTERS = new ConcurrentHashMap<>();
-    
+
     // 마지막 연결 시간 추적 (사용자 이메일 -> 타임스탬프)
     private static final Map<String, Long> LAST_CONNECT_TIMES = new ConcurrentHashMap<>();
-    
+
     // SSE 연결 타임아웃 (30분)
     private static final long TIMEOUT = 30 * 60 * 1000L;
-    
+
     // 최소 재연결 간격 (5초)
-    private static final long MIN_RECONNECT_INTERVAL = 5000L;
-    
+    private static final long MIN_RECONNECT_INTERVAL = 1000L;
+
     /**
      * SSE 연결 엔드포인트
      */
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(Authentication authentication, @RequestParam(required = false) Long t) {
+        // 인증되지 않은 사용자는 즉시 완료 처리하여 연결 종료
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new IllegalArgumentException("인증되지 않은 사용자입니다.");
+            log.debug("SSE 연결 거부 - 인증되지 않은 사용자");
+            SseEmitter emitter = new SseEmitter(1000L); // 1초 후 타임아웃
+            try {
+                // 연결 거부 메시지 전송
+                emitter.send(SseEmitter.event()
+                        .name("error")
+                        .data("인증이 필요합니다"));
+                emitter.complete();
+            } catch (Exception e) {
+                // 예외 발생 시 조용히 완료 처리
+                emitter.complete();
+            }
+            return emitter;
         }
-        
+
         String userEmail = authentication.getName();
-        
+
         // 마지막 연결 시간 확인하여 빈번한 재연결 방지
         long now = System.currentTimeMillis();
         Long lastConnectTime = LAST_CONNECT_TIMES.get(userEmail);
-        
+
         // 기존 연결 확인
         SseEmitter existingEmitter = EMITTERS.get(userEmail);
-        
+
         // 마지막 연결 시도 후 MIN_RECONNECT_INTERVAL 이내에 다시 요청이 왔고,
         // 기존 emitter가 있으면 그대로 반환
         if (lastConnectTime != null && (now - lastConnectTime) < MIN_RECONNECT_INTERVAL && existingEmitter != null) {
             log.debug("SSE 재연결 간격이 너무 짧음, 기존 연결 유지: {} (간격: {}ms)", userEmail, now - lastConnectTime);
             return existingEmitter;
         }
-        
+
         log.info("SSE 연결 요청: {}", userEmail);
         LAST_CONNECT_TIMES.put(userEmail, now);
-        
+
         // 기존 연결이 있으면 제거
         if (existingEmitter != null) {
             removeEmitter(userEmail);
         }
-        
+
         // 새 SSE Emitter 생성
         SseEmitter emitter = new SseEmitter(TIMEOUT);
-        
+
         // 이벤트 처리 콜백 등록
         emitter.onCompletion(() -> {
             log.debug("SSE 연결 완료: {}", userEmail);
             // 완료 시 바로 제거하지 않고 클라이언트에서 재연결 처리
         });
-        
+
         emitter.onTimeout(() -> {
             log.info("SSE 연결 타임아웃: {}", userEmail);
             removeEmitter(userEmail);
         });
-        
+
         emitter.onError(e -> {
             log.error("SSE 연결 오류: {}, 에러: {}", userEmail, e.getMessage());
             removeEmitter(userEmail);
         });
-        
+
         // 맵에 저장
         EMITTERS.put(userEmail, emitter);
-        
+
         // 초기 연결 이벤트 전송
         try {
             emitter.send(SseEmitter.event()
@@ -104,10 +117,10 @@ public class NotificationSseController {
             log.error("SSE 초기 이벤트 전송 실패: {}", e.getMessage());
             removeEmitter(userEmail);
         }
-        
+
         return emitter;
     }
-    
+
     /**
      * 특정 사용자에게 이벤트 전송
      */
@@ -134,7 +147,7 @@ public class NotificationSseController {
             log.debug("SSE 이벤트 전송 실패 (emitter 없음): {} -> {}", eventName, userEmail);
         }
     }
-    
+
     /**
      * 연결 제거
      */
@@ -150,14 +163,14 @@ public class NotificationSseController {
             }
         }
     }
-    
+
     /**
      * 사용자 연결 여부 확인
      */
     public static boolean isConnected(String userEmail) {
         return EMITTERS.containsKey(userEmail);
     }
-    
+
     /**
      * 주기적으로 ping 이벤트를 보내 연결 유지
      */
@@ -166,18 +179,18 @@ public class NotificationSseController {
         if (EMITTERS.isEmpty()) {
             return; // 연결된 클라이언트가 없으면 실행하지 않음
         }
-        
+
         log.debug("Ping 이벤트 전송 시작 (연결된 클라이언트: {}개)", EMITTERS.size());
-        
+
         // 제거할 클라이언트 목록
         // ConcurrentModificationException 방지를 위해 별도 목록에 담아 나중에 처리
         final java.util.List<String> clientsToRemove = new java.util.ArrayList<>();
-        
+
         // 모든 클라이언트에 ping 이벤트 전송
         for (Map.Entry<String, SseEmitter> entry : EMITTERS.entrySet()) {
             String userEmail = entry.getKey();
             SseEmitter emitter = entry.getValue();
-            
+
             try {
                 // 전송 전에 이미 완료된 emitter인지 확인하는 로직을 추가할 수 있음
                 emitter.send(SseEmitter.event()
@@ -192,7 +205,7 @@ public class NotificationSseController {
                 clientsToRemove.add(userEmail);
             }
         }
-        
+
         // 실패한 클라이언트 연결 제거
         for (String userEmail : clientsToRemove) {
             removeEmitter(userEmail);

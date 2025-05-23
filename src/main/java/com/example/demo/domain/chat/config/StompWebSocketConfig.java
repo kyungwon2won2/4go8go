@@ -39,16 +39,23 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
 
-        //publish/1 ->형태로 roomId 1번방에 메시지를 발생하겠다는 룰.
-        // /publish 형태로 시작하는 url 패턴으로 메시지가 발행되면 @Controller 객체의 @MessageMapping 메서드로 라우팅
-        registry.setApplicationDestinationPrefixes("/pub");
-
-        //topic/1 형태로 메시지를 수신(subscribe)해야 함을 설정
-        registry.enableSimpleBroker("/sub", "/topic", "/queue", "/user");
+        // 클라이언트에서 메시지를 보낼 때 사용할 prefix
+        registry.setApplicationDestinationPrefixes("/app");
         registry.setUserDestinationPrefix("/user");
 
-        //외장 브로커 사용 -> rabbitmq
-        //registry.enableStompBrokerRelay()
+
+        //기본 stomp 내장 브로커 사용
+        //registry.enableSimpleBroker("/sub", "/topic", "/queue", "/user");
+
+
+        // RabbitMQ STOMP Broker Relay 설정 - RabbitMQ에 맞는 destination 패턴 사용
+        registry.enableStompBrokerRelay("/topic", "/queue", "/exchange", "/amq/queue")
+                .setRelayHost("localhost")
+                .setRelayPort(61613)
+                .setClientLogin("guest")
+                .setClientPasscode("guest")
+                .setSystemLogin("guest")
+                .setSystemPasscode("guest");
     }
 
     //웹소켓 요청(connect, subscribe, disconnect)등의 요청시에는 http header등 http 메시지를 넣어올수 있고,
