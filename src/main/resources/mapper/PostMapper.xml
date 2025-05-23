@@ -131,5 +131,17 @@
         where post_id = #{postId}
     </update>
 
+    <!-- 페이징된 게시글 목록 -->
+    <select id="selectPostsByPage" resultType="com.example.demo.domain.post.dto.GeneralPostDto">
+        SELECT * FROM post
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 전체 게시글 수 -->
+    <select id="countAllPosts" resultType="int">
+        SELECT COUNT(*) FROM post
+    </select>
+
 
 </mapper>

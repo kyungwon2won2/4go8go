@@ -32,9 +32,18 @@ public class PostController {
 
     //전체조회
     @GetMapping
-    public String getAllPosts(Model model){
-        List<GeneralPostDto> posts = postService.getAllPostsDto();
+    public String getAllPosts(@RequestParam(defaultValue = "1") int page, Model model){
+        int pageSize = 10;
+
+        //List<GeneralPostDto> posts = postService.getAllPostsDto();
+        List<GeneralPostDto> posts = postService.getPostsByPage(page, pageSize);
+        int totalPosts = postService.getTotalPostCount();
+        int totalPages = (int) Math.ceil((double) totalPosts / pageSize);
+
         model.addAttribute("posts", posts);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", totalPages);
+
         return "post/list";
     }
 

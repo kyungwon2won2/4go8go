@@ -61,15 +61,34 @@
         <div class="pagination-flex">
             <div class="pagination-center">
                 <div class="pagination" th:if="${!#lists.isEmpty(posts)}">
-                    <a href="#" class="page-link"><i class="bi bi-chevron-left"></i></a>
-                    <a href="#" class="page-link active">1</a>
-                    <a href="#" class="page-link">2</a>
-                    <a href="#" class="page-link">3</a>
-                    <a href="#" class="page-link">4</a>
-                    <a href="#" class="page-link">5</a>
-                    <a href="#" class="page-link"><i class="bi bi-chevron-right"></i></a>
+                    <!-- 이전 페이지 화살표 -->
+                    <span th:if="${currentPage == 1}" class="page-link disabled">
+                        <i class="bi bi-chevron-left"></i>
+                    </span>
+                    <a th:if="${currentPage > 1}"
+                        th:href="@{/post(page=${currentPage - 1})}"
+                        class="page-link">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+
+                    <!-- 페이지 숫자 -->
+                    <a th:each="i : ${#numbers.sequence(1, totalPages)}"
+                        th:class="'page-link ' + (${currentPage == i} ? 'active' : '')"
+                        th:href="@{/post(page=${i})}"
+                        th:text="${i}">1</a>
+
+                    <!-- 다음 페이지 화살표 -->
+                    <span th:if="${currentPage == totalPages}" class="page-link disabled">
+                        <i class="bi bi-chevron-right"></i>
+                    </span>
+                    <a th:if="${currentPage < totalPages}"
+                        th:href="@{/post(page=${currentPage + 1})}"
+                        class="page-link">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
                 </div>
             </div>
+
             <a href="/post/new" class="btn-primary">
                 <i class="bi bi-pencil-fill me-1"></i> 작성
             </a>

@@ -196,6 +196,16 @@ public class PostService {
         postMapper.incrementViewCount(postId);
     }
 
+    // 페이징
+    public List<GeneralPostDto> getPostsByPage(int page, int pageSize){
+        int offset = (page - 1) * pageSize;
+        return postMapper.selectPostsByPage(offset, pageSize);
+    }
+
+    // 일반게시판 전체 글 갯수
+    public int getTotalPostCount(){
+        return postMapper.countAllPosts();
+    }
 
 
 
