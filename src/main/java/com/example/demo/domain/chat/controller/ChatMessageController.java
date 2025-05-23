@@ -91,8 +91,8 @@ public class ChatMessageController {
                         
                         // 처음 입장하는 경우에만 입장 메시지 전송
                         if (chatParticipant.getHasEntered() == null || !chatParticipant.getHasEntered()) {
-                            // 입장 메시지 브로드캐스팅
-                            messagingTemplate.convertAndSend("/sub/chat/room/" + message.getRoomId(), message);
+                            // RabbitMQ용 destination으로 입장 메시지 브로드캐스팅
+                            messagingTemplate.convertAndSend("/topic/chat.room." + message.getRoomId(), message);
                             
                             // 입장 상태 업데이트
                             chatParticipantMapper.updateHasEntered(message.getRoomId(), user.getUserId(), true);
@@ -153,8 +153,8 @@ public class ChatMessageController {
                 ChatMessage savedMessage = chatMessageMapper.findById(messageId);
                 message.setSentAt(savedMessage.getSentAt());
                 
-                // 메시지 브로드캐스팅
-                messagingTemplate.convertAndSend("/sub/chat/room/" + message.getRoomId(), message);
+                // RabbitMQ용 destination으로 메시지 브로드캐스팅
+                messagingTemplate.convertAndSend("/topic/chat.room." + message.getRoomId(), message);
                 
                 // 참가자들에게 읽지 않은 메시지 개수 업데이트 알림
                 broadcastUnreadCountUpdates(message.getRoomId());
@@ -212,8 +212,8 @@ public class ChatMessageController {
                     // 사용자의 모든 채팅방에 대한 읽지 않은 메시지 개수 조회
                     List<MyChatListResDto> userRooms = chatService.getMyChatRooms(user.getEmail());
                     
-                    // 개인별 알림 채널로 전송
-                    messagingTemplate.convertAndSend("/sub/user/" + user.getEmail() + "/unread", userRooms);
+                    // RabbitMQ용 개인별 알림 채널로 전송
+                    messagingTemplate.convertAndSend("/queue/user." + user.getEmail() + ".unread", userRooms);
                 }
             }
         } catch (Exception e) {
@@ -248,8 +248,8 @@ public class ChatMessageController {
             ChatMessage savedMessage = chatMessageMapper.findById(messageId);
             message.setSentAt(savedMessage.getSentAt());
             
-            // 메시지 브로드캐스팅
-            messagingTemplate.convertAndSend("/sub/chat/room/" + roomId, message);
+            // RabbitMQ용 destination으로 메시지 브로드캐스팅
+            messagingTemplate.convertAndSend("/topic/chat.room." + roomId, message);
         } catch (Exception e) {
             log.error("직접 메시지 전송 오류", e);
         }
