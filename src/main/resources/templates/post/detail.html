@@ -11,6 +11,11 @@
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <meta name="current-user-id" th:content="${userId}" />
 
+    <!-- 헤더 CSS 및 알림 CSS 추가 -->
+    <link rel="stylesheet" type="text/css" th:href="@{/css/header.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/footer.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/notification.css}" />
+
     <style>
         :root {
             --kurly-purple: #5f0080;
