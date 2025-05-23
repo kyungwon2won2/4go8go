@@ -48,5 +48,10 @@ public class ImageHelper {
 
         // 게시물 ID로 단일 이미지 조회
         public String selectFirstImageByPostId(int postId){ return imageMapper.selectFirstImageByPostId(postId); }
+        
+        // 이미지 ID로 이미지 삭제
+        public void deleteImageById(Long imageId) {
+            imageMapper.deleteImageById(imageId);
+        }
 
 }

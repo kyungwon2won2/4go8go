@@ -78,8 +78,10 @@ public class ProductController {
 
     // 상품 수정 처리
     @PostMapping("/{postId}/edit")
-    public String updateProduct(@PathVariable int postId, @ModelAttribute UpdateProductDto productDto, MultipartFile[] images) {
-        productService.updateProduct(postId, productDto, images);
+    public String updateProduct(@PathVariable int postId, @ModelAttribute UpdateProductDto productDto, 
+                              @RequestParam(value = "imageFiles", required = false) MultipartFile[] imageFiles,
+                              @RequestParam(value = "deletedImageIds", required = false) String deletedImageIds) {
+        productService.updateProduct(postId, productDto, imageFiles, deletedImageIds);
         return "redirect:/product";
     }
 
