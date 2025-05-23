@@ -147,9 +147,9 @@ public class ProductService {
             } else {
                 detailDto.setImageUrls(Collections.emptyList());
             }
-        } else {
-            // 기본 이미지 추가
         }
+        // 조회수 증가
+        postService.incrementViewCount(postId);
 
         return detailDto;
     }
