@@ -80,6 +80,12 @@
         SELECT * FROM CHAT_IMAGE WHERE CHAT_IMAGE_ID = #{chatImageId}
     </select>
 
+    <!-- 물품 기준으로 이미지 삭제 -->
+    <delete id="deleteImages">
+        DELETE FROM image WHERE post_id = #{postId}
+    </delete>
+
+
     <delete id="deleteChatImageById" parameterType="Long">
         DELETE FROM CHAT_IMAGE WHERE CHAT_IMAGE_ID = #{chatImageId}
     </delete>

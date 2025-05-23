@@ -24,11 +24,12 @@ public interface ImageMapper {
     // 게시물 기준으로 이미지 한장 가져오기
     String selectFirstImageByPostId(int postId);
 
+    // 게시물 기준으로 이미지 삭제
+    void deleteImages(int postId);
 
     // 채팅 이미지 관련
     void insertChatImage(ChatImage chatImage);
     List<ChatImage> getChatImagesByMessageId(Long messageId);
     ChatImage getChatImageById(Long chatImageId);
     void deleteChatImageById(Long chatImageId);
-    void updateChatImageDeleted(Long chatImageId, Boolean isDeleted);
 }

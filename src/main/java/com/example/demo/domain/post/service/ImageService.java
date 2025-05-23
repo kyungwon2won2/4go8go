@@ -1,6 +1,5 @@
 package com.example.demo.domain.post.service;
 
-import com.example.demo.domain.chat.model.ChatImage;
 import com.example.demo.domain.post.model.Image;
 import com.example.demo.mapper.ImageMapper;
 import lombok.RequiredArgsConstructor;
@@ -28,4 +27,10 @@ public class ImageService {
     public Image getImageById(Long imageId){
         return imageMapper.getImageById(imageId);
     }
+
+    // 게시물 아이디로 이미지 삭제
+    public void deleteImages(int postId){
+        imageMapper.deleteImages(postId);
+    }
+
 }
