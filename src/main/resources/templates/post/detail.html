@@ -4,14 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <title>4go8go - 게시글 상세</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <meta name="current-user-id" th:content="${userId}" />
 
-    <!-- 헤더 CSS 및 알림 CSS 추가 -->
+    <!-- CSS 임포트 (순서대로) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/index.css}" />
     <link rel="stylesheet" type="text/css" th:href="@{/css/header.css}" />
     <link rel="stylesheet" type="text/css" th:href="@{/css/footer.css}" />
     <link rel="stylesheet" type="text/css" th:href="@{/css/notification.css}" />
@@ -245,44 +247,7 @@
 </head>
 <body>
     <!-- 네비게이션 바 -->
-    <nav class="kurly-nav">
-        <div class="container d-flex justify-content-between align-items-center">
-            <a href="/" class="kurly-logo">마켓컬리</a>
-            <div>
-                <a href="/post" class="kurly-btn">커뮤니티</a>
-            </div>
-        </div>
-    </nav>
-
-    <div class="container">
-        <div class="kurly-container">
-            <!-- 게시글 헤더 -->
-            <div class="kurly-header">
-                <div class="category-tag" th:text="'카테고리 ' + ${post.postCategoryId}"></div>
-                <h1 class="kurly-title" th:text="${post.title}"></h1>
-                
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="user-info">
-                        <div class="user-avatar">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div>
-                            <div class="fw-bold" th:text="${post.userName}"></div>
-                            <div class="meta-info">
-                                <span th:text="${#dates.format(post.createdAt, 'yyyy.MM.dd HH:mm')}"></span>
-                                <span class="ms-2">조회 <span id="viewCount" th:text="${post.viewCount}"></span></span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="d-flex align-items-center gap-3">
-                        <button class="btn-like border-0 bg-transparent">
-                            <i class="far fa-heart"></i>
-                            <span>0</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
+    <div th:replace="~{fragments/header :: header}"></div>
 
             <!-- 게시글 내용 -->
             <div class="kurly-content mb-5" th:utext="${post.content}"></div>
@@ -428,6 +393,8 @@
             </div>
         </div>
     </div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
@@ -646,5 +613,9 @@
         });
 
     </script>
+    <script th:src="@{/js/notification-utils.js}" sec:authorize="isAuthenticated()"></script>
+    <script th:src="@{/js/notification-chat.js}" sec:authorize="isAuthenticated()"></script>
+    <script th:src="@{/js/notification-ui.js}" sec:authorize="isAuthenticated()"></script>
+    <script th:src="@{/js/notification-sse.js}" sec:authorize="isAuthenticated()"></script>
 </body>
 </html>
