@@ -2,67 +2,414 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-  <meta charset="UTF-8">
-  <title>상품 수정</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>상품 수정</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/header.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/footer.css}" />
+    <style>
+        .product-form-card {
+            max-width: 600px;
+            margin: 40px auto;
+            border-radius: 18px;
+            box-shadow: 0 2px 16px rgba(95,0,128,0.07);
+            background: #fff;
+            padding: 36px 32px 32px 32px;
+        }
+        .form-label {
+            font-weight: 500;
+            color: #5f0080;
+        }
+        .img-preview {
+            width: 200px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 10px;
+            background: #f7f7f7;
+            display: block;
+            margin-bottom: 12px;
+            margin-right: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .img-preview:hover {
+            opacity: 0.7;
+            transform: scale(0.95);
+            border: 2px solid #5f0080;
+        }
+        .img-preview-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        .img-preview-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+        .img-preview-wrapper::after {
+            content: '✕ 클릭하여 제거';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .img-preview-wrapper:hover::after {
+            opacity: 1;
+        }
+        .img-upload-label {
+            display: inline-block;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 8px 18px;
+            cursor: pointer;
+            color: #5f0080;
+            font-weight: 500;
+            margin-bottom: 0;
+        }
+        .img-upload-label:hover {
+            background: #ece6f6;
+        }
+        .no-images-placeholder {
+            width: 100%;
+            max-width: 400px;
+            height: 220px;
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 14px;
+            background: #f9f9f9;
+        }
+        .existing-image-badge {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: #17a2b8;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        .new-image-badge {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: #28a745;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        .image-count-info {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .max-images-warning {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+    </style>
 </head>
 <body>
+<div th:replace="~{fragments/header :: header}"></div>
+
 <div class="container">
-  <div class="product-form-card">
-    <h2 class="mb-4 text-center" style="color:#5f0080; font-weight:700;">상품 수정</h2>
+    <div class="product-form-card">
+        <h2 class="mb-4 text-center" style="color:#5f0080; font-weight:700;">상품 수정</h2>
 
-    <form th:action="@{'/product/' + ${productDto.postId} + '/edit'}"
-          th:object="${productDto}" method="post" enctype="multipart/form-data">
-      <input type="hidden" th:field="*{postId}" />
-      <input type="hidden" th:field="*{userId}" />
+        <form th:action="@{'/product/' + ${productDto.postId} + '/edit'}"
+              th:object="${productDto}" method="post" enctype="multipart/form-data">
+            <input type="hidden" th:field="*{postId}" />
+            <input type="hidden" th:field="*{userId}" />
+            
+            <!-- 삭제할 이미지 ID 목록을 저장할 hidden input -->
+            <input type="hidden" id="deletedImageIds" name="deletedImageIds" value="" />
 
-      <div class="mb-3">
-        <label for="title" class="form-label">제목</label>
-        <input type="text" th:field="*{title}" class="form-control" id="title" required>
-      </div>
+            <div class="mb-3">
+                <label for="title" class="form-label">제목</label>
+                <input type="text" th:field="*{title}" class="form-control" id="title" placeholder="상품 제목을 입력하세요" required>
+            </div>
+            <div class="mb-3">
+                <label for="content" class="form-label">내용</label>
+                <textarea th:field="*{content}" class="form-control" id="content" rows="5" placeholder="상품 설명을 입력하세요" required></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="category" class="form-label">카테고리</label>
+                <select th:field="*{category}" class="form-select" id="category" required>
+                    <option th:each="cat : ${T(com.example.demo.domain.post.model.Product.Category).values()}"
+                            th:value="${cat}" th:text="${cat.displayName}">카테고리</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="price" class="form-label">가격</label>
+                <input type="number" th:field="*{price}" class="form-control" id="price" placeholder="가격을 입력하세요" min="0" required>
+            </div>
+            <div class="mb-3">
+                <label for="condition" class="form-label">상품상태</label>
+                <select th:field="*{condition}" class="form-select" id="condition" required>
+                    <option th:each="cond : ${T(com.example.demo.domain.post.model.Product.ProductCondition).values()}"
+                            th:value="${cond}" th:text="${cond.displayName}">상품상태</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">상품 이미지</label><br>
+                <div class="image-count-info">
+                    <span id="imageCountText">이미지 개수: 0/5</span>
+                </div>
 
-      <div class="mb-3">
-        <label for="content" class="form-label">내용</label>
-        <textarea th:field="*{content}" class="form-control" id="content" rows="5" required></textarea>
-      </div>
+                <!-- 통합 이미지 미리보기 영역 -->
+                <div id="imgPreviewContainer" class="img-preview-container">
+                    <div class="no-images-placeholder">
+                        이미지를 선택해주세요
+                    </div>
+                </div>
 
-      <div class="mb-3">
-        <label for="category" class="form-label">카테고리</label>
-        <select th:field="*{category}" class="form-select" id="category" required>
-          <option th:each="cat : ${T(com.example.demo.domain.post.model.Product.Category).values()}"
-                  th:value="${cat}" th:text="${cat.displayName}">카테고리</option>
-        </select>
-      </div>
+                <!-- 파일 선택 버튼 -->
+                <label class="img-upload-label" id="uploadLabel">이미지 선택</label>
+                <input
+                        type="file"
+                        id="imageFilesInput"
+                        accept="image/*"
+                        class="form-control d-none"
+                        multiple
+                        onchange="previewImage(event)"
+                        name="imageFiles"
+                >
+                <div class="max-images-warning" id="maxImagesWarning" style="display: none;">
+                    최대 5개의 이미지만 선택할 수 있습니다.
+                </div>
+            </div>
 
-      <div class="mb-3">
-        <label for="price" class="form-label">가격</label>
-        <input type="number" th:field="*{price}" class="form-control" id="price" min="0" required>
-      </div>
-
-      <div class="mb-3">
-        <label for="condition" class="form-label">상품 상태</label>
-        <select th:field="*{condition}" class="form-select" id="condition" required>
-          <option th:each="cond : ${T(com.example.demo.domain.post.model.Product.ProductCondition).values()}"
-                  th:value="${cond}" th:text="${cond.displayName}">상품 상태</option>
-        </select>
-      </div>
-
-      <!-- ✅ 기존 이미지 목록 출력 -->
-      <div class="mb-3">
-        <label class="form-label">기존 이미지</label>
-        <div class="row">
-          <div class="col-6 mb-2" th:each="img : ${productDto.image}">
-            <img th:src="@{${img.url}}" class="img-thumbnail" style="max-height: 200px;" alt="기존 이미지">
-          </div>
-        </div>
-      </div>
-
-      <div class="d-grid mt-4">
-        <button type="submit" class="btn btn-warning py-2">수정하기</button>
-      </div>
-    </form>
-  </div>
+            <div class="d-grid mt-4">
+                <button type="submit" class="btn btn-warning py-2" style="font-weight:600;">수정하기</button>
+            </div>
+        </form>
+    </div>
 </div>
 
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    // 기존 이미지 데이터 (서버에서 전달받은 데이터)
+    const existingImages = /*[[${productDto.image}]]*/ [];
+    
+    // 이미지 관리 변수들
+    let selectedNewFiles = []; // 새로 선택된 파일들
+    let deletedImageIds = []; // 삭제된 기존 이미지의 ID들
+    const MAX_IMAGES = 5;
+
+    // 페이지 로드 시 기존 이미지 표시
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeImages();
+        
+        // 파일 선택 라벨 클릭 시 파일 입력 창 열기
+        document.querySelector('.img-upload-label').addEventListener('click', function() {
+            if (getTotalImageCount() < MAX_IMAGES) {
+                document.getElementById('imageFilesInput').click();
+            }
+        });
+        
+        updateImageCount();
+        updateUploadButton();
+    });
+
+    function initializeImages() {
+        updatePreview();
+    }
+
+    function previewImage(event) {
+        const files = event.target.files;
+        const currentTotal = getTotalImageCount();
+        
+        // 최대 개수 체크
+        const availableSlots = MAX_IMAGES - currentTotal;
+        if (availableSlots <= 0) {
+            showMaxImagesWarning();
+            return;
+        }
+        
+        // 새로 선택된 파일들을 배열에 추가 (최대 개수까지만)
+        const filesToAdd = Math.min(files.length, availableSlots);
+        for (let i = 0; i < filesToAdd; i++) {
+            const file = files[i];
+            if (file.type.startsWith('image/')) {
+                selectedNewFiles.push(file);
+            }
+        }
+        
+        if (files.length > filesToAdd) {
+            showMaxImagesWarning();
+        }
+        
+        // 미리보기 업데이트
+        updatePreview();
+        updateImageCount();
+        updateUploadButton();
+    }
+
+    function updatePreview() {
+        const previewContainer = document.getElementById('imgPreviewContainer');
+        
+        // 기존 미리보기 제거
+        previewContainer.innerHTML = '';
+
+        const totalImages = getTotalImageCount();
+        
+        if (totalImages === 0) {
+            // 선택된 이미지가 없으면 플레이스홀더 표시
+            const placeholder = document.createElement('div');
+            placeholder.className = 'no-images-placeholder';
+            placeholder.textContent = '이미지를 선택해주세요';
+            previewContainer.appendChild(placeholder);
+            return;
+        }
+
+        // 기존 이미지들 표시
+        existingImages.forEach((image, index) => {
+            if (!deletedImageIds.includes(image.imageId)) {
+                createImagePreview(image.url, 'existing', image.imageId, index);
+            }
+        });
+
+        // 새로 선택된 파일들의 미리보기 생성
+        selectedNewFiles.forEach((file, index) => {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                createImagePreview(e.target.result, 'new', null, index);
+            };
+            
+            reader.readAsDataURL(file);
+        });
+
+        // input의 files 업데이트
+        updateFileInput();
+    }
+
+    function createImagePreview(src, type, imageId, index) {
+        const previewContainer = document.getElementById('imgPreviewContainer');
+        
+        // 이미지 래퍼 생성
+        const wrapper = document.createElement('div');
+        wrapper.className = 'img-preview-wrapper';
+        
+        // 이미지 엘리먼트 생성
+        const img = document.createElement('img');
+        img.src = src;
+        img.className = 'img-preview';
+        img.dataset.type = type;
+        img.dataset.index = index;
+        if (imageId) {
+            img.dataset.imageId = imageId;
+        }
+        
+        // 배지 추가
+        const badge = document.createElement('div');
+        badge.className = type === 'existing' ? 'existing-image-badge' : 'new-image-badge';
+        badge.textContent = type === 'existing' ? '기존' : '신규';
+        
+        // 클릭 이벤트 추가 - 이미지 제거
+        img.addEventListener('click', function() {
+            if (this.dataset.type === 'existing') {
+                removeExistingImage(parseInt(this.dataset.imageId));
+            } else {
+                removeNewImage(parseInt(this.dataset.index));
+            }
+        });
+        
+        wrapper.appendChild(img);
+        wrapper.appendChild(badge);
+        previewContainer.appendChild(wrapper);
+    }
+
+    function removeExistingImage(imageId) {
+        // 삭제할 이미지 ID 목록에 추가
+        if (!deletedImageIds.includes(imageId)) {
+            deletedImageIds.push(imageId);
+        }
+        
+        // 미리보기 업데이트
+        updatePreview();
+        updateImageCount();
+        updateUploadButton();
+        updateDeletedImageIds();
+    }
+
+    function removeNewImage(index) {
+        selectedNewFiles.splice(index, 1);
+        
+        // 미리보기 업데이트
+        updatePreview();
+        updateImageCount();
+        updateUploadButton();
+    }
+
+    function updateFileInput() {
+        const input = document.getElementById('imageFilesInput');
+        
+        // DataTransfer 객체를 사용하여 새로운 FileList 생성
+        const dataTransfer = new DataTransfer();
+        
+        selectedNewFiles.forEach(file => {
+            dataTransfer.items.add(file);
+        });
+        
+        // input의 files 속성 업데이트
+        input.files = dataTransfer.files;
+    }
+
+    function updateDeletedImageIds() {
+        const hiddenInput = document.getElementById('deletedImageIds');
+        hiddenInput.value = deletedImageIds.join(',');
+    }
+
+    function getTotalImageCount() {
+        const existingCount = existingImages.filter(img => !deletedImageIds.includes(img.imageId)).length;
+        return existingCount + selectedNewFiles.length;
+    }
+
+    function updateImageCount() {
+        const total = getTotalImageCount();
+        document.getElementById('imageCountText').textContent = `이미지 개수: ${total}/${MAX_IMAGES}`;
+    }
+
+    function updateUploadButton() {
+        const uploadLabel = document.getElementById('uploadLabel');
+        const total = getTotalImageCount();
+        
+        if (total >= MAX_IMAGES) {
+            uploadLabel.style.display = 'none';
+        } else {
+            uploadLabel.style.display = 'inline-block';
+        }
+    }
+
+    function showMaxImagesWarning() {
+        const warning = document.getElementById('maxImagesWarning');
+        warning.style.display = 'block';
+        setTimeout(() => {
+            warning.style.display = 'none';
+        }, 3000);
+    }
+</script>
 </body>
 </html>
