@@ -74,16 +74,30 @@ public class ProductService {
     }
 
     @Transactional
-    public void updateProduct(int postId, UpdateProductDto dto, MultipartFile[] images) {
+    public void updateProduct(int postId, UpdateProductDto dto, MultipartFile[] imageFiles, String deletedImageIds) {
         // 1. post 테이블 업데이트
         postMapper.updatePostContentAndTitle(postId, dto.getTitle(), dto.getContent());
 
         // 2. product 테이블 업데이트
         productMapper.updateProductDetails(postId, dto.getPrice(), dto.getCondition(), dto.getCategory());
 
-        // 3. 이미지 업데이트
-        if (images != null && images.length > 0) {
-            imageHelper.productImageSave(images, postId);
+        // 3. 삭제할 이미지들 처리
+        if (deletedImageIds != null && !deletedImageIds.trim().isEmpty()) {
+            String[] imageIdsArray = deletedImageIds.split(",");
+            for (String imageIdStr : imageIdsArray) {
+                try {
+                    Long imageId = Long.parseLong(imageIdStr.trim());
+                    imageHelper.deleteImageById(imageId);
+                } catch (NumberFormatException e) {
+                    // 잘못된 ID 형식은 무시
+                    System.err.println("Invalid image ID format: " + imageIdStr);
+                }
+            }
+        }
+
+        // 4. 새로운 이미지들 업로드
+        if (imageFiles != null && imageFiles.length > 0) {
+            imageHelper.productImageSave(imageFiles, postId);
         }
     }
 
