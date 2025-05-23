@@ -50,7 +50,8 @@ public class ImageHelper {
         public String selectFirstImageByPostId(int postId){ return imageMapper.selectFirstImageByPostId(postId); }
         
         // 이미지 ID로 이미지 삭제
-        public void deleteImageById(Long imageId) {
+        public void deleteImageById(String imageUrl, Long imageId) {
+            imageUploadService.deleteByUrl(imageUrl);
             imageMapper.deleteImageById(imageId);
         }
 

@@ -207,7 +207,9 @@ public class PostService {
         return postMapper.countAllPosts();
     }
 
-
-
+    // 게시글 제목과 내용만 업데이트 (상품 수정에서 사용)
+    public void updatePostContentAndTitle(int postId, String title, String content) {
+        postMapper.updatePostContentAndTitle(postId, title, content);
+    }
 
 }

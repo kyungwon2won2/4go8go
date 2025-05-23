@@ -35,4 +35,10 @@ public interface ProductMapper {
 
     // 상품 전체 개수 반환
     int countAllProducts();
+
+    // 조회수가 높은 상품 4개 조회 (메인 페이지용)
+    List<ProductListDto> selectTopViewedProducts();
+
+    // 가격이 저렴한 상품 4개 조회 (메인 페이지용)  
+    List<ProductListDto> selectCheapestProducts();
 }
