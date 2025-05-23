@@ -2,7 +2,6 @@ package com.example.demo.mapper;
 
 import com.example.demo.domain.post.dto.GeneralDetailDto;
 import com.example.demo.domain.post.dto.GeneralPostDto;
-import com.example.demo.domain.post.dto.UpdateProductDto;
 import com.example.demo.domain.post.model.Post;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -38,5 +37,11 @@ public interface PostMapper {
     void updatePostContentAndTitle(@Param("postId") int postId,
                                    @Param("title") String title,
                                    @Param("content") String content);
+
+    // 페이징 목록 조회
+    List<GeneralPostDto> selectPostsByPage(@Param("offset") int offset, @Param("limit") int limit);
+
+    // 전체 게시글 수
+    int countAllPosts();
 }
 
