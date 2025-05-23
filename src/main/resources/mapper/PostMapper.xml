@@ -20,7 +20,7 @@
     <resultMap id="GeneralPostDtoMap" type="com.example.demo.domain.post.dto.GeneralPostDto">
         <id property="postId" column="post_id" />
         <result property="title" column="title" />
-        <result property="userName" column="name" />
+        <result property="userName" column="nickname" />
         <result property="viewCount" column="view_count" />
         <result property="commentCount" column="comment_count" />
         <result property="createdAt" column="created_at" />
@@ -132,9 +132,11 @@
     </update>
 
     <!-- 페이징된 게시글 목록 -->
-    <select id="selectPostsByPage" resultType="com.example.demo.domain.post.dto.GeneralPostDto">
-        SELECT * FROM post
-        ORDER BY created_at DESC
+    <select id="selectPostsByPage" resultMap="GeneralPostDtoMap">
+        SELECT p.post_id, p.title, u.nickname, p.view_count, p.comment_count, p.created_at
+        FROM post p
+        JOIN user u ON p.user_id = u.user_id
+        ORDER BY p.created_at DESC
         LIMIT #{limit} OFFSET #{offset}
     </select>
 
