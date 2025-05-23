@@ -37,7 +37,7 @@
             font-family: 'Noto Sans KR', sans-serif;
             color: #333;
             line-height: 1.6;
-            background-color: #f8f8f8;
+            background-color: white;
         }
         
         .kurly-container {
@@ -249,6 +249,21 @@
     <!-- 네비게이션 바 -->
     <div th:replace="~{fragments/header :: header}"></div>
 
+    <div class="kurly-container">
+        <div class="kurly-card">
+            <div class="kurly-header">
+                <h1 class="kurly-title" th:text="${post.title}">게시글 제목</h1>
+                <div class="meta-info d-flex justify-content-between">
+                    <div>
+                        <span th:text="${post.userName}">작성자</span> • 
+                        <span th:text="${#dates.format(post.createdAt, 'yyyy.MM.dd HH:mm')}">작성일</span>
+                    </div>
+                    <div>
+                        <span>조회 <span th:text="${post.viewCount}">0</span></span>
+                    </div>
+                </div>
+            </div>
+            
             <!-- 게시글 내용 -->
             <div class="kurly-content mb-5" th:utext="${post.content}"></div>
             <script>
@@ -370,7 +385,7 @@
                     <i class="fas fa-comments me-2 text-purple"></i>
                     댓글 <span class="comment-count" th:text="${post.commentCount}"></span>
                 </h3>
-                <div>
+                <div class="comments-list">
                     <div class="comment-item" th:each="comment : ${comment_list}" th:id="'comment-' + ${comment.commentId}">
                         <div class="d-flex justify-content-between align-items-start">
                             <div class="user-info">
@@ -410,7 +425,7 @@
 
         // 댓글 렌더링 함수 (누적)
         function renderCommentsAppend(comments, currentUserId) {
-            const commentListDiv = document.querySelector('.kurly-card > div');
+            const commentListDiv = document.querySelector('.comments-list');
 
             if (!comments || comments.length === 0) {
                 if (commentListDiv.innerHTML.trim() === '') {
@@ -463,9 +478,6 @@
             document.querySelector('.comment-count').textContent = count;
         }
 
-
-
-
         let currentPage = 1;
         const pageSize = 10;
         let isLoading = false;
@@ -502,7 +514,7 @@
         // 페이지 로드 시 1페이지 댓글 목록 불러오기
         window.addEventListener('DOMContentLoaded', () => {
             // 초기화
-            document.querySelector('.kurly-card > div').innerHTML = '';
+            document.querySelector('.comments-list').innerHTML = '';
             currentPage = 1;
             isEnd = false;
             fetchComments();
@@ -530,7 +542,7 @@
                     this.commentContent.value = '';
 
                     // 댓글 없을 때 메시지 제거
-                    const commentListDiv = document.querySelector('.kurly-card > div');
+                    const commentListDiv = document.querySelector('.comments-list');
                     if (commentListDiv.querySelector('.text-center')) {
                         commentListDiv.innerHTML = '';
                     }
@@ -564,7 +576,7 @@
                         headers: { 'X-CSRF-TOKEN': getCsrfToken() }
                     });
                     // 삭제 후 목록 새로고침 (상태 초기화)
-                    document.querySelector('.kurly-card > div').innerHTML = '';
+                    document.querySelector('.comments-list').innerHTML = '';
                     currentPage = 1;
                     isEnd = false;
                     fetchComments();
