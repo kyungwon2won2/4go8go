@@ -9,7 +9,8 @@ import com.example.demo.domain.post.model.Post;
 import com.example.demo.domain.post.model.Product;
 import com.example.demo.domain.post.model.Image;
 import com.example.demo.domain.user.model.CustomerUser;
-import com.example.demo.mapper.PostMapper;
+import com.example.demo.mapper.CommentMapper;
+import com.example.demo.mapper.ImageMapper;
 import com.example.demo.mapper.ProductMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,9 @@ import java.util.stream.Collectors;
 public class ProductService {
     private final ProductMapper productMapper;
     private final ImageHelper imageHelper;
-    private final PostMapper postMapper;
+    private final ImageUploadService imageUploadService;
+
+    private final PostService postService;
 
     public List<ProductListDto> getProductsByPage(int offset, int limit) {
         List<ProductListDto> products = productMapper.selectByPage(offset, limit);
@@ -52,7 +55,7 @@ public class ProductService {
         post.setTitle(productDto.getTitle());
         post.setContent(productDto.getContent());
         post.setCreatedAt(new Date());
-        postMapper.insertPost(post);
+        postService.insertPost(post, loginUser.getUserId());
 
         Product product = new Product();
         product.setPostId(post.getPostId());
@@ -76,7 +79,7 @@ public class ProductService {
     @Transactional
     public void updateProduct(int postId, UpdateProductDto dto, MultipartFile[] imageFiles, String deletedImageIds) {
         // 1. post 테이블 업데이트
-        postMapper.updatePostContentAndTitle(postId, dto.getTitle(), dto.getContent());
+        postService.updatePostContentAndTitle(postId, dto.getTitle(), dto.getContent());
 
         // 2. product 테이블 업데이트
         productMapper.updateProductDetails(postId, dto.getPrice(), dto.getCondition(), dto.getCategory());
@@ -87,7 +90,16 @@ public class ProductService {
             for (String imageIdStr : imageIdsArray) {
                 try {
                     Long imageId = Long.parseLong(imageIdStr.trim());
-                    imageHelper.deleteImageById(imageId);
+                    
+                    // imageId로 Image 객체를 조회하여 URL 정보 가져오기
+                    Image image = imageHelper.getImageById(imageId);
+                    if (image != null && image.getUrl() != null) {
+                        // S3에서 파일 삭제 + DB에서 레코드 삭제
+                        imageHelper.deleteImageById(image.getUrl(), imageId);
+                    } else {
+                        // Image 객체가 없거나 URL이 없는 경우 로그만 출력
+                        System.err.println("Image not found or URL is null for imageId: " + imageId);
+                    }
                 } catch (NumberFormatException e) {
                     // 잘못된 ID 형식은 무시
                     System.err.println("Invalid image ID format: " + imageIdStr);
@@ -103,7 +115,21 @@ public class ProductService {
 
     @Transactional
     public void deleteProduct(int postId) {
-        productMapper.delete(postId);
+        // 1. 이미지 파일들 먼저 삭제 (S3에서도 삭제)
+        List<Image> images = imageHelper.getImagesByPostId(postId);
+        if (images != null && !images.isEmpty()) {
+            for (Image image : images) {
+                // Image 객체에서 URL과 ID를 모두 가져와서 삭제
+                if (image.getUrl() != null) {
+                    imageHelper.deleteImageById(image.getUrl(), image.getImageId());
+                }
+            }
+        }
+        
+        // 2. 데이터베이스에서 관련 테이블들 순서대로 삭제
+        // 외래키 제약조건을 고려하여 순서대로 삭제
+        productMapper.delete(postId);          // 상품 테이블
+        postService.deletePostById(postId);    // 게시글
     }
 
     public ProductDetailDto getProductDetailByPostId(int postId) {
@@ -131,5 +157,37 @@ public class ProductService {
     // 상품 전체 개수 반환
     public int getTotalProductCount() {
         return productMapper.countAllProducts();
+    }
+
+    // 메인 페이지용: 조회수가 높은 상품 4개 조회
+    public List<ProductListDto> getTopViewedProducts() {
+        List<ProductListDto> products = productMapper.selectTopViewedProducts();
+        
+        // 이미지 URL 설정
+        for (ProductListDto product : products) {
+            String imageUrl = imageHelper.selectFirstImageByPostId(product.getPostId());
+            imageUrl = (imageUrl != null)
+                    ? imageUrl
+                    : "https://4go8go-bucket.s3.ap-northeast-2.amazonaws.com/post-images/253a2530-c603-4a0e-8156-ace42e72bd45.png";
+            product.setImageUrl(imageUrl);
+        }
+        
+        return products;
+    }
+
+    // 메인 페이지용: 가격이 저렴한 상품 4개 조회
+    public List<ProductListDto> getCheapestProducts() {
+        List<ProductListDto> products = productMapper.selectCheapestProducts();
+        
+        // 이미지 URL 설정
+        for (ProductListDto product : products) {
+            String imageUrl = imageHelper.selectFirstImageByPostId(product.getPostId());
+            imageUrl = (imageUrl != null)
+                    ? imageUrl
+                    : "https://4go8go-bucket.s3.ap-northeast-2.amazonaws.com/post-images/253a2530-c603-4a0e-8156-ace42e72bd45.png";
+            product.setImageUrl(imageUrl);
+        }
+        
+        return products;
     }
 }

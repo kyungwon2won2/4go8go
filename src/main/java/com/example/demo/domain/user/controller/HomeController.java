@@ -1,15 +1,22 @@
 package com.example.demo.domain.user.controller;
 
+import com.example.demo.domain.post.dto.ProductListDto;
+import com.example.demo.domain.post.service.ProductService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.security.Principal;
+import java.util.List;
 import java.util.Map;
 
 @Controller
+@RequiredArgsConstructor
 public class HomeController {
+
+	private final ProductService productService;
 
 	@GetMapping({"","/"})
 	public String home(Model model, Principal principal) {
@@ -48,6 +55,16 @@ public class HomeController {
 		model.addAttribute("loginId", loginId);
 		model.addAttribute("userName", userName);
 		model.addAttribute("isLoggedIn", isLoggedIn);
+		
+		// 메인 페이지용 상품 데이터 추가
+		// 조회수가 높은 상품 4개 (이 상품 어때요?)
+		List<ProductListDto> topViewedProducts = productService.getTopViewedProducts();
+		model.addAttribute("topViewedProducts", topViewedProducts);
+
+		// 가격이 저렴한 상품 4개 (놓치면 후회할 가격)
+		List<ProductListDto> cheapestProducts = productService.getCheapestProducts();
+		model.addAttribute("cheapestProducts", cheapestProducts);
+		
 		return "index";
 	}
 }

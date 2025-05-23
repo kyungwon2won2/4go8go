@@ -117,7 +117,7 @@
         WHERE post_id = #{postId}
     </update>
 
-    <!-- DELETE -->
+    <!-- DELETE - 상품만 삭제 -->
     <delete id="delete">
         DELETE FROM product WHERE post_id = #{postId}
     </delete>
@@ -136,5 +136,36 @@
         WHERE post_id = #{postId}
     </update>
 
+    <!-- 조회수가 높은 상품 4개 조회 (메인 페이지용) -->
+    <select id="selectTopViewedProducts" resultMap="ProductListDtoMap">
+        SELECT
+        p.post_id,
+        p.title,
+        p.created_at,
+        u.address,
+        pr.price
+        FROM post p
+        JOIN product pr ON p.post_id = pr.post_id
+        JOIN user u ON p.user_id = u.user_id
+        WHERE p.post_category_id = 1
+        ORDER BY p.view_count DESC
+        LIMIT 4
+    </select>
+
+    <!-- 가격이 저렴한 상품 4개 조회 (메인 페이지용) -->
+    <select id="selectCheapestProducts" resultMap="ProductListDtoMap">
+        SELECT
+        p.post_id,
+        p.title,
+        p.created_at,
+        u.address,
+        pr.price
+        FROM post p
+        JOIN product pr ON p.post_id = pr.post_id
+        JOIN user u ON p.user_id = u.user_id
+        WHERE p.post_category_id = 1
+        ORDER BY pr.price ASC
+        LIMIT 4
+    </select>
 
 </mapper>
