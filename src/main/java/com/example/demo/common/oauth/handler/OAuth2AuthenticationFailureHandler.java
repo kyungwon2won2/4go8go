@@ -1,9 +1,11 @@
 package com.example.demo.common.oauth.handler;
 
+import com.example.demo.domain.user.service.UserService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.AuthenticationException;
@@ -17,7 +19,10 @@ import java.io.IOException;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class OAuth2AuthenticationFailureHandler implements AuthenticationFailureHandler {
+
+    private final UserService userService;
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
@@ -27,6 +32,22 @@ public class OAuth2AuthenticationFailureHandler implements AuthenticationFailure
         
         HttpSession session = request.getSession();
         
+        // 소셜 로그인 시 저장된 이메일 확인
+        String email = (String) session.getAttribute("oauth2Email");
+        
+        // 탈퇴한 회원인 경우 - 복구 가능 여부 확인
+        if (exception.getMessage() != null && exception.getMessage().contains("탈퇴한 회원")) {
+            if (email != null && userService.isAccountRecoverable(email)) {
+                // 복구 가능한 경우 복구 페이지로 리다이렉트
+                response.sendRedirect("/account/recover?email=" + email);
+                return;
+            }
+            
+            session.setAttribute("loginError", "탈퇴한 회원입니다.");
+            response.sendRedirect("/login?error=deleted");
+            return;
+        }
+        
         // 세션에서 직접 설정된 오류 메시지 확인
         if (session.getAttribute("deletedAccount") != null) {
             // 탈퇴한 회원 처리
@@ -35,30 +56,16 @@ public class OAuth2AuthenticationFailureHandler implements AuthenticationFailure
             return;
         }
         
-        // 예외 메시지나 원인 예외 메시지에서 "탈퇴한 회원" 문자열 검색
-        boolean isDeletedMember = false;
-        
-        // 현재 예외 메시지 확인
-        if (exception.getMessage() != null && exception.getMessage().contains("탈퇴한 회원")) {
-            isDeletedMember = true;
-        }
-        
         // 원인 예외 메시지 확인 
-        if (!isDeletedMember && exception.getCause() != null) {
+        if (exception.getCause() != null) {
             String causeMessage = exception.getCause().getMessage();
             log.error("원인 예외: {}", causeMessage);
             
             if (causeMessage != null && causeMessage.contains("탈퇴한 회원")) {
-                isDeletedMember = true;
+                session.setAttribute("loginError", "탈퇴한 회원입니다.");
+                response.sendRedirect("/login?error=deleted");
+                return;
             }
-        }
-        
-        // 탈퇴한 회원인 경우
-        if (isDeletedMember) {
-            log.info("탈퇴한 회원으로 소셜 로그인 시도 (예외 메시지 확인)");
-            session.setAttribute("loginError", "탈퇴한 회원입니다.");
-            response.sendRedirect("/login?error=deleted");
-            return;
         }
         
         // 추가 정보 입력이 필요한 경우

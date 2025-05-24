@@ -17,10 +17,13 @@
         <result property="points" column="points" />
         <result property="rating" column="rating" />
         <result property="receiveMail" column="receive_mail" />
+        <result property="emailVerified" column="email_verified" />
         <result property="createdAt" column="created_at" />
         <result property="updatedAt" column="updated_at" />
         <result property="status" column="status" />
         <result property="deletedAt" column="deleted_at" />
+        <result property="socialType" column="social_type" />
+        <result property="socialId" column="social_id" />
         <collection property="roleList" resultMap="roleMap" />
     </resultMap>
 
@@ -32,7 +35,7 @@
     <select id="login" resultMap="userMap">
         SELECT u.user_id, u.email, u.name, u.phone, u.password, u.nickname, u.address,
                u.birth_date, u.points, u.rating, u.receive_mail, u.email_verified,
-               u.created_at, u.updated_at, u.status, u.deleted_at, r.role_name
+               u.created_at, u.updated_at, u.status, u.deleted_at, u.social_type, u.social_id, r.role_name
         FROM user u JOIN user_role r ON u.user_id = r.user_id
         WHERE u.email = #{email}
     </select>
@@ -51,14 +54,14 @@
     <select id="getAllUsers" resultMap="userMap">
         SELECT u.user_id, u.email, u.name, u.phone, u.nickname, u.address, u.birth_date,
                u.points, u.rating, u.receive_mail, u.email_verified, u.created_at, u.updated_at,
-               r.role_name
+               u.status, u.deleted_at, r.role_name
         FROM user u JOIN user_role r ON u.user_id = r.user_id
     </select>
 
     <select id="getUserById" resultMap="userMap">
         SELECT u.user_id, u.email, u.name, u.phone, u.nickname, u.address, u.birth_date,
                u.points, u.rating, u.receive_mail, u.email_verified, u.created_at, u.updated_at,
-               r.role_name
+               u.status, u.deleted_at, r.role_name
         FROM user u JOIN user_role r ON u.user_id = r.user_id
         WHERE u.email = #{email}
     </select>
@@ -66,7 +69,7 @@
     <select id="findById" resultMap="userMap">
         SELECT u.user_id, u.email, u.name, u.phone, u.nickname, u.address, u.birth_date,
                u.points, u.rating, u.receive_mail, u.email_verified, u.created_at, u.updated_at,
-               r.role_name
+               u.status, u.deleted_at, r.role_name
         FROM user u JOIN user_role r ON u.user_id = r.user_id
         WHERE u.user_id = #{userId}
     </select>
@@ -81,8 +84,8 @@
     
     <select id="findByEmail" resultMap="userMap">
         SELECT u.user_id, u.email, u.name, u.phone, u.nickname, u.address, u.birth_date,
-               u.points, u.rating, u.receive_mail, u.created_at, u.updated_at,
-               r.role_name
+               u.points, u.rating, u.receive_mail, u.email_verified, u.created_at, u.updated_at,
+               u.status, u.deleted_at, r.role_name
         FROM user u JOIN user_role r ON u.user_id = r.user_id
         WHERE u.email = #{email}
     </select>
@@ -102,6 +105,9 @@
         </if>
         <if test="deletedAt != null">
             deleted_at = #{deletedAt},
+        </if>
+        <if test="deletedAt == null">
+            deleted_at = NULL,
         </if>
         <if test="password != null and password != ''">
             password = #{password},
@@ -130,5 +136,56 @@
         SELECT 1 FROM user WHERE email = #{email}
         )
     </select>
+
+    <!-- 30일 지난 탈퇴 계정들 조회 -->
+    <select id="findExpiredDeletedAccounts" resultMap="userMap">
+        SELECT u.user_id, u.email, u.name, u.status, u.deleted_at, u.created_at
+        FROM user u
+        WHERE u.status = 'DELETED' 
+        AND u.deleted_at IS NOT NULL
+        AND DATEDIFF(NOW(), u.deleted_at) > 30
+    </select>
+    
+    <!-- === 완전 삭제를 위한 참조 데이터 삭제 쿼리들 === -->
+    
+    <!-- 1. 채팅 메시지 삭제 -->
+    <delete id="deleteChatMessagesByUserId">
+        DELETE FROM chat_message WHERE user_id = #{userId}
+    </delete>
+    
+    <!-- 2. 채팅 참가자 삭제 -->
+    <delete id="deleteChatParticipantsByUserId">
+        DELETE FROM chat_participant WHERE user_id = #{userId}
+    </delete>
+    
+    <!-- 3. 채팅방 삭제 (해당 유저가 생성한) -->
+    <delete id="deleteChatRoomsByUserId">
+        DELETE FROM chat_room WHERE user_id = #{userId}
+    </delete>
+    
+    <!-- 4. 댓글 삭제 -->
+    <delete id="deleteCommentsByUserId">
+        DELETE FROM comments WHERE user_id = #{userId}
+    </delete>
+    
+    <!-- 5. 알림 삭제 -->
+    <delete id="deleteNotificationsByUserId">
+        DELETE FROM notification WHERE user_id = #{userId}
+    </delete>
+    
+    <!-- 6. 읽음 상태 삭제 -->
+    <delete id="deleteReadStatusByUserId">
+        DELETE FROM read_status WHERE user_id = #{userId}
+    </delete>
+    
+    <!-- 7. 사용자 권한 삭제 -->
+    <delete id="deleteUserRolesByUserId">
+        DELETE FROM user_role WHERE user_id = #{userId}
+    </delete>
+    
+    <!-- 8. 최종 사용자 삭제 -->
+    <delete id="permanentlyDeleteUser">
+        DELETE FROM user WHERE user_id = #{userId}
+    </delete>
 
 </mapper>

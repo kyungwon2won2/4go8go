@@ -101,7 +101,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService implements
             // 탈퇴한 회원인지 확인
             if ("DELETED".equals(user.getStatus())) {
                 log.warn("탈퇴한 회원 로그인 시도: {}", user.getEmail());
-                // 세션에 직접 오류 메시지 저장
+                // 세션에 이메일 저장 (복구 페이지에서 사용)
+                session.setAttribute("oauth2Email", user.getEmail());
                 session.setAttribute("loginError", "탈퇴한 회원입니다.");
                 session.setAttribute("deletedAccount", true);
                 throw new OAuth2AuthenticationException("탈퇴한 회원입니다.");

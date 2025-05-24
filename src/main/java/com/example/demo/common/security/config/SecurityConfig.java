@@ -6,9 +6,11 @@ import com.example.demo.common.oauth.service.CustomOAuth2UserService;
 import com.example.demo.common.security.handler.CustomerAccessDeniedHandler;
 import com.example.demo.common.security.handler.LoginSuccessHandler;
 import com.example.demo.common.security.service.CustomerDetailService;
-import lombok.Setter;
+import com.example.demo.domain.user.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,6 +18,8 @@ import org.springframework.security.authentication.InternalAuthenticationService
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -31,24 +35,18 @@ import static org.springframework.security.config.Customizer.withDefaults;
 
 /**
  * 보안 설정 클래스
- * 순환 참조 해결을 위해 생성자 주입 대신 Setter 주입 사용
  */
 @Configuration
 @EnableWebSecurity
 @Slf4j
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-	@Autowired
-	private DataSource datasource;
-	
-	@Autowired
-	private CustomerDetailService customerDetailService;
-	
-	@Setter(onMethod_ = @Autowired)
-	private CustomOAuth2UserService customOAuth2UserService;
-	
-	@Autowired
-	private OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
+	private final DataSource datasource;
+	private final CustomerDetailService customerDetailService;
+	private final CustomOAuth2UserService customOAuth2UserService;
+	private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
+	private final UserService userService; // UserService 추가
 
 	/**
 	 * 보안 필터 체인 설정
@@ -63,6 +61,7 @@ public class SecurityConfig {
 				.requestMatchers("/email/**").permitAll()	// 테스트용
 				.requestMatchers("/admin/**").hasRole("ADMIN")
 				.requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
+				.requestMatchers("/account/recover").permitAll() // 계정 복구 페이지 접근 허용
 				.anyRequest().permitAll());
 
 		// 로그아웃 설정
@@ -115,24 +114,46 @@ public class SecurityConfig {
 	}
 
 	/**
-	 * 인증 실패 핸들러
+	 * 인증 실패 핸들러 - 소셜 로그인과 동일한 복구 처리 로직 적용
 	 */
 	@Bean
 	public AuthenticationFailureHandler authenticationFailureHandler() {
-		return (request, response, exception) -> {
-			String errorMessage;
+		return new AuthenticationFailureHandler() {
+		    @Override
+		    public void onAuthenticationFailure(HttpServletRequest request, 
+		                                        HttpServletResponse response, 
+		                                        AuthenticationException exception) throws java.io.IOException, jakarta.servlet.ServletException {
+		        log.info("일반 로그인 인증 실패: {}", exception.getMessage());
+		        
+		        // 이메일 값 가져오기
+		        String email = request.getParameter("email");
+		        log.info("로그인 시도 이메일: {}", email);
 
-			// 탈퇴한 회원 처리
-			if (exception instanceof InternalAuthenticationServiceException &&
-					exception.getMessage().contains("탈퇴한 회원")) {
-				errorMessage = "탈퇴한 회원입니다.";
-				request.getSession().setAttribute("loginError", errorMessage);
-				response.sendRedirect("/login?error=deleted");
-			} else {
-				errorMessage = "아이디 또는 비밀번호가 올바르지 않습니다.";
-				request.getSession().setAttribute("loginError", errorMessage);
-				response.sendRedirect("/login?error=true");
-			}
+		        // 탈퇴한 회원 처리 - 소셜 로그인과 동일한 로직 적용
+		        if (exception instanceof InternalAuthenticationServiceException &&
+		                exception.getMessage().contains("탈퇴한 회원")) {
+		                
+		            log.info("탈퇴한 회원 로그인 시도 - 이메일: {}", email);
+		            
+		            // 복구 가능 여부 확인 (소셜 로그인과 동일)
+		            if (email != null && userService.isAccountRecoverable(email)) {
+		                log.info("복구 가능한 계정 - 복구 페이지로 리다이렉트: {}", email);
+		                response.sendRedirect("/account/recover?email=" + email);
+		                return;
+		            }
+		            
+		            // 복구 불가능한 경우
+		            log.warn("복구 불가능한 계정 - 로그인 페이지로 리다이렉트: {}", email);
+		            request.getSession().setAttribute("loginError", "탈퇴한 회원입니다.");
+		            response.sendRedirect("/login?error=deleted");
+		            
+		        } else {
+		            // 일반적인 로그인 실패
+		            String errorMessage = "아이디 또는 비밀번호가 올바르지 않습니다.";
+		            request.getSession().setAttribute("loginError", errorMessage);
+		            response.sendRedirect("/login?error=true");
+		        }
+		    }
 		};
 	}
 
@@ -158,14 +179,6 @@ public class SecurityConfig {
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
 		return authenticationConfiguration.getAuthenticationManager();
-	}
-
-	/**
-	 * 비밀번호 인코더
-	 */
-	@Bean
-	public PasswordEncoder passwordEncoder() {
-		return new BCryptPasswordEncoder();
 	}
 
 	/**

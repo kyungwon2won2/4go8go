@@ -33,9 +33,6 @@ public interface UserMapper {
     // 이메일로 사용자 조회 (별칭)
     public Users findByEmail(String email);
 
-    // 이메일로 사용자 조회
-    public Users tusgetUserByEmail(String email);
-
    // 사용자 정보 수정
     public int updateUser(Users user);
 
@@ -45,5 +42,34 @@ public interface UserMapper {
     List<Users> findUsersByBirthdayToday();
 
     public boolean existsByEmail(String email);
+
+    // 30일 지난 탈퇴 계정들 조회
+    public List<Users> findExpiredDeletedAccounts();
+    
+    // === 완전 삭제를 위한 참조 데이터 삭제 메서드들 ===
+    
+    // 1. 채팅 메시지 삭제
+    public int deleteChatMessagesByUserId(int userId);
+    
+    // 2. 채팅 참가자 삭제  
+    public int deleteChatParticipantsByUserId(int userId);
+    
+    // 3. 채팅방 삭제 (해당 유저가 생성한)
+    public int deleteChatRoomsByUserId(int userId);
+    
+    // 4. 댓글 삭제
+    public int deleteCommentsByUserId(int userId);
+    
+    // 5. 알림 삭제
+    public int deleteNotificationsByUserId(int userId);
+    
+    // 6. 읽음 상태 삭제
+    public int deleteReadStatusByUserId(int userId);
+    
+    // 7. 사용자 권한 삭제
+    public int deleteUserRolesByUserId(int userId);
+    
+    // 8. 최종 사용자 삭제
+    public int permanentlyDeleteUser(int userId);
 
 }
