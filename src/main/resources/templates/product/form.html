@@ -97,6 +97,16 @@
             font-size: 14px;
             background: #f9f9f9;
         }
+        .image-count-info {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .max-images-warning {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -134,6 +144,9 @@
             </div>
             <div class="mb-3">
                 <label class="form-label">상품 이미지</label><br>
+                <div class="image-count-info">
+                    <span id="imageCountText">이미지 개수: 0/5</span>
+                </div>
 
                 <!-- 미리보기 영역 -->
                 <div id="imgPreviewContainer" class="img-preview-container">
@@ -143,7 +156,7 @@
                 </div>
 
                 <!-- 파일 선택 버튼 -->
-                <label class="img-upload-label">이미지 선택</label>
+                <label class="img-upload-label" id="uploadLabel">이미지 선택</label>
                 <input
                         type="file"
                         id="imageFilesInput"
@@ -153,6 +166,9 @@
                         onchange="previewImage(event)"
                         name="imageFiles"
                 >
+                <div class="max-images-warning" id="maxImagesWarning" style="display: none;">
+                    최대 5개의 이미지만 선택할 수 있습니다.
+                </div>
             </div>
 
             <div class="d-grid mt-4">
@@ -172,20 +188,36 @@
 <script th:inline="javascript">
     // 선택된 파일들을 관리하는 배열
     let selectedFiles = [];
+    const MAX_IMAGES = 5;
 
     function previewImage(event) {
         const files = event.target.files;
-        const previewContainer = document.getElementById('imgPreviewContainer');
-
-        // 새로 선택된 파일들을 배열에 추가
-        Array.from(files).forEach(file => {
+        const currentTotal = selectedFiles.length;
+        
+        // 최대 개수 체크
+        const availableSlots = MAX_IMAGES - currentTotal;
+        if (availableSlots <= 0) {
+            showMaxImagesWarning();
+            return;
+        }
+        
+        // 새로 선택된 파일들을 배열에 추가 (최대 개수까지만)
+        const filesToAdd = Math.min(files.length, availableSlots);
+        for (let i = 0; i < filesToAdd; i++) {
+            const file = files[i];
             if (file.type.startsWith('image/')) {
                 selectedFiles.push(file);
             }
-        });
+        }
+        
+        if (files.length > filesToAdd) {
+            showMaxImagesWarning();
+        }
 
         // 미리보기 업데이트
         updatePreview();
+        updateImageCount();
+        updateUploadButton();
     }
 
     function updatePreview() {
@@ -235,11 +267,12 @@
     }
 
     function removeImage(index) {
-            selectedFiles.splice(index, 1);
-            
-            // 미리보기 업데이트
-            updatePreview();
-
+        selectedFiles.splice(index, 1);
+        
+        // 미리보기 업데이트
+        updatePreview();
+        updateImageCount();
+        updateUploadButton();
     }
 
     function updateFileInput() {
@@ -256,11 +289,40 @@
         input.files = dataTransfer.files;
     }
 
+    function updateImageCount() {
+        const total = selectedFiles.length;
+        document.getElementById('imageCountText').textContent = `이미지 개수: ${total}/${MAX_IMAGES}`;
+    }
+
+    function updateUploadButton() {
+        const uploadLabel = document.getElementById('uploadLabel');
+        const total = selectedFiles.length;
+        
+        if (total >= MAX_IMAGES) {
+            uploadLabel.style.display = 'none';
+        } else {
+            uploadLabel.style.display = 'inline-block';
+        }
+    }
+
+    function showMaxImagesWarning() {
+        const warning = document.getElementById('maxImagesWarning');
+        warning.style.display = 'block';
+        setTimeout(() => {
+            warning.style.display = 'none';
+        }, 3000);
+    }
+
     // 초기화
     document.addEventListener('DOMContentLoaded', function() {
+        updateImageCount();
+        updateUploadButton();
+        
         // 파일 선택 라벨 클릭 시 파일 입력 창 열기
         document.querySelector('.img-upload-label').addEventListener('click', function() {
-            document.getElementById('imageFilesInput').click();
+            if (selectedFiles.length < MAX_IMAGES) {
+                document.getElementById('imageFilesInput').click();
+            }
         });
     });
 </script>

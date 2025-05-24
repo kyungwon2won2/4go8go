@@ -475,7 +475,11 @@
                 .then(data => {
                     if (data.success) {
                         alert(data.message || '이메일 인증이 완료되었습니다.');
-                        // 예: UI 정리
+                        // 타이머 중지 및 UI 정리
+                        if (emailTimerInterval) {
+                            clearInterval(emailTimerInterval);
+                            emailTimerInterval = null;
+                        }
                         document.getElementById('emailVerifyBox')?.remove();
                     } else {
                         alert(data.message || '인증번호가 올바르지 않습니다.');

@@ -58,10 +58,17 @@ public class PostController {
         if(post == null){
             return "redirect:/post";
         }
-        //작성자, 관리자 여부 확인
-        int currentUserId = customerUser.getUserId();
-        boolean isOwner = (currentUserId == post.getUserId());
-        boolean isAdmin = customerUser.hasRole("ROLE_ADMIN");
+        
+        // 비로그인 사용자 처리
+        Integer currentUserId = null;
+        boolean isOwner = false;
+        boolean isAdmin = false;
+
+        if(customerUser != null){
+            currentUserId = customerUser.getUserId();
+            isOwner = (currentUserId == post.getUserId());
+            isAdmin = customerUser.hasRole("ROLE_ADMIN");
+        }
 
         // 댓글 가져오기 (닉네임 포함)
         List<CommentDTO> commentList = commentHelper.getCommentWithNicknameByPostId(postId);
@@ -71,7 +78,6 @@ public class PostController {
         model.addAttribute("userId", currentUserId);
         model.addAttribute("isOwner", isOwner);
         model.addAttribute("isAdmin", isAdmin);
-        log.info("customerUser.getUserId(): " + customerUser.getUserId());
         log.info("post.getUserId(): " + post.getUserId());
         return "post/detail";
     }
