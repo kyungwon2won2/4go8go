@@ -1,13 +1,19 @@
-package com.example.demo.common.oauth;
+package com.example.demo.common.oauth.model;
 
 import lombok.Builder;
 import lombok.Getter;
 
-import java.util.HashMap;
+import java.io.Serializable;
 import java.util.Map;
 
+/**
+ * OAuth2 인증 결과를 담는 클래스
+ * 세션에 저장되므로 Serializable 구현
+ */
 @Getter
-public class OAuthAttributes {
+public class OAuthAttributes implements Serializable {
+    private static final long serialVersionUID = 1L;
+    
     private Map<String, Object> attributes;
     private String nameAttributeKey;
     private String name;
@@ -24,15 +30,19 @@ public class OAuthAttributes {
         this.oauth2UserInfo = oauth2UserInfo;
     }
 
+    /**
+     * 소셜 로그인 제공자별 OAuthAttributes 객체 생성
+     */
     public static OAuthAttributes of(String registrationId, String userNameAttributeName, Map<String, Object> attributes) {
-        if ("kakao".equals(registrationId)) {
-            return ofKakao(userNameAttributeName, attributes);
-        } else if ("naver".equals(registrationId)) {
+        if ("naver".equals(registrationId)) {
             return ofNaver(userNameAttributeName, attributes);
         }
         return ofGoogle(userNameAttributeName, attributes);
     }
 
+    /**
+     * Google 로그인 정보로 OAuthAttributes 생성
+     */
     private static OAuthAttributes ofGoogle(String userNameAttributeName, Map<String, Object> attributes) {
         GoogleOAuth2UserInfo userInfo = new GoogleOAuth2UserInfo(attributes);
 
@@ -45,21 +55,9 @@ public class OAuthAttributes {
                 .build();
     }
 
-    private static OAuthAttributes ofKakao(String userNameAttributeName, Map<String, Object> attributes) {
-        KakaoOAuth2UserInfo userInfo = new KakaoOAuth2UserInfo(attributes);
-
-        Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
-        Map<String, Object> kakaoProfile = (Map<String, Object>) kakaoAccount.get("profile");
-
-        return OAuthAttributes.builder()
-                .name((String) kakaoProfile.get("nickname"))
-                .email((String) kakaoAccount.get("email"))
-                .attributes(attributes)
-                .nameAttributeKey(userNameAttributeName)
-                .oauth2UserInfo(userInfo)
-                .build();
-    }
-
+    /**
+     * Naver 로그인 정보로 OAuthAttributes 생성
+     */
     private static OAuthAttributes ofNaver(String userNameAttributeName, Map<String, Object> attributes) {
         Map<String, Object> response = (Map<String, Object>) attributes.get("response");
         if (response == null) {
