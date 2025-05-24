@@ -193,9 +193,9 @@
     <div class="product-desc" th:text="${product.content}">상품 설명</div>
 
     <div class="product-interaction">
-      <span><i class="bi bi-chat"></i> 채팅 0</span>
+      <span><i class="bi bi-chat"></i> 채팅 <span th:text="${chatRooms ?: 0}">0</span></span>
       <span><i class="bi bi-heart"></i> 관심 0</span>
-      <span><i class="bi bi-eye"></i> 조회 0</span>
+      <span><i class="bi bi-eye"></i> 조회 <span th:text="${product.viewCount ?: 0}">0</span></span>
     </div>
     <!-- 유저 정보(판매자 정보) - 채팅/관심/조회 밑, 수정/삭제 버튼 위 -->
     <div class="seller-inline-row">
@@ -222,6 +222,15 @@
 
     </div>
 
+    <!-- 판매자가 아닐 경우 채팅하기 버튼 표시 -->
+    <button class="btn main-action-btn mb-3"
+            th:if="${product.userId != userId}"
+            th:data-post-user-id="${product.userId}"
+            th:data-post-id="${product.postId}"
+            onclick="startPrivateChat(this)">
+      <i class="bi bi-chat-dots-fill me-2"></i>판매자와 채팅하기
+    </button>
+
   </div>
 </div>
 
@@ -232,6 +241,7 @@
   </a>
 </div>
 
+<!-- 채팅 기능 스크립트 -->
 <script>
   function startPrivateChat(button) {
     const postUserId = button.getAttribute('data-post-user-id');
@@ -273,10 +283,5 @@
 <script th:src="@{/js/notification-chat.js}" sec:authorize="isAuthenticated()"></script>
 <script th:src="@{/js/notification-ui.js}" sec:authorize="isAuthenticated()"></script>
 <script th:src="@{/js/notification-sse.js}" sec:authorize="isAuthenticated()"></script>
-<!-- 알림 관련 스크립트 (로드 순서 중요) -->
-<script th:src="@{/js/notification-utils.js}"></script>
-<script th:src="@{/js/notification-chat.js}"></script>
-<script th:src="@{/js/notification-ui.js}"></script>
-<script th:src="@{/js/notification-sse.js}"></script>
 </body>
 </html>

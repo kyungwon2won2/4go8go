@@ -49,11 +49,12 @@ public class ProductController {
 
     // 상품 상세 페이지
     @GetMapping("/{postId}")
-    public String productDetail(@PathVariable int postId, Model model) {
+    public String productDetail(@PathVariable int postId, Model model, @AuthenticationPrincipal CustomerUser customerUser) {
         ProductDetailDto product = productService.getProductDetailByPostId(postId);
         int chatRooms = chatService.countChatRoom(postId);
         model.addAttribute("product", product);
         model.addAttribute("chatRooms", chatRooms);
+        model.addAttribute("userId", customerUser.getUserId());
         System.out.println("채팅방 수 : " + chatRooms);
         return "product/detail";
     }
