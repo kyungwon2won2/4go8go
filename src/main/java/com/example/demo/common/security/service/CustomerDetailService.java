@@ -1,9 +1,8 @@
 package com.example.demo.common.security.service;
 
-import com.example.demo.common.oauth.GoogleOAuth2UserInfo;
-import com.example.demo.common.oauth.KakaoOAuth2UserInfo;
-import com.example.demo.common.oauth.NaverOAuth2UserInfo;
-import com.example.demo.common.oauth.OAuth2UserInfo;
+import com.example.demo.common.oauth.model.GoogleOAuth2UserInfo;
+import com.example.demo.common.oauth.model.NaverOAuth2UserInfo;
+import com.example.demo.common.oauth.model.OAuth2UserInfo;
 import com.example.demo.domain.user.model.CustomerUser;
 import com.example.demo.domain.user.model.UserRole;
 import com.example.demo.domain.user.model.Users;
@@ -24,15 +23,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
-//UserDetailsService는 **"사용자 이름(username)을 받아 사용자 정보(UserDetails)를 반환하는 인터페이스"**입니다.
-//인증에 대한 처리 개발자가 원하는 대로 ...UserDetailsService  재정의 여러분 마음 : mybatis , jpa , 원하는 방법 제공
-// loadUserByUsername 재정의
-
-/*
- 사용자가 로그인 시도 (/login POST)
- 스프링 시큐리티는 내부적으로 UserDetailsService.loadUserByUsername() 호출
- 이 메서드를 통해 DB에서 사용자 정보를 가져옴
- 반환된 UserDetails 객체의 비밀번호, 권한 등을 기준으로 인증 진행
+/**
+ * 사용자 인증 및 OAuth2 인증 서비스
+ * 
+ * UserDetailsService: 일반 로그인 처리
+ * OAuth2UserService: 소셜 로그인 처리
  */
 @Slf4j
 @Service
@@ -50,7 +45,7 @@ public class CustomerDetailService implements UserDetailsService, OAuth2UserServ
 			throw new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + username);
 		}
 
-		// 탈퇴한 회원 확인 - 일관성을 위해 다른 예외 사용
+		// 탈퇴한 회원 확인
 		if (user.getStatus() != null && user.getStatus().equals("DELETED")) {
 			throw new InternalAuthenticationServiceException("탈퇴한 회원입니다.");
 		}
@@ -64,7 +59,7 @@ public class CustomerDetailService implements UserDetailsService, OAuth2UserServ
 		OAuth2UserService<OAuth2UserRequest, OAuth2User> delegate = new DefaultOAuth2UserService();
 		OAuth2User oAuth2User = delegate.loadUser(userRequest);
 
-		// OAuth2 서비스 ID (google, naver, kakao 등)
+		// OAuth2 서비스 ID (google, naver 등)
 		String registrationId = userRequest.getClientRegistration().getRegistrationId();
 		log.info("OAuth2 로그인 - 서비스 제공자: {}", registrationId);
 
@@ -114,8 +109,6 @@ public class CustomerDetailService implements UserDetailsService, OAuth2UserServ
 				response = attributes;
 			}
 			return new NaverOAuth2UserInfo(response);
-		} else if ("kakao".equals(registrationId)) {
-			return new KakaoOAuth2UserInfo(attributes);
 		}
 		return null;
 	}

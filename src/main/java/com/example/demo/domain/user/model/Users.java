@@ -35,6 +35,7 @@ public class Users implements Serializable {
 	private String socialId;      // 소셜 서비스의 고유 ID
 	private String oauth2AccessToken;
 	private String status; // 유저의 활동상태 관리 "ACTIVE", "SUSPENDED", "DELETED" 등
+	private Date deletedAt; // 탈퇴 시간 기록
 
 	// 권한 목록
 	List<UserRole> roleList;

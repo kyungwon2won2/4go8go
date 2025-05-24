@@ -4,15 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <title>4go8go - 게시글 상세</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" type="text/css" th:href="@{/css/index.css}"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/header.css}"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/footer.css}"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/notification.css}"/>
+
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-    <meta name="current-user-id" th:content="${userId}" />
+    <meta name="current-user-id" th:content="${userId != null ? userId : ''}" />
+
+    <!-- CSS 임포트 (순서대로) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/index.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/header.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/footer.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/notification.css}" />
 
     <style>
         :root {
@@ -33,7 +37,7 @@
             font-family: 'Noto Sans KR', sans-serif;
             color: #333;
             line-height: 1.6;
-            background-color: #f8f8f8;
+            background-color: white;
         }
         
         .kurly-container {
@@ -243,41 +247,19 @@
 </head>
 <body>
     <!-- 네비게이션 바 -->
-    <nav class="kurly-nav">
-        <div class="container d-flex justify-content-between align-items-center">
-            <a href="/" class="kurly-logo">마켓컬리</a>
-            <div>
-                <a href="/post" class="kurly-btn">커뮤니티</a>
-            </div>
-        </div>
-    </nav>
+    <div th:replace="~{fragments/header :: header}"></div>
 
-    <div class="container">
-        <div class="kurly-container">
-            <!-- 게시글 헤더 -->
+    <div class="kurly-container">
+        <div class="kurly-card">
             <div class="kurly-header">
-                <div class="category-tag" th:text="'카테고리 ' + ${post.postCategoryId}"></div>
-                <h1 class="kurly-title" th:text="${post.title}"></h1>
-                
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="user-info">
-                        <div class="user-avatar">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div>
-                            <div class="fw-bold" th:text="${post.userName}"></div>
-                            <div class="meta-info">
-                                <span th:text="${#dates.format(post.createdAt, 'yyyy.MM.dd HH:mm')}"></span>
-                                <span class="ms-2">조회 <span id="viewCount" th:text="${post.viewCount}"></span></span>
-                            </div>
-                        </div>
+                <h1 class="kurly-title" th:text="${post.title}">게시글 제목</h1>
+                <div class="meta-info d-flex justify-content-between">
+                    <div>
+                        <span th:text="${post.userName}">작성자</span> •
+                        <span th:text="${#dates.format(post.createdAt, 'yyyy.MM.dd HH:mm')}">작성일</span>
                     </div>
-                    
-                    <div class="d-flex align-items-center gap-3">
-                        <button class="btn-like border-0 bg-transparent">
-                            <i class="far fa-heart"></i>
-                            <span>0</span>
-                        </button>
+                    <div>
+                        <span>조회 <span th:text="${post.viewCount}">0</span></span>
                     </div>
                 </div>
             </div>
@@ -383,17 +365,25 @@
                 <h3 class="fs-5 fw-bold mb-3">
                     <i class="fas fa-comment-dots me-2 text-purple"></i>댓글 작성
                 </h3>
-                <form id="comment-form">
-                    <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
-                    <div class="mb-3">
-                        <textarea id="commentContent" name="commentContent" class="form-control" rows="3" placeholder="댓글을 입력하세요"></textarea>
-                    </div>
-                    <div class="d-flex justify-content-end">
-                        <button type="submit" class="kurly-btn-primary">
-                            <i class="fas fa-paper-plane me-1"></i> 작성하기
-                        </button>
-                    </div>
-                </form>
+                <div th:if="${userId != null}">
+                    <form id="comment-form">
+                        <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+                        <div class="mb-3">
+                            <textarea id="commentContent" name="commentContent" class="form-control" rows="3" placeholder="댓글을 입력하세요"></textarea>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="kurly-btn-primary">
+                                <i class="fas fa-paper-plane me-1"></i> 작성하기
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div th:if="${userId == null}" class="text-center py-4">
+                    <p class="text-muted mb-3">댓글을 작성하려면 로그인이 필요합니다.</p>
+                    <a href="/login" class="kurly-btn-primary" style="text-decoration: none;">
+                        <i class="fas fa-sign-in-alt me-1"></i> 로그인하기
+                    </a>
+                </div>
             </div>
 
 
@@ -403,7 +393,7 @@
                     <i class="fas fa-comments me-2 text-purple"></i>
                     댓글 <span class="comment-count" th:text="${post.commentCount}"></span>
                 </h3>
-                <div>
+                <div class="comments-list">
                     <div class="comment-item" th:each="comment : ${comment_list}" th:id="'comment-' + ${comment.commentId}">
                         <div class="d-flex justify-content-between align-items-start">
                             <div class="user-info">
@@ -415,7 +405,7 @@
                                     <div class="meta-info" th:text="${#dates.format(comment.createdAt, 'yyyy.MM.dd HH:mm')}">작성일</div>
                                 </div>
                             </div>
-                            <div th:if="${comment.userId == userId}" class="d-flex gap-2">
+                            <div th:if="${userId != null and comment.userId == userId}" class="d-flex gap-2">
                                 <button class="btn-edit border-0 bg-transparent" th:data-comment-id="${comment.commentId}" title="수정"><i class="fas fa-pen text-purple"></i></button>
                                 <button class="btn-delete border-0 bg-transparent" th:data-comment-id="${comment.commentId}" title="삭제"><i class="fas fa-trash text-danger"></i></button>
                             </div>
@@ -427,6 +417,8 @@
         </div>
     </div>
 
+<div th:replace="~{fragments/footer :: footer}"></div>
+
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
         // CSRF 토큰 추출
@@ -437,11 +429,15 @@
         // 게시글 ID 추출
         const postId = /*[[${post.postId}]]*/ document.querySelector('input[name="postId"]')?.value || window.location.pathname.split('/')[2];
         // 현재 로그인 유저 ID 추출
-        window.currentUserId = document.querySelector('meta[name="current-user-id"]')?.content;
+        window.currentUserId = document.querySelector('meta[name="current-user-id"]')?.content || null;
+        // 빈 문자열도 null로 처리
+        if (window.currentUserId === '') {
+            window.currentUserId = null;
+        }
 
         // 댓글 렌더링 함수 (누적)
         function renderCommentsAppend(comments, currentUserId) {
-            const commentListDiv = document.querySelector('.kurly-card > div');
+            const commentListDiv = document.querySelector('.comments-list');
 
             if (!comments || comments.length === 0) {
                 if (commentListDiv.innerHTML.trim() === '') {
@@ -467,7 +463,7 @@
                                 <div class="meta-info">${comment.createdAt ? comment.createdAt.replace('T', ' ').substring(0, 16) : '날짜 정보 없음'}</div>
                             </div>
                         </div>
-                        ${(String(currentUserId) === String(comment.userId)) ? `<div class="d-flex gap-2">
+                        ${(currentUserId && String(currentUserId) === String(comment.userId)) ? `<div class="d-flex gap-2">
                             <button class="btn-edit border-0 bg-transparent" data-comment-id="${comment.commentId}" title="수정"><i class="fas fa-pen text-purple"></i></button>
                             <button class="btn-delete border-0 bg-transparent" data-comment-id="${comment.commentId}" title="삭제"><i class="fas fa-trash text-danger"></i></button>
                         </div>` : ''}
@@ -493,9 +489,6 @@
             const count = document.querySelectorAll('.comment-item').length;
             document.querySelector('.comment-count').textContent = count;
         }
-
-
-
 
         let currentPage = 1;
         const pageSize = 10;
@@ -533,15 +526,23 @@
         // 페이지 로드 시 1페이지 댓글 목록 불러오기
         window.addEventListener('DOMContentLoaded', () => {
             // 초기화
-            document.querySelector('.kurly-card > div').innerHTML = '';
+            document.querySelector('.comments-list').innerHTML = '';
             currentPage = 1;
             isEnd = false;
             fetchComments();
         });
 
         // 댓글 작성
-        document.querySelector('.comment-form form').addEventListener('submit', async function(e) {
+        document.querySelector('.comment-form form')?.addEventListener('submit', async function(e) {
             e.preventDefault();
+
+            // 로그인 체크
+            if (!window.currentUserId) {
+                alert('로그인이 필요한 서비스입니다.');
+                window.location.href = '/login';
+                return;
+            }
+
             const content = this.commentContent.value.trim();
             if (!content) return alert('댓글을 입력하세요.');
 
@@ -561,7 +562,7 @@
                     this.commentContent.value = '';
 
                     // 댓글 없을 때 메시지 제거
-                    const commentListDiv = document.querySelector('.kurly-card > div');
+                    const commentListDiv = document.querySelector('.comments-list');
                     if (commentListDiv.querySelector('.text-center')) {
                         commentListDiv.innerHTML = '';
                     }
@@ -595,7 +596,7 @@
                         headers: { 'X-CSRF-TOKEN': getCsrfToken() }
                     });
                     // 삭제 후 목록 새로고침 (상태 초기화)
-                    document.querySelector('.kurly-card > div').innerHTML = '';
+                    document.querySelector('.comments-list').innerHTML = '';
                     currentPage = 1;
                     isEnd = false;
                     fetchComments();
@@ -644,12 +645,9 @@
         });
 
     </script>
-    <!-- JavaScript 임포트 (순서대로) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- 알림 관련 스크립트 (로드 순서 중요) -->
-    <script th:src="@{/js/notification-utils.js}"></script>
-    <script th:src="@{/js/notification-chat.js}"></script>
-    <script th:src="@{/js/notification-ui.js}"></script>
-    <script th:src="@{/js/notification-sse.js}"></script>
+    <script th:src="@{/js/notification-utils.js}" sec:authorize="isAuthenticated()"></script>
+    <script th:src="@{/js/notification-chat.js}" sec:authorize="isAuthenticated()"></script>
+    <script th:src="@{/js/notification-ui.js}" sec:authorize="isAuthenticated()"></script>
+    <script th:src="@{/js/notification-sse.js}" sec:authorize="isAuthenticated()"></script>
 </body>
 </html>
