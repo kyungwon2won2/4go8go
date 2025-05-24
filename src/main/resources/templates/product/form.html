@@ -143,7 +143,7 @@
                 </div>
 
                 <!-- 파일 선택 버튼 -->
-                <label class="img-upload-label">이미지 선택</label>
+                <label class="img-upload-label">이미지 선택 (최대 5장)</label>
                 <input
                         type="file"
                         id="imageFilesInput"
@@ -177,12 +177,17 @@
         const files = event.target.files;
         const previewContainer = document.getElementById('imgPreviewContainer');
 
-        // 새로 선택된 파일들을 배열에 추가
+        // 새로 선택된 파일들을 배열에 추가하되, 최대 5장까지만
         Array.from(files).forEach(file => {
-            if (file.type.startsWith('image/')) {
+            if (file.type.startsWith('image/') && selectedFiles.length < 5) {
                 selectedFiles.push(file);
             }
         });
+
+        // 5장 초과 시 경고 메시지
+        if (selectedFiles.length >= 5 && files.length > 0) {
+            alert('이미지는 최대 5장까지만 업로드할 수 있습니다.');
+        }
 
         // 미리보기 업데이트
         updatePreview();
@@ -190,6 +195,8 @@
 
     function updatePreview() {
         const previewContainer = document.getElementById('imgPreviewContainer');
+        const uploadLabel = document.querySelector('.img-upload-label');
+        const fileInput = document.getElementById('imageFilesInput');
         
         // 기존 미리보기 제거
         previewContainer.innerHTML = '';
@@ -200,35 +207,49 @@
             placeholder.className = 'no-images-placeholder';
             placeholder.textContent = '이미지를 선택해주세요';
             previewContainer.appendChild(placeholder);
-            return;
+        } else {
+            // 선택된 파일들의 미리보기 생성
+            selectedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    // 이미지 래퍼 생성
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'img-preview-wrapper';
+                    
+                    // 이미지 엘리먼트 생성
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'img-preview';
+                    img.dataset.index = index;
+                    
+                    // 클릭 이벤트 추가 - 이미지 제거
+                    img.addEventListener('click', function() {
+                        removeImage(parseInt(this.dataset.index));
+                    });
+                    
+                    wrapper.appendChild(img);
+                    previewContainer.appendChild(wrapper);
+                };
+                
+                reader.readAsDataURL(file);
+            });
         }
 
-        // 선택된 파일들의 미리보기 생성
-        selectedFiles.forEach((file, index) => {
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                // 이미지 래퍼 생성
-                const wrapper = document.createElement('div');
-                wrapper.className = 'img-preview-wrapper';
-                
-                // 이미지 엘리먼트 생성
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                img.className = 'img-preview';
-                img.dataset.index = index;
-                
-                // 클릭 이벤트 추가 - 이미지 제거
-                img.addEventListener('click', function() {
-                    removeImage(parseInt(this.dataset.index));
-                });
-                
-                wrapper.appendChild(img);
-                previewContainer.appendChild(wrapper);
-            };
-            
-            reader.readAsDataURL(file);
-        });
+        // 5장 도달 시 버튼 비활성화 및 텍스트 변경
+        if (selectedFiles.length >= 5) {
+            uploadLabel.textContent = '이미지 최대 개수 도달 (5/5)';
+            uploadLabel.style.backgroundColor = '#f0f0f0';
+            uploadLabel.style.color = '#999';
+            uploadLabel.style.cursor = 'not-allowed';
+            fileInput.disabled = true;
+        } else {
+            uploadLabel.textContent = `이미지 선택 (${selectedFiles.length}/5)`;
+            uploadLabel.style.backgroundColor = '#f8f9fa';
+            uploadLabel.style.color = '#5f0080';
+            uploadLabel.style.cursor = 'pointer';
+            fileInput.disabled = false;
+        }
 
         // input의 files 업데이트
         updateFileInput();
@@ -260,7 +281,10 @@
     document.addEventListener('DOMContentLoaded', function() {
         // 파일 선택 라벨 클릭 시 파일 입력 창 열기
         document.querySelector('.img-upload-label').addEventListener('click', function() {
-            document.getElementById('imageFilesInput').click();
+            const fileInput = document.getElementById('imageFilesInput');
+            if (!fileInput.disabled) {
+                fileInput.click();
+            }
         });
     });
 </script>
