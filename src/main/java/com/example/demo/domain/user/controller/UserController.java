@@ -4,11 +4,16 @@ import com.example.demo.domain.user.dto.UpdateUserDTO;
 import com.example.demo.domain.user.model.CustomerUser;
 import com.example.demo.domain.user.model.Users;
 import com.example.demo.domain.user.service.UserService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
@@ -113,8 +118,34 @@ public class UserController {
 
 	// 회원 탈퇴
 	@PostMapping("/delete")
-	public String deleteUser(Principal principal) {
+	public String deleteUser(Principal principal, HttpServletRequest request, HttpServletResponse response) {
+		// 사용자 탈퇴 처리 (상태를 DELETED로 변경)
 		userService.deleteUser(principal.getName());
-		return "redirect:/";
+		
+		// 로그아웃 처리 - 세션 무효화
+		HttpSession session = request.getSession(false);
+		if (session != null) {
+			// 세션 무효화 (모든 세션 데이터 삭제)
+			session.invalidate();
+		}
+		
+		// JSESSIONID 쿠키 삭제
+		Cookie[] cookies = request.getCookies();
+		if (cookies != null) {
+			for (Cookie cookie : cookies) {
+				if ("JSESSIONID".equals(cookie.getName())) {
+					cookie.setMaxAge(0);
+					cookie.setPath("/");
+					response.addCookie(cookie);
+					break;
+				}
+			}
+		}
+		
+		// Spring Security 컨텍스트 클리어
+		SecurityContextHolder.clearContext();
+		
+		// 로그아웃 메시지 표시를 위한 리다이렉트 파라미터 추가
+		return "redirect:/?withdrawn=true";
 	}
 }
