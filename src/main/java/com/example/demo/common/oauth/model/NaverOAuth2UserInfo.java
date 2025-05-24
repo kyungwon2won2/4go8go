@@ -1,11 +1,14 @@
-package com.example.demo.common.oauth;
+package com.example.demo.common.oauth.model;
 
 import java.util.Map;
 
-public class GoogleOAuth2UserInfo implements OAuth2UserInfo {
+/**
+ * Naver OAuth2 사용자 정보 구현체
+ */
+public class NaverOAuth2UserInfo implements OAuth2UserInfo {
     private Map<String, Object> attributes;
 
-    public GoogleOAuth2UserInfo(Map<String, Object> attributes) {
+    public NaverOAuth2UserInfo(Map<String, Object> attributes) {
         this.attributes = attributes;
     }
 
@@ -16,7 +19,7 @@ public class GoogleOAuth2UserInfo implements OAuth2UserInfo {
 
     @Override
     public String getId() {
-        return (String) attributes.get("sub");
+        return (String) attributes.get("id");
     }
 
     @Override
@@ -31,6 +34,6 @@ public class GoogleOAuth2UserInfo implements OAuth2UserInfo {
 
     @Override
     public String getImageUrl() {
-        return (String) attributes.get("picture");
+        return (String) attributes.get("profile_image");
     }
 }

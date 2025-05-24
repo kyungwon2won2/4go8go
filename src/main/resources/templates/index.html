@@ -22,6 +22,19 @@
 
 <!-- 상단 배너 -->
 <div th:replace="~{fragments/header :: header}"></div>
+
+<!-- 탈퇴 알림 메시지 -->
+<div class="alert alert-success alert-dismissible fade show text-center" th:if="${param.withdrawn}" role="alert">
+    회원 탈퇴가 완료되었습니다. 이용해 주셔서 감사합니다.
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+
+<!-- 회원가입 성공 메시지 -->
+<div class="alert alert-success alert-dismissible fade show text-center" th:if="${registrationSuccess}" role="alert">
+    회원가입이 완료되었습니다. 환영합니다!
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+
 <!-- 메인 배너 -->
 <div class="main-banner">
     <div id="mainCarousel" class="carousel slide" data-bs-ride="carousel">

@@ -20,6 +20,7 @@
         <result property="createdAt" column="created_at" />
         <result property="updatedAt" column="updated_at" />
         <result property="status" column="status" />
+        <result property="deletedAt" column="deleted_at" />
         <collection property="roleList" resultMap="roleMap" />
     </resultMap>
 
@@ -31,7 +32,7 @@
     <select id="login" resultMap="userMap">
         SELECT u.user_id, u.email, u.name, u.phone, u.password, u.nickname, u.address,
                u.birth_date, u.points, u.rating, u.receive_mail, u.email_verified,
-               u.created_at, u.updated_at, u.status, r.role_name
+               u.created_at, u.updated_at, u.status, u.deleted_at, r.role_name
         FROM user u JOIN user_role r ON u.user_id = r.user_id
         WHERE u.email = #{email}
     </select>
@@ -72,7 +73,7 @@
 
     <select id="getUserByEmail" resultMap="userMap">
         SELECT u.user_id, u.email, u.name, u.phone, u.nickname, u.address, u.birth_date,
-               u.points, u.rating, u.receive_mail, u.created_at, u.updated_at, u.status,
+               u.points, u.rating, u.receive_mail, u.created_at, u.updated_at, u.status, u.deleted_at,
                r.role_name
         FROM user u JOIN user_role r ON u.user_id = r.user_id
         WHERE u.email = #{email}
@@ -98,6 +99,9 @@
         receive_mail = #{receiveMail},
         <if test="status != null">
             status = #{status},
+        </if>
+        <if test="deletedAt != null">
+            deleted_at = #{deletedAt},
         </if>
         <if test="password != null and password != ''">
             password = #{password},

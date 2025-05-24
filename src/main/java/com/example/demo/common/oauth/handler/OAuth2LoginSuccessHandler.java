@@ -1,4 +1,4 @@
-package com.example.demo.common.security.handler;
+package com.example.demo.common.oauth.handler;
 
 import com.example.demo.domain.user.model.CustomerUser;
 import jakarta.servlet.ServletException;
@@ -10,6 +10,10 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 
 import java.io.IOException;
 
+/**
+ * OAuth2 로그인 성공 핸들러
+ * 소셜 로그인 성공 시 처리를 담당
+ */
 @Slf4j
 public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
@@ -32,14 +36,8 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                 return;
             }
 
-            // 사용자 권한에 따라 다른 페이지로 리디렉션
-            if (user.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-                response.sendRedirect("/admin");
-            } else if (user.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_USER"))) {
-                response.sendRedirect("/user/profile");
-            } else {
-                response.sendRedirect("/");
-            }
+            // 모든 사용자를 홈페이지로 리디렉션
+            response.sendRedirect("/");
         } else {
             // 기본적으로 메인 페이지로 리디렉션
             response.sendRedirect("/");

@@ -148,10 +148,10 @@
                         </div>
                         <button type="submit" class="btn btn-primary w-100 py-2">로그인</button>
                         <!-- 에러 메시지 표시 영역 -->
-                        <div class="alert alert-danger mt-3" th:if="${param.error == 'deleted'}" th:text="${session.loginError ?: '탈퇴한 회원입니다.'}">
+                        <div class="alert alert-danger mt-3" th:if="${param.error == 'deleted' || session.deletedAccount != null}" th:text="${session.loginError ?: '탈퇴한 회원입니다.'}">
                             탈퇴한 회원입니다.
                         </div>
-                        <div class="alert alert-danger mt-3" th:if="${param.error != null and param.error != 'deleted'}" th:text="${session.loginError ?: '로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.'}">
+                        <div class="alert alert-danger mt-3" th:if="${param.error != null and param.error != 'deleted' and session.deletedAccount == null}" th:text="${session.loginError ?: '로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.'}">
                             로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.
                         </div>
                     </form>
@@ -165,9 +165,6 @@
                             </a>
                             <a href="/oauth2/authorization/naver" class="btn btn-outline-success">
                                 <i class="bi bi-chat-fill"></i> 네이버 로그인
-                            </a>
-                            <a href="/oauth2/authorization/kakao" class="btn btn-outline-warning">
-                                <i class="bi bi-chat-fill"></i> 카카오 로그인
                             </a>
                         </div>
                     </div>
