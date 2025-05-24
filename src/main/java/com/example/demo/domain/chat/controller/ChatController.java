@@ -36,34 +36,6 @@ public class ChatController {
     private final ChatParticipantMapper chatParticipantMapper;
     private final UserMapper userMapper;
 
-//    //그룹 채팅방 개설
-//    @PostMapping("/room/group/create")
-//    public ResponseEntity<?> createGroup(@RequestParam String roomName) {
-//        chatService.createGroupRoom(roomName);
-//        return ResponseEntity.ok().build();
-//    }
-
-//    //    그룹채팅목록조회
-//    @GetMapping("/room/group/list")
-//    public ResponseEntity<?> getGroupChatRooms(){
-//        List<ChatRoomListResDto> chatRooms = chatService.getGroupchatRooms();
-//        return new ResponseEntity<>(chatRooms, HttpStatus.OK);
-//    }
-//
-//    //    그룹채팅방참여
-//    @PostMapping("/room/group/{roomId}/join")
-//    public ResponseEntity<?> joinGroupChatRoom(@PathVariable Long roomId){
-//        chatService.addParticipantToGroupChat(roomId);
-//        return ResponseEntity.ok().build();
-//    }
-//
-//    //    그룹 채팅방 나가기
-//    @DeleteMapping("/room/group/{roomId}/leave")
-//    public ResponseEntity<?> leaveGroupChatRoom(@PathVariable Long roomId){
-//        chatService.leaveGroupChatRoom(roomId);
-//        return ResponseEntity.ok().build();
-//    }
-
     //    이전 메시지 조회
     @GetMapping("/history/{roomId}")
     public ResponseEntity<?> getChatHistory(@PathVariable Long roomId) {
@@ -122,7 +94,25 @@ public class ChatController {
         }
 
         try {
-            chatService.leaveRoom(roomId);
+            ChatMessage leaveMessage = chatService.leaveRoom(roomId); // ChatMessage 받음
+
+            // 나가기 메시지가 있으면 (남은 참가자가 있으면) WebSocket 브로드캐스트
+            if (leaveMessage != null) {
+                // ChatMessage를 ChatMessageDto로 변환
+                Users user = userMapper.findById(leaveMessage.getUserId());
+                ChatMessageDto messageDto = ChatMessageDto.builder()
+                        .roomId(roomId)
+                        .message(leaveMessage.getContent())
+                        .senderEmail(user.getEmail())
+                        .senderNickname(user.getNickname())
+                        .sentAt(leaveMessage.getSentAt())
+                        .messageType("SYSTEM")
+                        .build();
+
+                // WebSocket으로 실시간 브로드캐스트
+                messagingTemplate.convertAndSend("/topic/chat.room." + roomId, messageDto);
+            }
+
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             log.error("채팅방 나가기 오류: roomId={}", roomId, e);
@@ -133,15 +123,18 @@ public class ChatController {
 
     //    개인 채팅방 개설 or 기존 채팅방 roomId return
     @PostMapping("/room/private/create")
-    public ResponseEntity<?> getOrCreatePrivateRoom(@RequestParam int otherMemberId, @AuthenticationPrincipal CustomerUser currentUser) {
+    public ResponseEntity<?> getOrCreatePrivateRoom(
+            @RequestParam int otherMemberId, 
+            @RequestParam(required = false, defaultValue = "0") int postId, 
+            @AuthenticationPrincipal CustomerUser currentUser) {
         try {
             if (otherMemberId == currentUser.getUserId()) {
                 return ResponseEntity.badRequest().body("자신과는 채팅할 수 없습니다.");
             }
 
-            Long roomId = chatService.getOrCreatePrivateRoom(otherMemberId);
-            log.info("채팅방 생성 결과: roomId={}, 요청자={}, 상대방={}",
-                    roomId, currentUser.getUserId(), otherMemberId);
+            Long roomId = chatService.getOrCreatePrivateRoom(otherMemberId, postId);
+            log.info("채팅방 생성 결과: roomId={}, 요청자={}, 상대방={}, 포스트ID={}",
+                    roomId, currentUser.getUserId(), otherMemberId, postId);
 
             return new ResponseEntity<>(roomId, HttpStatus.OK);
         } catch (Exception e) {

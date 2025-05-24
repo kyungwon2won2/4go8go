@@ -45,7 +45,7 @@ import java.util.Date;
 @AllArgsConstructor
 public class ChatRoom {
     private Long chatRoomId;
-    private Long postId;
+    private int postId;
     private Integer userId;
     private String isGroupChat;
     private Date createdAt;
