@@ -95,7 +95,7 @@
     <div class="container">
         <!-- 우측 정렬된 상품 등록 버튼 -->
         <div class="d-flex justify-content-end mb-3">
-            <a href="/product/new" class="btn btn-primary">상품 등록하기</a>
+            <a href="/product/new" class="btn btn-primary" sec:authorize="isAuthenticated()">상품 등록하기</a>
         </div>
 
         <div class="row row-cols-1 row-cols-md-4 g-4">
