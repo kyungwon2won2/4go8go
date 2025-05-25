@@ -127,8 +127,8 @@
             <div class="mb-3">
                 <label for="category" class="form-label">카테고리</label>
                 <select th:field="*{category}" class="form-select" id="category" required>
-                    <option th:each="cat : ${T(com.example.demo.domain.post.model.Product.Category).values()}"
-                            th:value="${cat}" th:text="${cat.displayName}">카테고리</option>
+                    <option th:each="cat : ${T(com.example.demo.domain.stringcode.ProductCategory).values()}"
+                            th:value="${cat}" th:text="${cat.koreanName}">카테고리</option>
                 </select>
             </div>
             <div class="mb-3">

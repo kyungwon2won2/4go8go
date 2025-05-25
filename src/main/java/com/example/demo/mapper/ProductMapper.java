@@ -4,6 +4,7 @@ import com.example.demo.domain.post.dto.ProductDetailDto;
 import com.example.demo.domain.post.dto.ProductListDto;
 import com.example.demo.domain.post.dto.UpdateProductDto;
 import com.example.demo.domain.post.model.Product;
+import com.example.demo.domain.stringcode.ProductCategory;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -31,7 +32,7 @@ public interface ProductMapper {
     void updateProductDetails(@Param("postId") int postId,
                               @Param("price") int price,
                               @Param("condition") Product.ProductCondition condition,
-                              @Param("category") Product.Category category);
+                              @Param("category") ProductCategory category);
 
     // 상품 전체 개수 반환
     int countAllProducts();

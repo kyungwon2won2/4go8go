@@ -1,5 +1,6 @@
 package com.example.demo.domain.post.dto;
 
+import com.example.demo.domain.stringcode.ProductCategory;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -17,7 +18,7 @@ public class ProductDetailDto {
     private String content;
 
     // Product
-    private String categoryName;
+    private ProductCategory categoryName;
     private int price;
     private String tradeStatus;
     private String condition;
