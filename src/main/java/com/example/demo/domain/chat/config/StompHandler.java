@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class StompHandler implements ChannelInterceptor {
 
     private final ChatService chatService;
-    
+
     // 현재 활성화된 세션을 추적하기 위한 맵
     private final Map<String, String> activeSessionMap = new ConcurrentHashMap<>();
 
@@ -42,7 +42,7 @@ public class StompHandler implements ChannelInterceptor {
             try {
                 if (StompCommand.CONNECT == command) {
                     handleConnect(accessor);
-                } 
+                }
                 else if (StompCommand.SUBSCRIBE == command) {
                     handleSubscribe(accessor);
                 }
@@ -66,17 +66,17 @@ public class StompHandler implements ChannelInterceptor {
     private void handleConnect(StompHeaderAccessor accessor) {
         // 세션 기반 인증 확인
         Authentication authentication = getAuthentication(accessor);
-        
+
         // 클라이언트에서 전달한 username 확인
         String username = accessor.getFirstNativeHeader("username");
-        
-        if (authentication != null && authentication.isAuthenticated() && 
-            !authentication.getPrincipal().equals("anonymousUser")) {
-            
+
+        if (authentication != null && authentication.isAuthenticated() &&
+                !authentication.getPrincipal().equals("anonymousUser")) {
+
             // 연결 성공 및 세션 추적
             String sessionId = accessor.getSessionId();
             String userEmail = authentication.getName();
-            
+
             if (sessionId != null) {
                 activeSessionMap.put(sessionId, userEmail);
             }
@@ -96,9 +96,9 @@ public class StompHandler implements ChannelInterceptor {
         String username = accessor.getFirstNativeHeader("username");
         String sessionId = accessor.getSessionId();
         String email = null;
-        
-        if (authentication != null && authentication.isAuthenticated() && 
-            !authentication.getPrincipal().equals("anonymousUser")) {
+
+        if (authentication != null && authentication.isAuthenticated() &&
+                !authentication.getPrincipal().equals("anonymousUser")) {
             email = authentication.getName();
         } else if (username != null && !username.isEmpty()) {
             // 헤더에서 사용자 이름 사용
@@ -107,26 +107,26 @@ public class StompHandler implements ChannelInterceptor {
             // 세션 ID로 사용자 정보 찾기
             email = activeSessionMap.get(sessionId);
         }
-        
+
         String destination = accessor.getDestination();
-        
+
         // destination이 null인 경우 처리
         if (destination == null) {
             return;
         }
-        
+
         // 채팅방 구독인 경우만 확인 - RabbitMQ용 경로
         if (destination.startsWith("/topic/chat.room.")) {
             String[] parts = destination.split("\\.");
             if (parts.length < 3) {
                 return;
             }
-            
+
             String roomId = parts[2];  // chat.room.{roomId}에서 roomId 추출
-            
+
             try {
                 Long roomIdLong = Long.parseLong(roomId);
-                
+
                 // 현재는 권한 체크 결과에 상관없이 구독을 허용
                 if (email != null) {
                     chatService.isRoomParticipant(email, roomIdLong);
@@ -145,20 +145,20 @@ public class StompHandler implements ChannelInterceptor {
     // DISCONNECT 명령 처리
     private void handleDisconnect(StompHeaderAccessor accessor) {
         String sessionId = accessor.getSessionId();
-        
+
         if (sessionId != null && activeSessionMap.containsKey(sessionId)) {
             activeSessionMap.remove(sessionId);
         }
     }
-    
+
     // Authentication 객체 얻기 (SecurityContext에서)
     private Authentication getAuthentication(StompHeaderAccessor accessor) {
         // 1. SecurityContext에서 Authentication 객체 확인
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
+
         return authentication;
     }
-    
+
     @Override
     public void postSend(Message<?> message, MessageChannel channel, boolean sent) {
         // 로그 제거

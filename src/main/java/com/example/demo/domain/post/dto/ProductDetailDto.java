@@ -23,6 +23,7 @@ public class ProductDetailDto {
     private String condition;
 
     // User (seller)
+    private int userId;
     private String email;
     private String nickname;
     private String address;

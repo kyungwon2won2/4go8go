@@ -15,6 +15,7 @@
         <result property="condition" column="condition"/>
         <result property="createdAt" column="created_at"/>
         <result property="location" column="address"/>
+        <result property="userId" column="user_id"/>
     </resultMap>
 
     <!-- INSERT -->
@@ -56,6 +57,7 @@
         pr.trade_status,
         pr.condition AS product_condition,
 
+        u.user_id,
         u.email,
         u.nickname,
         u.address,

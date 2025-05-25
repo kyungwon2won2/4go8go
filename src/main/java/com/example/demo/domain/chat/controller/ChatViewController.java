@@ -115,7 +115,7 @@ public class ChatViewController {
             }
 
             // 채팅방 생성 또는 조회
-            Long roomId = chatService.getOrCreatePrivateRoom(otherUserId);
+            Long roomId = chatService.getOrCreatePrivateRoom(otherUserId); // 1:1 채팅에서는 postId를 0으로 설정
             log.info("채팅방 ID: {}", roomId);
 
             // 채팅방 이름 설정
