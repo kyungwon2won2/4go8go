@@ -30,8 +30,29 @@ public class ImageHelper {
      * @throws IOException 이미지 처리 중 발생할 수 있는 예외
      */
     public byte[] processToSquareImage(MultipartFile file) throws IOException {
+        // 파일 유효성 검사
+        if (file == null || file.isEmpty()) {
+            throw new IOException("이미지 파일이 비어있습니다.");
+        }
+        
+        // 이미지 파일 포맷 검사
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new IOException("지원하지 않는 파일 형식입니다. 이미지 파일만 업로드 가능합니다.");
+        }
+        
         // MultipartFile을 BufferedImage로 변환
-        BufferedImage originalImage = ImageIO.read(new ByteArrayInputStream(file.getBytes()));
+        BufferedImage originalImage;
+        try {
+            originalImage = ImageIO.read(new ByteArrayInputStream(file.getBytes()));
+        } catch (IOException e) {
+            throw new IOException("이미지 파일을 읽는 중 오류가 발생했습니다: " + e.getMessage());
+        }
+        
+        // BufferedImage가 null인 경우 (지원하지 않는 이미지 포맷 등)
+        if (originalImage == null) {
+            throw new IOException("지원하지 않는 이미지 형식이거나 손상된 파일입니다. JPG, PNG, GIF 형식의 이미지를 업로드해주세요.");
+        }
         
         int width = originalImage.getWidth();
         int height = originalImage.getHeight();
@@ -61,8 +82,18 @@ public class ImageHelper {
         
         // BufferedImage를 바이트 배열로 변환
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        String formatName = file.getContentType().split("/")[1]; // image/jpeg -> jpeg
-        ImageIO.write(squareImage, formatName, baos);
+        String formatName = contentType.split("/")[1]; // image/jpeg -> jpeg
+        
+        // formatName 유효성 검사
+        if (!ImageIO.getWriterFormatNames().toString().toLowerCase().contains(formatName.toLowerCase())) {
+            formatName = "jpg"; // 기본값으로 jpg 사용
+        }
+        
+        try {
+            ImageIO.write(squareImage, formatName, baos);
+        } catch (IOException e) {
+            throw new IOException("이미지 변환 중 오류가 발생했습니다: " + e.getMessage());
+        }
         
         return baos.toByteArray();
     }
@@ -83,7 +114,11 @@ public class ImageHelper {
                         image.setUrl(s3Url);
                         imageMapper.insertImage(image);
                     } catch (IOException e) {
+                        System.err.println("이미지 처리 실패 - 파일명: " + file.getOriginalFilename() + ", 오류: " + e.getMessage());
                         throw new RuntimeException("이미지 업로드 실패: " + e.getMessage(), e);
+                    } catch (Exception e) {
+                        System.err.println("예상치 못한 오류 발생 - 파일명: " + file.getOriginalFilename() + ", 오류: " + e.getMessage());
+                        throw new RuntimeException("이미지 업로드 중 예상치 못한 오류가 발생했습니다: " + e.getMessage(), e);
                     }
                 }
             }
