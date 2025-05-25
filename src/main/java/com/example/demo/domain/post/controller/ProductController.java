@@ -92,7 +92,7 @@ public class ProductController {
     @GetMapping("/{postId}/edit")
     public String editProductForm(@PathVariable int postId, Model model) {
         UpdateProductDto productDto = productService.getProductByPostId(postId);
-        System.out.println("DTO FROM DB: " + productDto); // 디버깅 로그 추가
+        System.out.println("jenkins"); // 디버깅 로그 추가
         model.addAttribute("productDto", productDto);
         return "product/editForm";
     }
