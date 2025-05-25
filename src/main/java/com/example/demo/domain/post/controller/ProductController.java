@@ -41,7 +41,6 @@ public class ProductController {
         if (search != null && !search.trim().isEmpty()) {
             products = productService.getProductsBySearch(offset, pageSize, search.trim());
             totalCount = productService.getTotalProductCountBySearch(search.trim());
-            System.out.println("jenkin 테스트용");
             model.addAttribute("searchKeyword", search.trim());
         }
         // 카테고리 필터가 있는 경우
