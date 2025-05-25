@@ -77,8 +77,12 @@ public class ProductController {
         int chatRooms = chatService.countChatRoom(postId);
         model.addAttribute("product", product);
         model.addAttribute("chatRooms", chatRooms);
-        model.addAttribute("userId", customerUser.getUserId());
-        System.out.println("채팅방 수 : " + chatRooms);
+        // 로그인 안 된 사용자도 접근 가능하도록
+        if (customerUser != null) {
+            model.addAttribute("userId", customerUser.getUserId());
+        } else {
+            model.addAttribute("userId", 0); // 또는 "guest", 0, 등 처리 방식에 따라
+        }
         return "product/detail";
     }
 
@@ -100,7 +104,6 @@ public class ProductController {
     @GetMapping("/{postId}/edit")
     public String editProductForm(@PathVariable int postId, Model model) {
         UpdateProductDto productDto = productService.getProductByPostId(postId);
-        System.out.println("jenkins"); // 디버깅 로그 추가
         model.addAttribute("productDto", productDto);
         return "product/editForm";
     }

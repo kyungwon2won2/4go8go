@@ -42,18 +42,18 @@
     text-decoration: none;
     margin-left: 20px;
 }
-/* 기존 search-box 스타일 유지 */
-.search-box {
+/* 헤더 전용 search-box 스타일 */
+.header-search-box {
     position: relative;
     width: 400px;
 }
-.search-box input {
+.header-search-box input {
     width: 100%;
     padding: 10px 20px;
     border: 1px solid var(--primary-color);
     border-radius: 5px;
 }
-.search-box button {
+.header-search-box button {
     position: absolute;
     right: 10px;
     top: 50%;
