@@ -136,6 +136,7 @@
         SELECT p.post_id, p.title, u.nickname, p.view_count, p.comment_count, p.created_at
         FROM post p
         JOIN user u ON p.user_id = u.user_id
+        WHERE p.post_category_id = 2
         ORDER BY p.created_at DESC
         LIMIT #{limit} OFFSET #{offset}
     </select>
