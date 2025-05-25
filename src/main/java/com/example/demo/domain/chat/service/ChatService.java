@@ -3,7 +3,9 @@ package com.example.demo.domain.chat.service;
 import com.example.demo.domain.chat.dto.ChatMessageDto;
 import com.example.demo.domain.chat.dto.MyChatListResDto;
 import com.example.demo.domain.chat.model.*;
+import com.example.demo.domain.post.dto.ProductDetailDto;
 import com.example.demo.domain.post.service.ImageUploadService;
+import com.example.demo.domain.post.service.ProductService;
 import com.example.demo.domain.user.model.Users;
 import com.example.demo.mapper.*;
 import jakarta.persistence.EntityNotFoundException;
@@ -29,6 +31,8 @@ public class ChatService {
     private final ReadStatusMapper readStatusMapper;
     private final UserMapper userMapper;
     private final ImageUploadService imageUploadService;
+    private final ChatRoomPostMapper chatRoomPostMapper;
+    private final ProductService productService;
 
     //로그인한 유저 정보
     private Users getCurrentUser() {
@@ -256,10 +260,12 @@ public class ChatService {
     }
 
     //채팅방 나가기
-    public void leaveRoom(Long roomId) {
+    public ChatMessage leaveRoom(Long roomId) {
         try {
             Users user = getCurrentUser();
             log.info("채팅방 나가기: userId={}, roomId={}", user.getUserId(), roomId);
+
+            ChatMessage leaveMessage = null;
 
             ChatRoom room = chatRoomMapper.findById(roomId);
             if (room == null) {
@@ -278,7 +284,7 @@ public class ChatService {
                 chatRoomMapper.deleteById(roomId);
             } else {
                 // 나가기 메시지를 채팅방에 남김
-                ChatMessage leaveMessage = ChatMessage.builder()
+                leaveMessage = ChatMessage.builder()
                         .chatRoomId(roomId)
                         .userId(user.getUserId())
                         .content(user.getNickname() + "님이 채팅방을 나갔습니다.")
@@ -296,59 +302,149 @@ public class ChatService {
                     readStatusMapper.insert(readStatus);
                 }
             }
+            return leaveMessage;
         } catch (Exception e) {
             log.error("채팅방 나가기 중 오류 발생", e);
             throw e;
         }
+
     }
 
     //1:1 채팅방 조회&생성
     public Long getOrCreatePrivateRoom(int otherUserId) {
+        return getOrCreatePrivateRoom(otherUserId, 0);
+    }
+
+    //1:1 채팅방 조회&생성 (상품 ID 포함)
+    public Long getOrCreatePrivateRoom(int otherUserId, int postId) {
         try {
             Users me = getCurrentUser();
             Users other = userMapper.findById(otherUserId);
 
-            log.info("개인 채팅방 생성 또는 조회: 현재 사용자={}, 상대방={}", me.getUserId(), otherUserId);
+            log.info("개인 채팅방 생성 또는 조회: 현재 사용자={}, 상대방={}, 포스트ID={}", me.getUserId(), otherUserId, postId);
 
             if (other == null) {
                 log.error("상대방 사용자를 찾을 수 없음: {}", otherUserId);
                 throw new EntityNotFoundException("user not found");
             }
 
+            Long roomId = null;
+            boolean isNewRoom = false;
+            boolean isNewRelation = false;
+
             // 기존 채팅방 검색 - 양방향으로 검색
             Optional<Long> existingRoomId = chatParticipantMapper.findPrivateRoomBetweenUsers(me.getUserId(), other.getUserId());
             if (existingRoomId.isPresent()) {
-                log.info("기존 채팅방 발견: {}", existingRoomId.get());
-                return existingRoomId.get();
+                roomId = existingRoomId.get();
+                log.info("기존 채팅방 발견: {}", roomId);
+            } else {
+                // 다시 한번 반대 방향으로 검색 (혹시 DB 구현 문제로 순서가 중요한 경우)
+                existingRoomId = chatParticipantMapper.findPrivateRoomBetweenUsers(other.getUserId(), me.getUserId());
+                if (existingRoomId.isPresent()) {
+                    roomId = existingRoomId.get();
+                    log.info("기존 채팅방 발견(역방향): {}", roomId);
+                } else {
+                    // 새 채팅방 생성
+                    String roomName = me.getNickname() + "님과 " + other.getNickname() + "님의 대화";
+
+                    ChatRoom room = ChatRoom.builder()
+                            .isGroupChat("N")
+                            .roomName(roomName)
+                            .userId(me.getUserId())
+                            .postId(postId) // 기존 postId 필드는 유지 (DB 호환성을 위해)
+                            .build();
+
+                    chatRoomMapper.insert(room);
+                    roomId = room.getChatRoomId();
+                    log.info("새 채팅방 생성: roomId={}", roomId);
+
+                    // 두 참가자 추가
+                    addParticipantToRoom(roomId, me.getUserId());
+                    addParticipantToRoom(roomId, other.getUserId());
+                    isNewRoom = true;
+                }
             }
 
-            // 다시 한번 반대 방향으로 검색 (혹시 DB 구현 문제로 순서가 중요한 경우)
-            existingRoomId = chatParticipantMapper.findPrivateRoomBetweenUsers(other.getUserId(), me.getUserId());
-            if (existingRoomId.isPresent()) {
-                log.info("기존 채팅방 발견(역방향): {}", existingRoomId.get());
-                return existingRoomId.get();
+            // postId가 유효한 경우에만 (0이 아닌 경우) chat_room_post 테이블에 추가
+            if (postId > 0) {
+                // 이미 이 채팅방과 게시글의 연결이 있는지 확인
+                Optional<ChatRoomPost> existingRelation = 
+                        chatRoomPostMapper.findByChatRoomIdAndPostId(roomId, postId);
+                
+                if (!existingRelation.isPresent()) {
+                    // 없으면 새로 추가
+                    ChatRoomPost chatRoomPost = ChatRoomPost.builder()
+                            .chatRoomId(roomId)
+                            .postId(postId)
+                            .build();
+                    chatRoomPostMapper.insert(chatRoomPost);
+                    log.info("채팅방-게시글 관계 추가: roomId={}, postId={}", roomId, postId);
+                    isNewRelation = true;
+                    
+                    // 새로운 게시글 관계가 생성되었을 때 상품 정보를 메시지로 전송
+                    sendProductInfoMessage(roomId, postId, me.getUserId());
+                } else {
+                    log.info("채팅방-게시글 관계 이미 존재: roomId={}, postId={}", roomId, postId);
+                }
             }
 
-            // 새 채팅방 생성
-            String roomName = me.getNickname() + "님과 " + other.getNickname() + "님의 대화";
-
-            ChatRoom room = ChatRoom.builder()
-                    .isGroupChat("N")
-                    .roomName(roomName)
-                    .userId(me.getUserId())
-                    .build();
-
-            chatRoomMapper.insert(room);
-            log.info("새 채팅방 생성: roomId={}", room.getChatRoomId());
-
-            // 두 참가자 추가
-            addParticipantToRoom(room.getChatRoomId(), me.getUserId());
-            addParticipantToRoom(room.getChatRoomId(), other.getUserId());
-
-            return room.getChatRoomId();
+            return roomId;
         } catch (Exception e) {
             log.error("개인 채팅방 생성 중 오류 발생", e);
             throw e;
+        }
+    }
+    
+    // 상품 정보를 메시지로 전송하는 메서드
+    private void sendProductInfoMessage(Long roomId, int postId, Integer senderId) {
+        try {
+            // 상품 정보 조회
+            ProductDetailDto product = productService.getProductDetailByPostId(postId);
+            if (product == null) {
+                log.error("상품 정보를 찾을 수 없음: postId={}", postId);
+                return;
+            }
+            
+            // 상품 정보를 포함하는 메시지 생성
+            String imageUrl = "";
+            if (product.getImageUrls() != null && !product.getImageUrls().isEmpty()) {
+                imageUrl = product.getImageUrls().get(0);
+            }
+            
+            // 상품 정보 메시지 내용 구성
+            String content = String.format(
+                "📦 상품 정보\n" +
+                "제목: %s\n" +
+                "가격: %,d원",
+                product.getTitle(),
+                product.getPrice()
+            );
+            
+            // 메시지 생성 및 저장
+            ChatMessage message = ChatMessage.builder()
+                    .chatRoomId(roomId)
+                    .userId(senderId)
+                    .content(content)
+                    .messageType("PRODUCT_INFO")
+                    .imageUrl(imageUrl)
+                    .build();
+            
+            chatMessageMapper.insert(message);
+            log.info("상품 정보 메시지 저장: messageId={}, postId={}", message.getMessageId(), postId);
+            
+            // 채팅방 참가자들의 읽음 상태 생성
+            List<ChatParticipant> participants = chatParticipantMapper.findByChatRoomId(roomId);
+            for (ChatParticipant p : participants) {
+                ReadStatus readStatus = ReadStatus.builder()
+                        .chatRoomId(roomId)
+                        .messageId(message.getMessageId())
+                        .userId(p.getUserId())
+                        .isRead(p.getUserId().equals(senderId)) // 발신자는 읽음 처리
+                        .build();
+                readStatusMapper.insert(readStatus);
+            }
+        } catch (Exception e) {
+            log.error("상품 정보 메시지 전송 중 오류 발생", e);
         }
     }
 
@@ -364,5 +460,10 @@ public class ChatService {
     //이미지 조회
     public List<ChatImage> getMessageImages(Long messageId) {
             return imageUploadService.getChatImagesByMessage(messageId);
+    }
+
+    //해당 글에 연결된 채팅방의 개수
+    public int countChatRoom(int postId) {
+        return chatRoomPostMapper.countChatRoomsByPostId(postId);
     }
 }

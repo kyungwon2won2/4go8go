@@ -93,6 +93,7 @@ public class ChatMessageController {
                         if (chatParticipant.getHasEntered() == null || !chatParticipant.getHasEntered()) {
                             // RabbitMQ용 destination으로 입장 메시지 브로드캐스팅
                             messagingTemplate.convertAndSend("/topic/chat.room." + message.getRoomId(), message);
+                            log.info("입장 메시지 전송 완료: roomId={}, user={}", message.getRoomId(), email);
                             
                             // 입장 상태 업데이트
                             chatParticipantMapper.updateHasEntered(message.getRoomId(), user.getUserId(), true);
@@ -155,6 +156,7 @@ public class ChatMessageController {
                 
                 // RabbitMQ용 destination으로 메시지 브로드캐스팅
                 messagingTemplate.convertAndSend("/topic/chat.room." + message.getRoomId(), message);
+                log.info("메시지 브로드캐스트 완료: roomId={}, message={}", message.getRoomId(), message.getMessage());
                 
                 // 참가자들에게 읽지 않은 메시지 개수 업데이트 알림
                 broadcastUnreadCountUpdates(message.getRoomId());

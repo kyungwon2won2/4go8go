@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.mapper.ChatRoomPostMapper">
+
+    <resultMap id="chatRoomPostResultMap" type="com.example.demo.domain.chat.model.ChatRoomPost">
+        <id property="id" column="id"/>
+        <result property="chatRoomId" column="chat_room_id"/>
+        <result property="postId" column="post_id"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO chat_room_post (chat_room_id, post_id, created_at)
+        VALUES (#{chatRoomId}, #{postId}, NOW())
+    </insert>
+
+    <select id="findByChatRoomIdAndPostId" resultMap="chatRoomPostResultMap">
+        SELECT * FROM chat_room_post 
+        WHERE chat_room_id = #{chatRoomId} AND post_id = #{postId}
+        LIMIT 1
+    </select>
+
+    <select id="findByChatRoomId" resultMap="chatRoomPostResultMap">
+        SELECT * FROM chat_room_post WHERE chat_room_id = #{chatRoomId}
+    </select>
+
+    <select id="findByPostId" resultMap="chatRoomPostResultMap">
+        SELECT * FROM chat_room_post WHERE post_id = #{postId}
+    </select>
+
+    <select id="countChatRoomsByPostId" resultType="int">
+        SELECT COUNT(DISTINCT chat_room_id) 
+        FROM chat_room_post 
+        WHERE post_id = #{postId}
+    </select>
+
+</mapper>

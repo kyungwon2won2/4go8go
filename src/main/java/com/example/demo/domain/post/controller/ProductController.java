@@ -1,5 +1,6 @@
 package com.example.demo.domain.post.controller;
 
+import com.example.demo.domain.chat.service.ChatService;
 import com.example.demo.domain.post.dto.CreateProductDto;
 import com.example.demo.domain.post.dto.ProductDetailDto;
 import com.example.demo.domain.post.dto.ProductListDto;
@@ -24,6 +25,7 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private final ChatService chatService;
 
     // 상품 list 가져오기
     @GetMapping
@@ -47,9 +49,13 @@ public class ProductController {
 
     // 상품 상세 페이지
     @GetMapping("/{postId}")
-    public String productDetail(@PathVariable int postId, Model model) {
+    public String productDetail(@PathVariable int postId, Model model, @AuthenticationPrincipal CustomerUser customerUser) {
         ProductDetailDto product = productService.getProductDetailByPostId(postId);
+        int chatRooms = chatService.countChatRoom(postId);
         model.addAttribute("product", product);
+        model.addAttribute("chatRooms", chatRooms);
+        model.addAttribute("userId", customerUser.getUserId());
+        System.out.println("채팅방 수 : " + chatRooms);
         return "product/detail";
     }
 

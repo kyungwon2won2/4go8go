@@ -4,6 +4,9 @@
 
 <head>
   <meta charset="UTF-8">
+  <meta name="_csrf" th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  <meta name="current-user-id" th:content="${userId}" />
   <title th:text="${product.title} + ' - 상품 상세보기'">상품 상세보기</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -12,9 +15,13 @@
   <link rel="stylesheet" type="text/css" th:href="@{/css/footer.css}" />
   <link rel="stylesheet" type="text/css" th:href="@{/css/notification.css}" />
   <style>
+    :root {
+      --kurly-purple: #5f0080;
+    }
     body { background: #fafbfc; }
     .breadcrumb-custom {
       background: none;
+      font-size: 0.98rem;
       margin-top: 24px;
       margin-bottom: 0;
       padding-left: 0;
@@ -186,9 +193,9 @@
     <div class="product-desc" th:text="${product.content}">상품 설명</div>
 
     <div class="product-interaction">
-      <span><i class="bi bi-chat"></i> 채팅 0</span>
+      <span><i class="bi bi-chat"></i> 채팅 <span th:text="${chatRooms ?: 0}">0</span></span>
       <span><i class="bi bi-heart"></i> 관심 0</span>
-      <span><i class="bi bi-eye"></i> 조회 0</span>
+      <span><i class="bi bi-eye"></i> 조회 <span th:text="${product.viewCount ?: 0}">0</span></span>
     </div>
     <!-- 유저 정보(판매자 정보) - 채팅/관심/조회 밑, 수정/삭제 버튼 위 -->
     <div class="seller-inline-row">
@@ -215,6 +222,15 @@
 
     </div>
 
+    <!-- 판매자가 아닐 경우 채팅하기 버튼 표시 -->
+    <button class="btn main-action-btn mb-3"
+            th:if="${product.userId != userId}"
+            th:data-post-user-id="${product.userId}"
+            th:data-post-id="${product.postId}"
+            onclick="startPrivateChat(this)">
+      <i class="bi bi-chat-dots-fill me-2"></i>판매자와 채팅하기
+    </button>
+
   </div>
 </div>
 
@@ -224,6 +240,41 @@
     <i class="bi bi-list"></i> 목록으로 돌아가기
   </a>
 </div>
+
+<!-- 채팅 기능 스크립트 -->
+<script>
+  function startPrivateChat(button) {
+    const postUserId = button.getAttribute('data-post-user-id');
+    const postId = button.getAttribute('data-post-id')
+    console.log('postId:', postId);  // 이 값이 0인지 확인
+    console.log('채팅 시작: 글 작성자 ID =', postUserId);
+
+    const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+    fetch('/chat/room/private/create?otherMemberId=' + postUserId + '&postId=' + postId, {
+      method: 'POST',
+      headers: {
+        [csrfHeader]: csrfToken
+      }
+    })
+            .then(response => {
+              if (!response.ok) {
+                console.error('응답 상태:', response.status);
+                throw new Error('채팅방 생성 실패');
+              }
+              return response.json();
+            })
+            .then(roomId => {
+              console.log('생성된 채팅방 ID:', roomId);
+              window.location.href = '/chat/room/' + roomId;
+            })
+            .catch(error => {
+              console.error('채팅방 생성 오류:', error);
+              alert('채팅방 이동에 실패했습니다. 다시 시도해주세요.');
+            });
+  }
+</script>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

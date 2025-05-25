@@ -48,6 +48,37 @@
             background-color: white;
         }
 
+        /* 채팅방 선택 전 안내 화면 스타일 */
+        .empty-chat-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .empty-chat-icon {
+            margin-bottom: 20px;
+        }
+
+        .empty-chat-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .empty-chat-description {
+            color: #777;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .empty-chat-link {
+            text-decoration: none;
+        }
+
         .chat-header {
             border-bottom: 1px solid #eee;
             padding-bottom: 1rem;
@@ -181,6 +212,9 @@
             border-radius: 4px;
             font-size: 0.8rem;
             margin-bottom: 10px;
+            width: 100%; /* 좌우로 꽉 차게 */
+            text-align: center; /* 텍스트는 가운데 정렬 */
+            margin: 10px 0;
         }
 
         .connected {
@@ -302,6 +336,13 @@
             background-color: #ff6b6b;
             color: white;
         }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
@@ -312,12 +353,12 @@
     <div class="chat-container">
         <!-- 왼쪽: 채팅방 목록 -->
         <div class="sidebar">
-            <h3>4go8go TALK</h3>
+            <img src="/image/talk_logo.png" alt="4고8고 톡톡" height="50" style="margin-bottom: 10px">
             <div id="connectionStatus" class="connection-status disconnected">연결 중...</div>
             <ul class="chat-room-list" id="roomList"></ul>
         </div>
 
-        <!-- 오른쪽: 채팅창 -->
+        <!-- 오른쪽: 채팅창 또는 대기 화면 -->
         <div class="chat-window">
             <div class="chat-header">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -339,13 +380,20 @@
                     </div>
                     <div class="modal-body">
                         정말로 이 채팅방을 나가시겠습니까? <br>
-                        (재입장시, 대화 내용은 유지됩니다)
+                        (해당 방의 대화 내용은 삭제됩니다.)
                     </div>
                     <div class="modal-footer">
                         <button class="modal-btn modal-btn-cancel" onclick="closeLeaveRoomModal()">취소</button>
                         <button class="modal-btn modal-btn-confirm" onclick="confirmLeaveRoom()">나가기</button>
                     </div>
                 </div>
+            </div>
+
+            <div id="noRoomSelectedMessage" style="display: none; text-align: center; color: #888; font-size: 1.1rem; padding: 50px;">
+                <div style="font-size: 48px; margin-bottom: 20px; color: #ccc;">
+                    <i class="bi bi-chat-dots"></i>
+                </div>
+                <div>채팅방을 선택해주세요.</div>
             </div>
 
             <div id="chatBox" class="chat-box"></div>
@@ -361,6 +409,23 @@
                 <button type="submit">전송</button>
             </form>
         </div>
+
+<!--        &lt;!&ndash; 채팅방 선택 전 안내 화면 &ndash;&gt;-->
+<!--        <div class="chat-window no-room-selected">-->
+<!--            <div class="empty-chat-container">-->
+<!--                <div class="empty-chat-icon">-->
+<!--                    <i class="fas fa-comments" style="font-size: 5rem; color: #ddd;"></i>-->
+<!--                </div>-->
+<!--                <h3 class="empty-chat-title">채팅방을 선택해주세요</h3>-->
+<!--                <p class="empty-chat-description">-->
+<!--                    왼쪽 목록에서 채팅방을 선택하여 대화를 시작하세요.<br>-->
+<!--                    채팅방이 없다면 상품 상세 페이지에서 채팅을 시작할 수 있습니다.-->
+<!--                </p>-->
+<!--                <a href="/" class="empty-chat-link">-->
+<!--                    <button class="kurly-btn-primary">상품 둘러보기</button>-->
+<!--                </a>-->
+<!--            </div>-->
+<!--        </div>-->
     </div>
 </div>
 
@@ -368,6 +433,9 @@
     // Thymeleaf로부터 데이터 가져오기
     const roomId = /*[[${roomId}]]*/ null;
     const userEmail = /*[[${username}]]*/ 'anonymous';
+
+    // 채팅방이 선택되었는지 확인 (null, undefined, 'null', 'undefined' 등의 경우 처리)
+    const isRoomSelected = roomId && roomId !== 'null' && roomId !== 'undefined';
 
     // 연결 상태 표시
     const connectionStatus = document.getElementById('connectionStatus');
@@ -383,8 +451,44 @@
             .then(rooms => {
                 updateChatRoomList(rooms);
             })
-            .catch(() => {
-                // 조용히 오류 처리
+            .catch(err => {
+                console.error('채팅방 목록 로드 실패:', err);
+            });
+    }
+
+    // 메시지 읽음 처리
+    function markMessagesAsRead(roomId) {
+        if (!roomId || roomId === 'null' || roomId === 'undefined') return;
+
+        fetch(`/chat/room/${roomId}/read`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || ''
+            }
+        })
+            .then(response => {
+                if (response.ok) {
+                    // 채팅 아이콘 초기화
+                    resetChatIconInParentWindow();
+
+                    // 채팅방 목록 새로고침
+                    loadChatRooms();
+
+                    // 채팅방 관련 알림 읽음 처리
+                    fetch(`/api/notifications/chat/${roomId}/read-all`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || ''
+                        }
+                    }).catch(err => console.warn('알림 읽음 처리 오류:', err));
+                } else {
+                    console.warn('메시지 읽음 처리 실패:', response.status);
+                }
+            })
+            .catch(err => {
+                console.error('메시지 읽음 처리 오류:', err);
             });
     }
 
@@ -439,27 +543,10 @@
             roomList.appendChild(li);
         });
 
-        console.log('채팅방 목록 업데이트 - 읽지 않은 메시지 총합:', totalUnread, '현재 방 읽지 않은 메시지:', hasUnreadInCurrentRoom);
-
         // 1. 현재 채팅방의 메시지는 자동으로 읽음 처리됨
-        if (hasUnreadInCurrentRoom) {
+        if (hasUnreadInCurrentRoom && isRoomSelected) {
             // 현재 채팅방에 읽지 않은 메시지가 있으면 읽음 처리 요청
-            fetch(`/chat/room/${roomId}/read`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || ''
-                }
-            })
-                .then(response => {
-                    if (response.ok) {
-                        console.log('채팅방 메시지 읽음 처리 성공');
-                        // 채팅방 목록 새로고침 (다시 목록을 가져와서 업데이트)
-                        loadChatRooms();
-                    }
-                })
-                .catch(err => console.warn('메시지 읽음 처리 오류:', err));
-
+            markMessagesAsRead(roomId);
             return; // 읽기 처리 후 목록이 다시 업데이트되므로 여기서 종료
         }
 
@@ -474,7 +561,6 @@
     // 부모 창의 채팅 아이콘 업데이트
     function updateChatIconInParentWindow(hasNew) {
         try {
-            console.log('부모 창의 채팅 아이콘 업데이트 시도, 상태:', hasNew);
 
             // 1. window.parent.updateChatIcon 함수가 있으면 사용
             if (window.parent && typeof window.parent.updateChatIcon === 'function') {
@@ -512,140 +598,118 @@
 
     // 부모 창의 채팅 아이콘 초기화
     function resetChatIconInParentWindow() {
-        console.log('부모 창의 채팅 아이콘 초기화 시도');
         updateChatIconInParentWindow(false);
     }
 
     // STOMP 클라이언트 연결
     function connect() {
-        const socket = new SockJS('/ws');
-        stompClient = Stomp.over(socket);
+        try {
+            const socket = new SockJS('/ws');
+            stompClient = Stomp.over(socket);
 
-        // CSRF 토큰 가져오기
-        const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
-        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
+            // CSRF 토큰 가져오기
+            const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
 
-        // 연결 헤더 설정
-        const headers = {};
-        headers[csrfHeader] = csrfToken;
-        headers['username'] = userEmail;  // 명시적으로 사용자 이메일 전달
+            // 연결 헤더 설정
+            const headers = {};
+            headers[csrfHeader] = csrfToken;
+            headers['username'] = userEmail;  // 명시적으로 사용자 이메일 전달
 
-        stompClient.connect(headers, function (frame) {
-            connectionStatus.textContent = '연결됨';
-            connectionStatus.className = 'connection-status connected';
+            stompClient.connect(headers, function (frame) {
+                console.log('웹소켓 연결 성공:', frame);
+                connectionStatus.textContent = '연결됨';
+                connectionStatus.className = 'connection-status connected';
 
-            // 채팅방 구독 - RabbitMQ용 경로
-            stompClient.subscribe('/topic/chat.room.' + roomId, function (message) {
-                const messageData = JSON.parse(message.body);
+                // 읽지 않은 메시지 개수 업데이트 구독 - RabbitMQ용 경로 (항상 구독)
+                stompClient.subscribe('/queue/user.' + userEmail + '.unread', function (message) {
+                    //console.log('읽지 않은 메시지 업데이트 수신');
+                    // 읽지 않은 메시지 목록으로 채팅방 목록 업데이트
+                    const rooms = JSON.parse(message.body);
+                    updateChatRoomList(rooms);
+                }, {'username': userEmail});
 
-                // 시스템 메시지 처리 (입장, 퇴장)
-                if (messageData.message === "입장했습니다." ||
-                    (messageData.message && messageData.message.includes("님이 채팅방을 나갔습니다."))) {
-                    const systemMessage = document.createElement('div');
-                    systemMessage.style.textAlign = 'center';
-                    systemMessage.style.color = '#888';
-                    systemMessage.style.margin = '10px 0';
-                    systemMessage.style.fontSize = '0.9rem';
-                    systemMessage.style.padding = '8px';
-                    systemMessage.style.backgroundColor = '#f9f9f9';
-                    systemMessage.style.borderRadius = '12px';
-                    systemMessage.style.border = '1px solid #e0e0e0';
+                // 채팅방 목록 로드 (연결 성공 후 항상 실행)
+                //console.log('채팅방 목록 로드 시작');
+                loadChatRooms();
 
-                    if (messageData.message === "입장했습니다.") {
-                        systemMessage.textContent = messageData.senderNickname + "님이 입장했습니다.";
-                    } else {
-                        // 퇴장 메시지는 이미 완성된 형태로 온다
-                        systemMessage.textContent = messageData.message;
-                    }
-
-                    chatBox.appendChild(systemMessage);
-                } else {
-                    // 일반 메시지는 정상 표시
-                    displayMessage(messageData);
+                // roomId가 유효하지 않으면 채팅방 관련 기능은 활성화하지 않음
+                if (!isRoomSelected) {
+                    console.log('유효하지 않은 채팅방 ID, 채팅방 목록만 로드');
+                    return;
                 }
 
-                // 현재 채팅방에 있으므로 새 메시지 자동 읽음 처리
-                if (messageData.senderEmail !== userEmail) {
-                    fetch(`/chat/room/${roomId}/read`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || ''
-                        }
-                    })
-                        .then(response => {
-                            if (response.ok) {
-                                // 채팅 아이콘 초기화
-                                try {
-                                    resetChatIconInParentWindow();
-                                } catch (e) {
-                                    console.warn('채팅 아이콘 초기화 실패 (무시됨):', e);
-                                }
+                // 유효한 roomId가 있는 경우에만 채팅방 관련 기능 활성화
+                // 채팅방 구독 - RabbitMQ용 경로
+                stompClient.subscribe('/topic/chat.room.' + roomId, function (message) {
+                    console.log('메시지 수신:', message.body);
+                    try {
+                        const messageData = JSON.parse(message.body);
+                        const messageContent = messageData.message || messageData.content || '';
+
+                        // 시스템 메시지 처리 (입장, 퇴장)
+                        if (messageData.message === "입장했습니다." ||
+                            messageContent.includes('나갔습니다') ||
+                            messageContent.includes('채팅방을 나가')) {
+
+                            const systemMessage = document.createElement('div');
+                            systemMessage.style.textAlign = 'center';
+                            systemMessage.style.color = '#888';
+                            systemMessage.style.margin = '10px 0';
+                            systemMessage.style.fontSize = '0.9rem';
+                            systemMessage.style.padding = '8px';
+                            systemMessage.style.backgroundColor = '#f9f9f9';
+                            systemMessage.style.borderRadius = '12px';
+                            systemMessage.style.border = '1px solid #e0e0e0';
+
+                            if (messageData.message === "입장했습니다.") {
+                                systemMessage.textContent = messageData.senderNickname + "님이 입장했습니다.";
+                            } else {
+                                // 이미 완성된 퇴장 메시지인지 확인
+                                systemMessage.textContent = messageContent;
                             }
-                        })
-                        .catch(() => {
-                            // 읽음 처리 실패시 조용히 오류 처리
-                        });
-                }
 
-                // 스크롤을 최신 메시지 위치로
-                chatBox.scrollTop = chatBox.scrollHeight;
-            });
+                            chatBox.appendChild(systemMessage);
 
-            // 읽지 않은 메시지 개수 업데이트 구독 - RabbitMQ용 경로
-            stompClient.subscribe('/queue/user.' + userEmail + '.unread', function (message) {
-                // 읽지 않은 메시지 목록으로 채팅방 목록 업데이트
-                const rooms = JSON.parse(message.body);
-                updateChatRoomList(rooms);
-            }, {'username': userEmail});
-
-            // 채팅방 입장 메시지 전송 - RabbitMQ용 경로
-            stompClient.send("/app/chat/enter", {'username': userEmail}, JSON.stringify({
-                roomId: roomId,
-                senderEmail: userEmail,
-                message: "입장했습니다."
-            }));
-
-            // roomId가 유효한지 확인
-            if (!roomId || roomId === 'null' || roomId === 'undefined') {
-                console.error('유효하지 않은 채팅방 ID:', roomId);
-                return;
-            }
-
-            // 메시지 읽음 처리
-            fetch(`/chat/room/${roomId}/read`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || ''
-                }
-            })
-                .then(response => {
-                    if (response.ok) {
-                        console.log('초기 메시지 읽음 처리 완료');
-
-                        // 채팅방 목록 새로고침
-                        setTimeout(loadChatRooms, 500);
-
-                        // 채팅방 관련 알림 읽음 처리
-                        if (roomId) {
-                            fetch(`/api/notifications/chat/${roomId}/read-all`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || ''
-                                }
-                            });
+                            // 스크롤을 최신 메시지 위치로
+                            chatBox.scrollTop = chatBox.scrollHeight;
+                        } else {
+                            // 일반 메시지는 정상 표시
+                            displayMessage(messageData);
                         }
+
+                        // 현재 채팅방에 있으므로 새 메시지 자동 읽음 처리
+                        if (messageData.senderEmail !== userEmail) {
+                            markMessagesAsRead(roomId);
+                        }
+                    } catch (err) {
+                        console.error('메시지 처리 중 오류:', err);
                     }
                 });
 
-            // 채팅 이력 로드
-            loadChatHistory();
-        }, function (error) {
-            connectionStatus.textContent = '연결 실패. 새로고침 해주세요.';
+                // 채팅방 입장 메시지 전송 - RabbitMQ용 경로
+                console.log('채팅방 입장 메시지 전송:', roomId);
+                stompClient.send("/app/chat/enter", {'username': userEmail}, JSON.stringify({
+                    roomId: roomId,
+                    senderEmail: userEmail,
+                    message: "입장했습니다."
+                }));
+
+                // 메시지 읽음 처리
+                markMessagesAsRead(roomId);
+
+                // 채팅 이력 로드
+                loadChatHistory();
+            }, function (error) {
+                console.error('웹소켓 연결 실패:', error);
+                connectionStatus.textContent = '연결 실패. 새로고침 해주세요.';
+                connectionStatus.className = 'connection-status disconnected';
+            });
+        } catch (e) {
+            console.error('웹소켓 연결 중 예외 발생:', e);
+            connectionStatus.textContent = '연결 오류. 새로고침 해주세요.';
             connectionStatus.className = 'connection-status disconnected';
-        });
+        }
     }
 
     // 마지막으로 메시지를 보낸 사용자의 이메일
@@ -674,6 +738,43 @@
 
     // 메시지 표시
     function displayMessage(message) {
+        // console.log('메시지 표시:', message);
+
+        // 필수 데이터 확인
+        if (!message) {
+            console.error('메시지 객체가 없음');
+            return;
+        }
+
+        // 퇴장 메시지 확인 및 시스템 메시지로 처리
+        const messageContent = message.message || message.content || '';
+        if (messageContent.includes('나갔습니다') || messageContent.includes('채팅방을 나가')) {
+            // 시스템 메시지로 표시
+            const systemMessage = document.createElement('div');
+            systemMessage.style.textAlign = 'center';
+            systemMessage.style.color = '#888';
+            systemMessage.style.margin = '10px 0';
+            systemMessage.style.fontSize = '0.9rem';
+            systemMessage.style.padding = '8px';
+            systemMessage.style.backgroundColor = '#f9f9f9';
+            systemMessage.style.borderRadius = '12px';
+            systemMessage.style.border = '1px solid #e0e0e0';
+
+            systemMessage.textContent = messageContent;
+
+            chatBox.appendChild(systemMessage);
+            chatBox.scrollTop = chatBox.scrollHeight;
+            return; // 퇴장 메시지는 여기서 처리 완료
+        }
+
+        // 이미지가 아니고 메시지 내용이 없으면 표시하지 않음
+        if (!messageContent && !(message.messageType === 'IMAGE' && message.imageUrl)) {
+            console.warn('메시지 내용이 없음:', message);
+            if (message.messageType !== 'IMAGE' || !message.imageUrl) {
+                return;
+            }
+        }
+
         // 날짜 확인 및 표시 (기존 코드 유지)
         if (message.sentAt) {
             const messageDate = new Date(message.sentAt);
@@ -770,6 +871,29 @@
                          onclick="showImageModal('${message.imageUrl}')"
                          onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=\\'padding: 8px 12px; background-color: #5f0080; color: white; border-radius: 18px;\\'>이미지를 불러올 수 없습니다.</div>'">
                 `;
+            } else if (message.messageType === 'PRODUCT_INFO') {
+                // 상품 정보 메시지 표시
+                messageContent.style.backgroundColor = '#f5f0ff';
+                messageContent.style.borderColor = '#e6d6ff';
+                messageContent.style.border = '1px solid #e6d6ff';
+                messageContent.style.padding = '12px';
+                messageContent.style.maxWidth = '300px';
+
+                // 상품 정보 카드 형태로 표시 - 이미지 위, 텍스트 아래
+                if (message.imageUrl) {
+                    messageContent.innerHTML = `
+                        <div style="display: flex; flex-direction: column;">
+                            <img src="${message.imageUrl}"
+                                 style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 4px; margin-bottom: 8px;"
+                                 onerror="this.style.display='none'">
+                            <div style="font-weight: bold; color: #000000; white-space: pre-line;">${message.message || message.content}</div>
+                        </div>
+                    `;
+                } else {
+                    messageContent.innerHTML = `
+                        <div style="font-weight: bold; color: #000000; white-space: pre-line;">${message.message || message.content}</div>
+                    `;
+                }
             } else {
                 // 기존 텍스트 메시지 처리
                 messageContent.textContent = message.message || message.content;
@@ -811,6 +935,29 @@
                          onclick="showImageModal('${message.imageUrl}')"
                          onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=\\'padding: 8px 12px; background-color: #f1f1f1; color: #333; border-radius: 18px;\\'>이미지를 불러올 수 없습니다.</div>'">
                 `;
+            } else if (message.messageType === 'PRODUCT_INFO') {
+                // 상품 정보 메시지 표시
+                messageContent.style.backgroundColor = '#f5f0ff';
+                messageContent.style.borderColor = '#e6d6ff';
+                messageContent.style.border = '1px solid #e6d6ff';
+                messageContent.style.padding = '12px';
+                messageContent.style.maxWidth = '300px';
+
+                // 상품 정보 카드 형태로 표시 - 이미지 위, 텍스트 아래
+                if (message.imageUrl) {
+                    messageContent.innerHTML = `
+                        <div style="display: flex; flex-direction: column;">
+                            <img src="${message.imageUrl}"
+                                 style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 4px; margin-bottom: 8px;"
+                                 onerror="this.style.display='none'">
+                            <div style="font-weight: bold; color: #000000; white-space: pre-line;">${message.message || message.content}</div>
+                        </div>
+                    `;
+                } else {
+                    messageContent.innerHTML = `
+                        <div style="font-weight: bold; color: #000000; white-space: pre-line;">${message.message || message.content}</div>
+                    `;
+                }
             } else {
                 // 기존 텍스트 메시지 처리
                 messageContent.textContent = message.message || message.content;
@@ -837,61 +984,72 @@
             messageElement.appendChild(messageWithTimeContainer);
         }
 
-        // 이미지 확대보기 모달
-        function showImageModal(imageUrl) {
-            const modalHtml = `
-            <div id="imageModal" style="
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.8);
-                z-index: 10000;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            " onclick="closeImageModal()">
-                <div style="position: relative; max-width: 90%; max-height: 90%;">
-                    <img src="${imageUrl}" style="
-                        max-width: 100%;
-                        max-height: 100%;
-                        border-radius: 8px;
-                        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-                    ">
-                    <button onclick="closeImageModal()" style="
-                        position: absolute;
-                        top: 10px;
-                        right: 10px;
-                        background: rgba(0,0,0,0.7);
-                        color: white;
-                        border: none;
-                        border-radius: 50%;
-                        width: 40px;
-                        height: 40px;
-                        font-size: 20px;
-                        cursor: pointer;
-                    ">&times;</button>
-                </div>
-            </div>
-        `;
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-        }
-
-        function closeImageModal() {
-            const modal = document.getElementById('imageModal');
-            if (modal) modal.remove();
-        }
-
         chatBox.appendChild(messageElement);
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
+    // 이미지 확대보기 모달 표시
+    function showImageModal(imageUrl) {
+        const modalHtml = `
+        <div id="imageModal" style="
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        " onclick="closeImageModal()">
+            <div style="position: relative; max-width: 90%; max-height: 90%;">
+                <img src="${imageUrl}" style="
+                    max-width: 100%;
+                    max-height: 100%;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+                ">
+                <button onclick="closeImageModal()" style="
+                    position: absolute;
+                    top: 10px;
+                    right: 10px;
+                    background: rgba(0,0,0,0.7);
+                    color: white;
+                    border: none;
+                    border-radius: 50%;
+                    width: 40px;
+                    height: 40px;
+                    font-size: 20px;
+                    cursor: pointer;
+                ">&times;</button>
+            </div>
+        </div>
+    `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+
+    // 이미지 모달 닫기
+    function closeImageModal() {
+        const modal = document.getElementById('imageModal');
+        if (modal) modal.remove();
+    }
+
     // 채팅 이력 로드
     function loadChatHistory() {
+        if (!isRoomSelected) {
+            return;
+        }
+
         fetch(`/chat/history/${roomId}`)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('채팅 이력 로드 실패: ' + response.status);
+                }
+                return response.json();
+            })
             .then(messages => {
+                console.log('채팅 이력 로드 성공:', messages.length + '개 메시지');
                 chatBox.innerHTML = ''; // 기존 메시지 초기화
                 lastSenderEmail = null; // 마지막 발신자 초기화
                 lastMessageDate = null; // 마지막 메시지 날짜 초기화
@@ -902,8 +1060,8 @@
 
                 chatBox.scrollTop = chatBox.scrollHeight;
             })
-            .catch(() => {
-                // 조용히 오류 처리
+            .catch(err => {
+                console.error('채팅 이력 로드 오류:', err);
             });
     }
 
@@ -922,7 +1080,7 @@
                 return;
             }
 
-            // 2. 업로드 버튼 비활성화 (중복 선택 방지)
+// 2. 업로드 버튼 비활성화 (중복 선택 방지)
             const attachBtn = document.getElementById('imageAttachBtn');
             attachBtn.disabled = true;
             attachBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
@@ -952,64 +1110,64 @@
         reader.onload = function (e) {
             const fileSize = formatFileSize(file.size);
             const previewHtml = `
-            <div id="imagePreview" style="
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: white;
-                padding: 20px;
-                border-radius: 8px;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-                z-index: 1000;
-                max-width: 400px;
-            ">
-                <div style="text-align: center;">
-                    <img src="${e.target.result}" style="
-                        max-width: 100%;
-                        max-height: 300px;
-                        border-radius: 4px;
-                        border: 1px solid #ddd;
-                    ">
-                    <div style="margin-top: 10px;">
-                        <p style="margin: 5px 0; font-size: 14px; color: #666; word-break: break-all;">
-                            ${file.name}
-                        </p>
-                        <p style="margin: 5px 0; font-size: 12px; color: #888;">
-                            크기: ${fileSize}
-                        </p>
-                        <div style="margin-top: 15px;">
-                            <button id="sendImageBtn" onclick="sendImageMessage('${e.target.result}')" style="
-                                margin-right: 10px;
-                                background: #5f0080;
-                                color: white;
-                                border: none;
-                                padding: 8px 16px;
-                                border-radius: 4px;
-                                cursor: pointer;
-                            ">전송</button>
-                            <button onclick="closeImagePreview()" style="
-                                background: #ccc;
-                                color: #333;
-                                border: none;
-                                padding: 8px 16px;
-                                border-radius: 4px;
-                                cursor: pointer;
-                            ">취소</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div id="imagePreviewBackdrop" style="
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.5);
-                z-index: 999;
-            " onclick="closeImagePreview()"></div>
-        `;
+           <div id="imagePreview" style="
+               position: fixed;
+               top: 50%;
+               left: 50%;
+               transform: translate(-50%, -50%);
+               background: white;
+               padding: 20px;
+               border-radius: 8px;
+               box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+               z-index: 1000;
+               max-width: 400px;
+           ">
+               <div style="text-align: center;">
+                   <img src="${e.target.result}" style="
+                       max-width: 100%;
+                       max-height: 300px;
+                       border-radius: 4px;
+                       border: 1px solid #ddd;
+                   ">
+                   <div style="margin-top: 10px;">
+                       <p style="margin: 5px 0; font-size: 14px; color: #666; word-break: break-all;">
+                           ${file.name}
+                       </p>
+                       <p style="margin: 5px 0; font-size: 12px; color: #888;">
+                           크기: ${fileSize}
+                       </p>
+                       <div style="margin-top: 15px;">
+                           <button id="sendImageBtn" onclick="sendImageMessage('${e.target.result}')" style="
+                               margin-right: 10px;
+                               background: #5f0080;
+                               color: white;
+                               border: none;
+                               padding: 8px 16px;
+                               border-radius: 4px;
+                               cursor: pointer;
+                           ">전송</button>
+                           <button onclick="closeImagePreview()" style="
+                               background: #ccc;
+                               color: #333;
+                               border: none;
+                               padding: 8px 16px;
+                               border-radius: 4px;
+                               cursor: pointer;
+                           ">취소</button>
+                       </div>
+                   </div>
+               </div>
+           </div>
+           <div id="imagePreviewBackdrop" style="
+               position: fixed;
+               top: 0;
+               left: 0;
+               width: 100%;
+               height: 100%;
+               background: rgba(0,0,0,0.5);
+               z-index: 999;
+           " onclick="closeImagePreview()"></div>
+       `;
 
             document.body.insertAdjacentHTML('beforeend', previewHtml);
         };
@@ -1028,7 +1186,6 @@
         if (preview) preview.remove();
         if (backdrop) backdrop.remove();
     }
-
 
     // 완전히 구현된 sendImageMessage 함수
     async function sendImageMessage(imageDataUrl) {
@@ -1109,11 +1266,11 @@
             const loadingDiv = document.createElement('div');
             loadingDiv.id = 'uploadLoading';
             loadingDiv.innerHTML = `
-            <div style="text-align: center; margin-top: 10px;">
-                <div class="spinner"></div>
-                <p>이미지 업로드 중...</p>
-            </div>
-        `;
+           <div style="text-align: center; margin-top: 10px;">
+               <div class="spinner"></div>
+               <p>이미지 업로드 중...</p>
+           </div>
+       `;
             preview.appendChild(loadingDiv);
         }
     }
@@ -1193,7 +1350,14 @@
 
         if (!message) return;
 
+        // roomId가 유효하지 않으면 메시지 전송 불가
+        if (!isRoomSelected) {
+            alert('채팅방을 선택해주세요.');
+            return;
+        }
+
         if (stompClient && stompClient.connected) {
+            console.log('메시지 전송:', message);
             const chatMessage = {
                 roomId: roomId,
                 senderEmail: userEmail,
@@ -1203,16 +1367,33 @@
             stompClient.send("/app/chat/message", {'username': userEmail}, JSON.stringify(chatMessage));
             messageInput.value = '';
         } else {
+            console.error('연결 상태:', stompClient ? '클라이언트 있음' : '클라이언트 없음',
+                stompClient ? (stompClient.connected ? '연결됨' : '연결 안됨') : '');
             alert('연결이 끊어졌습니다. 페이지를 새로고침 해주세요.');
         }
     });
 
     // 페이지 로드 시 실행
     window.onload = function () {
-        connect();
-        loadChatRooms();
-    };
 
+        // roomId가 유효하지 않은 경우 채팅방 선택 메시지 표시
+        if (!isRoomSelected) {
+            document.getElementById('chatBox').style.display = 'none';
+            document.getElementById('chatForm').style.display = 'none';
+            document.getElementById('noRoomSelectedMessage').style.display = 'block';
+
+            // 채팅방 나가기 버튼 숨기기
+            document.getElementById('leaveRoomBtn').style.display = 'none';
+        } else {
+            document.getElementById('chatBox').style.display = 'block';
+            document.getElementById('chatForm').style.display = 'flex';
+            document.getElementById('noRoomSelectedMessage').style.display = 'none';
+            document.getElementById('leaveRoomBtn').style.display = 'block';
+        }
+
+        // 웹소켓 연결 및 채팅방 목록 로드
+        connect();
+    };
 
     // 페이지 언로드 시 연결 해제
     window.onbeforeunload = function () {
@@ -1236,6 +1417,7 @@
         const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || 'X-CSRF-TOKEN';
 
+        // ✅ 서버 요청만 보내고, WebSocket으로 오는 메시지만 표시
         fetch(`/chat/room/${roomId}/leave`, {
             method: 'POST',
             headers: {
@@ -1250,19 +1432,43 @@
                 return response.text();
             })
             .then(() => {
-                alert('채팅방에서 나갔습니다.');
-                window.location.href = '/';  // 메인 페이지로 이동
+                // 서버에서 WebSocket으로 나가기 메시지가 브로드캐스트되므로
+                // 실시간으로 메시지가 표시됨 (중복 없음)
+                setTimeout(() => {
+                    alert('채팅방에서 나갔습니다.');
+                    window.location.href = '/';
+                }, 1000); // 메시지 표시 시간 조금 더 확보
             })
             .catch(error => {
                 alert('채팅방 나가기에 실패했습니다. 다시 시도해주세요.');
                 closeLeaveRoomModal();
             });
     }
-</script>
 
+    // 디버깅 함수
+    function debugChatStatus() {
+        // 테스트 메시지 표시 시도
+        if (isRoomSelected) {
+            const testMessage = {
+                message: '테스트 메시지 ' + new Date().toISOString(),
+                senderEmail: userEmail,
+                senderNickname: '테스트',
+                sentAt: new Date()
+            };
+
+            displayMessage(testMessage);
+        }
+
+        return '디버그 완료';
+    }
+
+    // // 전역 함수로 노출
+    // window.debugChatStatus = debugChatStatus;
+</script>
 <!-- JavaScript 임포트 (순서대로) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<!-- 알림 관련 스크립트 (로드 순서 중요) -->
+<!-- 채팅 및 알림 관련 스크립트 (로드 순서 중요) -->
+<script th:src="@{/js/chat-websocket.js}"></script>
 <script th:src="@{/js/notification-utils.js}"></script>
 <script th:src="@{/js/notification-chat.js}"></script>
 <script th:src="@{/js/notification-ui.js}"></script>

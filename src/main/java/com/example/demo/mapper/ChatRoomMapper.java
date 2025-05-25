@@ -9,7 +9,8 @@ import java.util.List;
 @Mapper
 public interface ChatRoomMapper {
     ChatRoom findById(@Param("chatRoomId") Long chatRoomId);
-    List<ChatRoom> findByIsGroupChat(@Param("isGroupChat") String isGroupChat);
     void insert(ChatRoom chatRoom);
     void deleteById(@Param("chatRoomId") Long chatRoomId);
+    int countChatRoomByPostId(@Param("postId") int postId);
+    void updatePostId(@Param("chatRoomId") Long chatRoomId, @Param("postId") int postId);
 }
