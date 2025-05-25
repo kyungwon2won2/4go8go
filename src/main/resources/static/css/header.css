@@ -79,6 +79,7 @@
 }
 .main-nav li {
     margin-right: 25px;
+    position: relative;
 }
 .main-nav a {
     color: #333;
@@ -87,6 +88,74 @@
 }
 .main-nav a:hover {
     color: var(--primary-color);
+}
+
+/* 드롭다운 메뉴 스타일 */
+.main-nav .dropdown .dropdown-menu {
+    display: none; /* 기본적으로 숨김 */
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 1000;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    min-width: 200px;
+    max-height: 400px;
+    overflow-y: auto;
+    background-color: white;
+    padding: 8px 0;
+    margin: 2px 0 0 0;
+}
+
+/* 드롭다운이 활성화될 때 표시 */
+.main-nav .dropdown.show .dropdown-menu {
+    display: block;
+}
+
+.main-nav .dropdown .dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 8px 16px;
+    font-size: 14px;
+    color: #333;
+    text-decoration: none;
+    background-color: transparent;
+    border: 0;
+    transition: background-color 0.2s;
+}
+
+.main-nav .dropdown .dropdown-item:hover {
+    background-color: #f8f9fa;
+    color: var(--primary-color);
+}
+
+.main-nav .dropdown .dropdown-divider {
+    height: 0;
+    margin: 8px 0;
+    overflow: hidden;
+    border-top: 1px solid #dee2e6;
+}
+
+.main-nav .nav-link.dropdown-toggle {
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.main-nav .nav-link.dropdown-toggle:hover {
+    color: var(--primary-color);
+}
+
+.main-nav .nav-link.dropdown-toggle::after {
+    display: inline-block;
+    margin-left: 8px;
+    vertical-align: 0.255em;
+    content: "";
+    border-top: 0.3em solid;
+    border-right: 0.3em solid transparent;
+    border-bottom: 0;
+    border-left: 0.3em solid transparent;
 }
 
 /* 채팅 아이콘 스타일 - 알림 기능 추가 */

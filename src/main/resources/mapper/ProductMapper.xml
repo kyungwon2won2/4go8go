@@ -111,6 +111,23 @@
         LIMIT #{limit} OFFSET #{offset}
     </select>
 
+    <!-- 카테고리별 페이징 조회 -->
+    <select id="selectByPageAndCategory" resultMap="ProductListDtoMap">
+        SELECT
+        p.post_id,
+        p.title,
+        p.created_at,
+        u.address,
+        pr.price
+        FROM post p
+        JOIN product pr ON p.post_id = pr.post_id
+        JOIN user u ON p.user_id = u.user_id
+        WHERE p.post_category_id = 1 
+        AND pr.category = #{category}
+        ORDER BY p.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
     <!-- UPDATE -->
     <update id="update" parameterType="com.example.demo.domain.post.model.Product">
         UPDATE product
@@ -127,6 +144,12 @@
     <!-- 상품 전체 개수 반환 -->
     <select id="countAllProducts" resultType="int">
         SELECT COUNT(*) FROM product
+    </select>
+
+    <!-- 카테고리별 상품 개수 반환 -->
+    <select id="countProductsByCategory" resultType="int">
+        SELECT COUNT(*) FROM product 
+        WHERE category = #{category}
     </select>
 
     <!-- product 테이블 업데이트 -->

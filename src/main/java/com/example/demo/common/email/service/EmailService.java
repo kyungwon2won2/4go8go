@@ -55,7 +55,7 @@ public class EmailService {
         emailVerificationMapper.insert(verification);
 
         // 3. 이메일 전송
-//        sendVerificationEmail(normalizedEmail, code);
+        sendVerificationEmail(normalizedEmail, code);
 
         // 테스트시 로그로 회원가입
         log.info(">>>>  code : " + code);
