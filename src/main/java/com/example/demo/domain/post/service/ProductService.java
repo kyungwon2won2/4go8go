@@ -33,6 +33,7 @@ public class ProductService {
 
     public List<ProductListDto> getProductsByPage(int offset, int limit) {
         List<ProductListDto> products = productMapper.selectByPage(offset, limit);
+        System.out.println("jenkins test");
 
         for (ProductListDto product : products) {
             String imageUrl = imageHelper.selectFirstImageByPostId(product.getPostId());
