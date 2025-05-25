@@ -199,13 +199,13 @@
     </div>
     <!-- 유저 정보(판매자 정보) - 채팅/관심/조회 밑, 수정/삭제 버튼 위 -->
     <div class="seller-inline-row">
-      <img class="seller-profile-img" src="/img/profile-placeholder.png" alt="프로필">
+      <img class="seller-profile-img" src="/image/profile.png" alt="프로필">
       <div class="seller-info">
         <div class="seller-nickname" th:text="${product.nickname}">판매자 닉네임</div>
         <div class="seller-location" th:text="${product.address}">판매자 지역</div>
         <div class="seller-temp">
           <span th:text="${#numbers.formatDecimal(product.rating, 1, 1)}">레이팅</span>
-          <span class="seller-temp-badge">점</span>
+          <span class="seller-temp-badge">점수</span>
         </div>
       </div>
     </div>
