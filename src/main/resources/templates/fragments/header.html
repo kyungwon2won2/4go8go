@@ -42,6 +42,17 @@
         <!-- 로고, 검색창, 아이콘 -->
         <div class="logo-area">
             <a href="/" class="logo"><img src="/image/4go8go_logo.png" alt="4고8고마켓" height="40"></a>
+            
+            <!-- 검색창 -->
+            <div class="search-container">
+                <form action="/product" method="get" class="search-form">
+                    <input type="text" name="search" placeholder="상품을 검색해보세요" class="search-input" th:value="${param.search}">
+                    <button type="submit" class="search-button">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </form>
+            </div>
+            
             <div class="icons">
                 <a href="/user/profile"><i class="bi bi-person"></i></a>
                 <a href="#"><i class="bi bi-cart"></i></a>

@@ -193,4 +193,30 @@
         LIMIT 4
     </select>
 
+    <!-- 검색 기능 - 제목과 내용으로 검색 -->
+    <select id="selectBySearchKeyword" resultMap="ProductListDtoMap">
+        SELECT
+        p.post_id,
+        p.title,
+        p.created_at,
+        u.address,
+        pr.price
+        FROM post p
+        JOIN product pr ON p.post_id = pr.post_id
+        JOIN user u ON p.user_id = u.user_id
+        WHERE p.post_category_id = 1
+        AND (p.title LIKE CONCAT('%', #{keyword}, '%') OR p.content LIKE CONCAT('%', #{keyword}, '%'))
+        ORDER BY p.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 검색 결과 개수 반환 -->
+    <select id="countProductsBySearch" resultType="int">
+        SELECT COUNT(*) 
+        FROM post p
+        JOIN product pr ON p.post_id = pr.post_id
+        WHERE p.post_category_id = 1
+        AND (p.title LIKE CONCAT('%', #{keyword}, '%') OR p.content LIKE CONCAT('%', #{keyword}, '%'))
+    </select>
+
 </mapper>

@@ -209,4 +209,24 @@ public class ProductService {
         
         return products;
     }
+
+    // 검색 기능
+    public List<ProductListDto> getProductsBySearch(int offset, int limit, String keyword) {
+        List<ProductListDto> products = productMapper.selectBySearchKeyword(offset, limit, keyword);
+
+        for (ProductListDto product : products) {
+            String imageUrl = imageHelper.selectFirstImageByPostId(product.getPostId());
+            imageUrl = (imageUrl != null)
+                    ? imageUrl
+                    : "https://4go8go-bucket.s3.ap-northeast-2.amazonaws.com/post-images/253a2530-c603-4a0e-8156-ace42e72bd45.png";
+            product.setImageUrl(imageUrl);
+        }
+
+        return products;
+    }
+
+    // 검색 결과 개수 반환
+    public int getTotalProductCountBySearch(String keyword) {
+        return productMapper.countProductsBySearch(keyword);
+    }
 }
