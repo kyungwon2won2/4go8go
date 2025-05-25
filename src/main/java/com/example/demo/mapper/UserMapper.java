@@ -3,6 +3,7 @@ package com.example.demo.mapper;
 import com.example.demo.domain.user.model.UserRole;
 import com.example.demo.domain.user.model.Users;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -72,4 +73,14 @@ public interface UserMapper {
     // 8. 최종 사용자 삭제
     public int permanentlyDeleteUser(int userId);
 
+    // === 관리자 기능을 위한 추가 메서드들 ===
+    
+    // 사용자의 권한 목록 조회
+    public List<UserRole> getUserRolesByUserId(@Param("userId") Integer userId);
+    
+    // 관리자 권한을 가진 사용자 목록 조회
+    public List<Users> getAdminUsers();
+    
+    // 특정 권한 삭제
+    public int deleteUserRole(@Param("userId") Integer userId, @Param("roleName") String roleName);
 }
