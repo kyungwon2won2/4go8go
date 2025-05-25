@@ -54,24 +54,26 @@ body {
     max-width: 500px;
     margin-left: auto;
     margin-right: auto;
+    position: relative;
 }
 
-.search-input {
-    width: 100%;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    padding: 10px 16px;
-    padding-right: 44px;
-    font-size: 14px;
-    transition: border-color 0.2s;
+.search-box .post-search-input {
+    width: 100% !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 4px !important;
+    padding: 10px 16px !important;
+    padding-right: 44px !important;
+    font-size: 14px !important;
+    transition: border-color 0.2s !important;
+    outline: none !important;
 }
 
-.search-input:focus {
-    outline: none;
-    border-color: var(--primary-color);
+.search-box .post-search-input:focus {
+    outline: none !important;
+    border-color: var(--primary-color) !important;
 }
 
-.search-button {
+.search-box .post-search-button {
     right: 6px;
     top: 6px;
     background-color: var(--primary-color);
@@ -85,6 +87,20 @@ body {
     justify-content: center;
     transition: background-color 0.2s;
     position: absolute;
+}
+
+.search-box .post-search-button:hover {
+    background-color: #4a0066;
+}
+
+/* 백업 스타일 - 혹시 위의 선택자가 적용되지 않을 경우 */
+input.post-search-input {
+    width: 100% !important;
+    border: 1px solid #ddd !important;
+    border-radius: 4px !important;
+    padding: 10px 16px !important;
+    padding-right: 44px !important;
+    font-size: 14px !important;
 }
 
 table.table {
