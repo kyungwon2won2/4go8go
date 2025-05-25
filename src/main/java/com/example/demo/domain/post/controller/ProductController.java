@@ -83,7 +83,6 @@ public class ProductController {
         } else {
             model.addAttribute("userId", 0); // 또는 "guest", 0, 등 처리 방식에 따라
         }
-        System.out.println("채팅방 수 : " + chatRooms);
         return "product/detail";
     }
 
