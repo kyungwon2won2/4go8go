@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 public class ProductService {
     private final ProductMapper productMapper;
     private final ImageHelper imageHelper;
-    private final ImageUploadService imageUploadService;
 
     private final PostService postService;
 
