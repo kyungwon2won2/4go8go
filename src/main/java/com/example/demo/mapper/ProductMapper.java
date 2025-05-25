@@ -48,4 +48,10 @@ public interface ProductMapper {
 
     // 가격이 저렴한 상품 4개 조회 (메인 페이지용)  
     List<ProductListDto> selectCheapestProducts();
+
+    // 검색 기능 - 제목과 내용으로 검색
+    List<ProductListDto> selectBySearchKeyword(@Param("offset") int offset, @Param("limit") int limit, @Param("keyword") String keyword);
+
+    // 검색 결과 개수 반환
+    int countProductsBySearch(@Param("keyword") String keyword);
 }

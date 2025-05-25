@@ -25,10 +25,11 @@ public class ProductController {
     private final ProductService productService;
     private final ChatService chatService;
 
-    // 상품 list 가져오기 (카테고리 필터링 포함)
+    // 상품 list 가져오기 (카테고리 필터링 및 검색 포함)
     @GetMapping
     public String productList(@RequestParam(defaultValue = "1") int page, 
-                            @RequestParam(required = false) ProductCategory category, 
+                            @RequestParam(required = false) ProductCategory category,
+                            @RequestParam(required = false) String search,
                             Model model) {
         int pageSize = 20;
         int offset = (page - 1) * pageSize;
@@ -36,12 +37,19 @@ public class ProductController {
         List<ProductListDto> products;
         int totalCount;
         
-        if (category != null) {
-            // 카테고리별 상품 조회
+        // 검색어가 있는 경우
+        if (search != null && !search.trim().isEmpty()) {
+            products = productService.getProductsBySearch(offset, pageSize, search.trim());
+            totalCount = productService.getTotalProductCountBySearch(search.trim());
+            model.addAttribute("searchKeyword", search.trim());
+        }
+        // 카테고리 필터가 있는 경우
+        else if (category != null) {
             products = productService.getProductsByPageAndCategory(offset, pageSize, category);
             totalCount = productService.getTotalProductCountByCategory(category);
-        } else {
-            // 전체 상품 조회
+        } 
+        // 전체 상품 조회
+        else {
             products = productService.getProductsByPage(offset, pageSize);
             totalCount = productService.getTotalProductCount();
         }
