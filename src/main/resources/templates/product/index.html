@@ -93,6 +93,15 @@
 <!-- 중고거래 카드 리스트 -->
 <main style="background: var(--light-color); min-height: 80vh; padding: 40px 0;">
     <div class="container">
+        <!-- 현재 선택된 카테고리 표시 -->
+        <div class="mb-3">
+            <h4 class="text-secondary">
+                <i class="bi bi-tag"></i> 
+                <span th:text="${categoryDisplayName}">전체</span> 
+                <small th:if="${selectedCategory != null}" class="text-muted">카테고리</small>
+            </h4>
+        </div>
+        
         <!-- 우측 정렬된 상품 등록 버튼 -->
         <div class="d-flex justify-content-end mb-3">
             <a href="/product/new" class="btn btn-primary" sec:authorize="isAuthenticated()">상품 등록하기</a>
@@ -122,7 +131,7 @@
         <div class="pagination-center" th:if="${totalPages > 1}">
             <div class="pagination">
                 <!-- 이전 페이지 -->
-                <a th:href="@{/product(page=${currentPage - 1})}"
+                <a th:href="@{/product(page=${currentPage - 1}, category=${selectedCategoryName})}"
                    th:if="${hasPrev}"
                    class="page-link">
                     <i class="bi bi-chevron-left"></i>
@@ -130,14 +139,14 @@
 
                 <!-- 페이지 번호 목록 -->
                 <a th:each="pageNum : ${#numbers.sequence(1, totalPages)}"
-                   th:href="@{/product(page=${pageNum})}"
+                   th:href="@{/product(page=${pageNum}, category=${selectedCategoryName})}"
                    th:text="${pageNum}"
                    th:classappend="${pageNum == currentPage} ? ' active' : ''"
                    class="page-link">
                 </a>
 
                 <!-- 다음 페이지 -->
-                <a th:href="@{/product(page=${currentPage + 1})}"
+                <a th:href="@{/product(page=${currentPage + 1}, category=${selectedCategoryName})}"
                    th:if="${hasNext}"
                    class="page-link">
                     <i class="bi bi-chevron-right"></i>

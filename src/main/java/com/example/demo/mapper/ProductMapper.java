@@ -23,6 +23,9 @@ public interface ProductMapper {
 
     List<ProductListDto> selectByPage(@Param("offset") int offset, @Param("limit") int limit);
 
+    // 카테고리별 상품 목록 조회 (페이징)
+    List<ProductListDto> selectByPageAndCategory(@Param("offset") int offset, @Param("limit") int limit, @Param("category") ProductCategory category);
+
     void update(Product product);
 
     void delete(@Param("postId") int postId);
@@ -36,6 +39,9 @@ public interface ProductMapper {
 
     // 상품 전체 개수 반환
     int countAllProducts();
+
+    // 카테고리별 상품 개수 반환
+    int countProductsByCategory(@Param("category") ProductCategory category);
 
     // 조회수가 높은 상품 4개 조회 (메인 페이지용)
     List<ProductListDto> selectTopViewedProducts();

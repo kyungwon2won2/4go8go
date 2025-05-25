@@ -45,6 +45,21 @@ public class ProductService {
         return products;
     }
 
+    // 카테고리별 상품 조회
+    public List<ProductListDto> getProductsByPageAndCategory(int offset, int limit, com.example.demo.domain.stringcode.ProductCategory category) {
+        List<ProductListDto> products = productMapper.selectByPageAndCategory(offset, limit, category);
+
+        for (ProductListDto product : products) {
+            String imageUrl = imageHelper.selectFirstImageByPostId(product.getPostId());
+            imageUrl = (imageUrl != null)
+                    ? imageUrl
+                    : "https://4go8go-bucket.s3.ap-northeast-2.amazonaws.com/post-images/253a2530-c603-4a0e-8156-ace42e72bd45.png";
+            product.setImageUrl(imageUrl);
+        }
+
+        return products;
+    }
+
     @Transactional
     public void addProduct(CreateProductDto productDto, CustomerUser loginUser) {
         // Post, Product 객체 생성 및 매핑
@@ -156,6 +171,11 @@ public class ProductService {
     // 상품 전체 개수 반환
     public int getTotalProductCount() {
         return productMapper.countAllProducts();
+    }
+
+    // 카테고리별 상품 개수 반환
+    public int getTotalProductCountByCategory(com.example.demo.domain.stringcode.ProductCategory category) {
+        return productMapper.countProductsByCategory(category);
     }
 
     // 메인 페이지용: 조회수가 높은 상품 4개 조회
