@@ -41,7 +41,14 @@ public class AdminService {
         if ("DELETED".equals(status)) {
             user.setDeletedAt(new Date());
         }
-        return userMapper.updateUser(user);
+        
+        int result = userMapper.updateUser(user);
+        
+        if (result > 0) {
+            log.info("사용자 상태 변경 완료: userId={}, status={}", userId, status);
+        }
+        
+        return result;
     }
 
     /**

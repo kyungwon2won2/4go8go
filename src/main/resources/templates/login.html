@@ -155,6 +155,9 @@
                         </div>
                         <button type="submit" class="btn btn-primary w-100 py-2">로그인</button>
                         <!-- 에러 메시지 표시 영역 -->
+                        <div class="alert alert-danger mt-3" th:if="${param.error == 'suspended'}">
+                            정지된 계정입니다. 관리자에게 문의하세요.
+                        </div>
                         <div class="alert alert-danger mt-3" th:if="${param.error == 'deleted' || session.deletedAccount != null}">
                             <p>탈퇴한 회원입니다.</p>
                             <!-- 이메일 파라미터로 넘어온 경우 -->
@@ -177,7 +180,7 @@
                                 </form>
                             </div>
                         </div>
-                        <div class="alert alert-danger mt-3" th:if="${param.error != null and param.error != 'deleted' and session.deletedAccount == null}" th:text="${session.loginError ?: '로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.'}">
+                        <div class="alert alert-danger mt-3" th:if="${param.error != null and param.error != 'deleted' and param.error != 'suspended' and session.deletedAccount == null}" th:text="${session.loginError ?: '로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.'}">>
                             로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.
                         </div>
                         <!-- 계정 복구 실패 메시지 -->
