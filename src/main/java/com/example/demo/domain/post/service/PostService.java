@@ -199,7 +199,15 @@ public class PostService {
     // 페이징
     public List<GeneralPostDto> getPostsByPage(int page, int pageSize){
         int offset = (page - 1) * pageSize;
-        return postMapper.selectPostsByPage(offset, pageSize);
+        List<GeneralPostDto> posts = postMapper.selectPostsByPage(offset, pageSize);
+        
+        // 각 게시글에 댓글 개수 설정
+        for (GeneralPostDto post : posts) {
+            int commentCount = commentMapper.selectCommentCountByPostId(post.getPostId());
+            post.setCommentCount(commentCount);
+        }
+        
+        return posts;
     }
 
     // 일반게시판 전체 글 갯수

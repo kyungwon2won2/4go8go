@@ -41,6 +41,7 @@
                 <td th:text="${post.postId}"></td>
                 <td>
                     <a th:href="@{'post/' + ${post.postId}}" th:text="${post.title}"></a>
+                    <span th:if="${post.commentCount > 0}" th:text="'(' + ${post.commentCount} + ')'" style="color: #666; margin-left: 5px;"></span>
                     <span th:if="${#dates.createNow().getTime() - post.createdAt.getTime() < 86400000}"
                           class="badge-new">NEW</span>
                 </td>
