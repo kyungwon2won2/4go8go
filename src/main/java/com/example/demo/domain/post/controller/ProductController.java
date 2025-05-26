@@ -87,7 +87,7 @@ public class ProductController {
     }
 
     // 상품 등록 폼
-    @GetMapping("user/product/new")
+    @GetMapping("/user/product/new")
     public String createProductForm(Model model) {
         model.addAttribute("productDto", new CreateProductDto());
         return "product/form";
@@ -101,7 +101,7 @@ public class ProductController {
     }
 
     // 상품 수정 폼
-    @GetMapping("user/product/{postId}/edit")
+    @GetMapping("/user/product/{postId}/edit")
     public String editProductForm(@PathVariable int postId, Model model) {
         UpdateProductDto productDto = productService.getProductByPostId(postId);
         model.addAttribute("productDto", productDto);
@@ -109,7 +109,7 @@ public class ProductController {
     }
 
     // 상품 수정 처리
-    @PostMapping("user/product/{postId}/edit")
+    @PostMapping("/user/product/{postId}/edit")
     public String updateProduct(@PathVariable int postId, @ModelAttribute UpdateProductDto productDto, 
                               @RequestParam(value = "imageFiles", required = false) MultipartFile[] imageFiles,
                               @RequestParam(value = "deletedImageIds", required = false) String deletedImageIds) {
@@ -118,7 +118,7 @@ public class ProductController {
     }
 
     // 상품 삭제
-    @PostMapping("user/product/{postId}/delete")
+    @PostMapping("/user/product/{postId}/delete")
     public String deleteProduct(@PathVariable int postId) {
         productService.deleteProduct(postId);
         return "redirect:/product";
