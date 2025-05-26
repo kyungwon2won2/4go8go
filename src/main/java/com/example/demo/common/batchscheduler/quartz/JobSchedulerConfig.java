@@ -21,8 +21,8 @@ public class JobSchedulerConfig {
         return TriggerBuilder.newTrigger()
                 .forJob(birthdayJobDetail())
                 .withIdentity("birthdayEmailJobTrigger")
-                .withSchedule(CronScheduleBuilder.cronSchedule("0 0 9 * * ?"))
-//                .withSchedule(CronScheduleBuilder.cronSchedule("0/10 * * * * ?")) // 테스트용(10초마다 전송)
+//                .withSchedule(CronScheduleBuilder.cronSchedule("0 0 9 * * ?"))
+                .withSchedule(CronScheduleBuilder.cronSchedule("0 0/5 * * * ?")) // 5분마다 전송
                 .build();
     }
 }
