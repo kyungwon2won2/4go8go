@@ -292,13 +292,13 @@
             </div>
             <div class="d-flex gap-2">
                 <th:block th:if="${isOwner}">
-                    <a th:href="@{'/post/' + ${post.postId} + '/edit'}" class="kurly-btn">
+                    <a th:href="@{'/user/post/' + ${post.postId} + '/edit'}" class="kurly-btn">
                         <i class="fas fa-edit me-1"></i> 수정
                     </a>
                 </th:block>
 
                 <th:block th:if="${isOwner or isAdmin}">
-                    <form th:action="@{'/post/' + ${post.postId} + '/delete'}" method="post" style="display:inline;">
+                    <form th:action="@{'/user/post/' + ${post.postId} + '/delete'}" method="post" style="display:inline;">
                         <button type="submit" class="kurly-btn" style="color: #e74c3c; border-color: #e74c3c;">
                             <i class="fas fa-trash me-1"></i> 삭제
                         </button>
@@ -547,7 +547,7 @@
             if (!content) return alert('댓글을 입력하세요.');
 
             try {
-                const response = await axios.post(`/post/${postId}/comment`, {
+                const response = await axios.post(`/user/post/${postId}/comment`, {
                     commentContent: content
                 }, {
                     headers: {
@@ -592,7 +592,7 @@
                 if (!confirm('댓글을 삭제하시겠습니까?')) return;
                 const commentId = e.target.closest('.btn-delete').getAttribute('data-comment-id');
                 try {
-                    await axios.delete(`/comment/${commentId}`, {
+                    await axios.delete(`/user/comment/${commentId}`, {
                         headers: { 'X-CSRF-TOKEN': getCsrfToken() }
                     });
                     // 삭제 후 목록 새로고침 (상태 초기화)
@@ -626,7 +626,7 @@
             if (!content) return alert('댓글을 입력하세요.');
 
             try {
-                await axios.put(`/comment/${commentId}`, { commentContent: content }, {
+                await axios.put(`/user/comment/${commentId}`, { commentContent: content }, {
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': getCsrfToken()

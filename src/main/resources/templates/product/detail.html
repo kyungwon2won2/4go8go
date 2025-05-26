@@ -105,6 +105,16 @@
       background: #ff8a3d;
       color: #fff;
     }
+    .main-action-btn:disabled {
+      background: #ccc;
+      color: #666;
+      cursor: not-allowed;
+    }
+    .main-action-btn:disabled:hover {
+      background: #ccc;
+      color: #666;
+    }
+
     /* 유저 정보(판매자 정보) - 이미지 하단, 상품 정보 상단 */
     .seller-inline-row {
       display: flex;
@@ -212,10 +222,10 @@
     <div class="d-flex gap-2 mt-2"
          th:if="${product.email == #authentication.name}">
 
-      <a th:href="@{'/product/' + ${product.postId} + '/edit'}"
+      <a th:href="@{'/user/product/' + ${product.postId} + '/edit'}"
          class="btn btn-outline-primary btn-sm flex-fill">수정</a>
 
-      <form th:action="@{'/product/' + ${product.postId} + '/delete'}" method="post"
+      <form th:action="@{'/user/product/' + ${product.postId} + '/delete'}" method="post"
             style="display:inline;" class="flex-fill">
         <button type="submit" class="btn btn-outline-danger btn-sm w-100">삭제</button>
       </form>
@@ -227,6 +237,7 @@
             th:if="${product.userId != userId}"
             th:data-post-user-id="${product.userId}"
             th:data-post-id="${product.postId}"
+            th:disabled="${userId == 0}"
             onclick="startPrivateChat(this)">
       <i class="bi bi-chat-dots-fill me-2"></i>판매자와 채팅하기
     </button>
@@ -243,6 +254,19 @@
 
 <!-- 채팅 기능 스크립트 -->
 <script>
+  function handleChatButtonClick(button) {
+    const currentUserId = document.querySelector('meta[name="current-user-id"]').getAttribute('content');
+
+    startPrivateChat(button);
+  }
+
+
+  function showLoginAlert() {
+    const alertElement = document.getElementById('loginAlert');
+    alertElement.classList.add('show');
+    alertElement.style.display = 'block';
+  }
+
   function startPrivateChat(button) {
     const postUserId = button.getAttribute('data-post-user-id');
     const postId = button.getAttribute('data-post-id')

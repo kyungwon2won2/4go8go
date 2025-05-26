@@ -169,7 +169,7 @@
     <div class="container">
         <div class="kurly-container">
             <h2 class="kurly-title">글 작성</h2>
-            <form action="/post" method="post" enctype="multipart/form-data">
+            <form action="/user/post" method="post" enctype="multipart/form-data">
                 <!-- CSRF 토큰 자동 삽입 -->
                 <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
 
@@ -179,15 +179,7 @@
                     <input type="text" class="form-control" id="title" name="title" placeholder="제목을 입력해주세요" required>
                 </div>
 
-                <!-- 카테고리 선택 -->
-                <div class="mb-4">
-                    <label for="postCategoryId" class="form-label">카테고리 선택</label>
-                    <select class="form-select" id="postCategoryId" name="postCategoryId" required>
-                        <option value="" disabled selected>카테고리를 선택해주세요</option>
-                        <option value="1">물품게시판</option>
-                        <option value="2">일반게시판</option>
-                    </select>
-                </div>
+                <input type="hidden" name="postCategoryId" value="2" />
 
                 <!--Summernote-->
                 <div class="mb-4">
@@ -199,7 +191,7 @@
 
                 <!-- 버튼들 -->
                 <div class="d-flex justify-content-between mt-5">
-                    <a href="/post" class="btn-kurly-secondary">취소</a>
+                    <a href="/user/post" class="btn-kurly-secondary">취소</a>
                     <button type="submit" class="btn-kurly-primary">등록하기</button>
                 </div>
             </form>

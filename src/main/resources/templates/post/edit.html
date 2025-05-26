@@ -19,42 +19,28 @@
 <div th:replace="~{fragments/header :: header}"></div>
 
 <h1>글 수정</h1>
-<form th:action="@{'/post/' + ${post.postId}}" method="post">
+<form th:action="@{'/user/post/' + ${post.postId}}" method="post" th:object="${post}">
     <input type="hidden" name="_method" value="put"/>
-    <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>  <!-- CSRF 토큰 자동 삽입 -->
+    <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
 
     <div class="mb-3">
         <label for="title" class="form-label">제목</label>
-        <input type="text" class="form-control" id="title" name="title" th:value="${post.title}" required>
+        <input type="text" class="form-control" id="title" name="title" th:field="*{title}" required>
     </div>
-    <!--
-    <div class="mb-3">
-        <label for="userId" class="form-label">작성자 ID</label>
-        <input type="number" class="form-control" id="userId" name="userId" th:value="${post.userId}">
-    </div>
-     -->
+
     <!-- 카테고리 선택 -->
     <div class="mb-3">
         <label for="postCategoryId" class="form-label">카테고리 선택</label>
-        <select class="form-select" id="postCategoryId" name="postCategoryId" required>
-            <option value="1" th:selected="${post.postCategoryId == 1}">물품게시판</option>
-            <option value="2" th:selected="${post.postCategoryId == 2}">일반게시판</option>
+        <select class="form-select" id="postCategoryId" name="postCategoryId" th:field="*{postCategoryId}" required>
+            <option value="1">물품게시판</option>
+            <option value="2">일반게시판</option>
         </select>
     </div>
-    <!--
-    <div class="mb-3">
-        <label for="postCategoryId" class="form-label">카테고리 ID</label>
-        <input type="number" class="form-control" id="postCategoryId" name="postCategoryId" th:value="${post.postCategoryId}">
-    </div>
-    <div class="mb-3">
-        <label for="imageId" class="form-label">이미지 ID</label>
-        <input type="text" class="form-control" id="imageId" name="imageId" th:value="${post.imageId}">
-    </div>
-    -->
+
     <!--Summernote-->
     <div class="mb-3">
         <label for="content" class="form-label">내용</label>
-        <textarea id="content" name="content">[[${post.content}]]</textarea>
+        <textarea id="content" name="content" th:field="*{content}"></textarea>
     </div>
     <script>
         document.addEventListener("DOMContentLoaded", function(){
@@ -76,7 +62,7 @@
     </script>
 
     <button type="submit" class="btn btn-primary">수정 완료</button>
-    <a href="/post" class="btn btn-secondary">취소</a>
+    <a th:href="@{'/post/' + ${post.postId}}" class="btn btn-secondary">취소</a>
 </form>
 <div th:replace="~{fragments/footer :: footer}"></div>
 

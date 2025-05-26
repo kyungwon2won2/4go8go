@@ -10,7 +10,6 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Base64;
@@ -28,29 +27,49 @@ public class ImageUploadService {
     private String bucket;
 
     public String uploadBase64Image(String base64Data, String folder) throws IOException {
+
+        if (base64Data == null || base64Data.trim().isEmpty()) {
+            throw new IOException("Base64 데이터가 비어있습니다.");
+        }
+        
         String[] parts = base64Data.split(",");
+
+        // 배열 길이 검사
+        if (parts.length < 2) {
+            throw new IOException("잘못된 Base64 데이터 형식입니다. 올바른 형식: data:image/jpeg;base64,<데이터>");
+        }
+        
         String metadata = parts[0];
         String data = parts[1];
+        
+        // metadata 유효성 검사
+        if (!metadata.contains("data:") || !metadata.contains(";base64")) {
+            throw new IOException("잘못된 Base64 메타데이터 형식입니다.");
+        }
 
-        String mimeType = metadata.split(";")[0].split(":")[1];
-        String extension = mimeType.split("/")[1];
+        try {
+            String mimeType = metadata.split(";")[0].split(":")[1];
+            String extension = mimeType.split("/")[1];
 
-        byte[] bytes = Base64.getDecoder().decode(data);
-        String filename = folder + "/" + UUID.randomUUID() + "." + extension;
+            byte[] bytes = Base64.getDecoder().decode(data);
+            String filename = folder + "/" + UUID.randomUUID() + "." + extension;
 
-        PutObjectRequest request = PutObjectRequest.builder()
-                .bucket(bucket)
-                .key(filename)
-                .contentType(mimeType)
-                .acl("public-read")
-                .build();
+            PutObjectRequest request = PutObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(filename)
+                    .contentType(mimeType)
+                    .acl("public-read")
+                    .build();
 
-        s3Client.putObject(request, RequestBody.fromBytes(bytes));
+            s3Client.putObject(request, RequestBody.fromBytes(bytes));
 
-        return s3Client.utilities().getUrl(GetUrlRequest.builder()
-                .bucket(bucket)
-                .key(filename)
-                .build()).toExternalForm();
+            return s3Client.utilities().getUrl(GetUrlRequest.builder()
+                    .bucket(bucket)
+                    .key(filename)
+                    .build()).toExternalForm();
+        } catch (Exception e) {
+            throw new IOException("이미지 업로드 처리 중 오류가 발생했습니다: " + e.getMessage(), e);
+        }
     }
 
     public void deleteByUrl(String imageUrl) {

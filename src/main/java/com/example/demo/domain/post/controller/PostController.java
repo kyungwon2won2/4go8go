@@ -24,14 +24,14 @@ import java.util.Map;
 @Slf4j
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/post")
+@RequestMapping
 public class PostController {
 
     private final PostService postService;
     private final CommentHelper commentHelper;
 
     //전체조회
-    @GetMapping
+    @GetMapping("/post")
     public String getAllPosts(@RequestParam(defaultValue = "1") int page, Model model){
         int pageSize = 10;
 
@@ -48,7 +48,7 @@ public class PostController {
     }
 
     //상세조회
-    @GetMapping("/{postId}")
+    @GetMapping("/post/{postId}")
     public String getPostByIdDto(@PathVariable int postId, Model model, @AuthenticationPrincipal CustomerUser customerUser){
         //조회수 증가
         postService.incrementViewCount(postId);
@@ -83,20 +83,20 @@ public class PostController {
     }
 
     //게시글 생성 폼
-    @GetMapping("/new")
+    @GetMapping("/user/post/new")
     public String createPostForm(){
         return "post/form";
     }
 
     //게시글 생성 처리
-    @PostMapping
+    @PostMapping("/user/post")
     public String createPost(@ModelAttribute Post post, @AuthenticationPrincipal CustomerUser loginUser){
         postService.insertPost(post, loginUser.getUserId());
         return "redirect:/post";
     }
 
     //게시글 수정 폼
-    @GetMapping("/{postId}/edit")
+    @GetMapping("/user/post/{postId}/edit")
     public String updatePostForm(@PathVariable int postId, Model model, @AuthenticationPrincipal CustomerUser customerUser){
         GeneralDetailDto post = postService.selectPostByIdDto(postId);
         if(post == null){
@@ -107,12 +107,10 @@ public class PostController {
     }
 
     //게시글 수정 처리
-    @PutMapping("/{postId}")
+    @PutMapping("/user/post/{postId}")
     public String updatePost(@PathVariable int postId, @ModelAttribute Post post, @AuthenticationPrincipal CustomerUser customerUser){
         //권한 체크
         GeneralDetailDto generalDetailDto = postService.selectPostByIdDto(postId);
-        System.out.println("게시글의 유저아이디============================" + generalDetailDto.getUserId());
-        System.out.println("로그인 유저아이디==============================" + customerUser.getUserId());
         if(generalDetailDto.getUserId() != customerUser.getUserId()){
             throw new AccessDeniedException("작성자만 수정할 수 있습니다.");
         }
@@ -122,7 +120,7 @@ public class PostController {
     }
 
     //게시글 삭제 처리
-    @PostMapping("/{postId}/delete")
+    @PostMapping("/user/post/{postId}/delete")
     public String deletePost(@PathVariable int postId, @AuthenticationPrincipal CustomerUser customerUser, Model model){
         GeneralDetailDto generalDetailDto = postService.selectPostByIdDto(postId);
 
@@ -138,7 +136,7 @@ public class PostController {
     }
 
     //조회수 증가 비동기 요청 처리
-    @PostMapping("/{postId}/increment-view-count")
+    @PostMapping("/post/{postId}/increment-view-count")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> incrementViewCount(@PathVariable int postId){
         //조회수 증가

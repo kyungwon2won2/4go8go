@@ -5,13 +5,12 @@ import com.example.demo.domain.user.service.GuestService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+@Slf4j
 @Controller
 @RequiredArgsConstructor
 @RequestMapping
@@ -45,21 +44,22 @@ public class GuestController {
         
         return "login";
     }
+
     @GetMapping("/join")
     public String join() {
         return "join";
     }
 
     @PostMapping("/join")
-    public String CreateUser(@ModelAttribute CreateUserDTO dto, RedirectAttributes redirectAttributes) throws Exception {
+    public String CreateUser(@ModelAttribute CreateUserDTO dto, 
+                            RedirectAttributes redirectAttributes) throws Exception {
         try {
+            // 일반 회원가입 처리
             guestService.createUser(dto);
-            // 회원가입 성공 메시지를 플래시 속성으로 추가
             redirectAttributes.addFlashAttribute("registrationSuccess", true);
-            // 홈페이지로 리다이렉트
             return "redirect:/";
         } catch (Exception e) {
-            // 오류 발생 시 처리
+            log.error("회원가입 처리 중 오류 발생", e);
             redirectAttributes.addFlashAttribute("registrationError", e.getMessage());
             return "redirect:/join";
         }

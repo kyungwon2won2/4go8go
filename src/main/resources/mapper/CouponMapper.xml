@@ -62,5 +62,35 @@
         valid_to ASC
         LIMIT 1
     </select>
+    
+    <!-- 쿠폰 코드로 쿠폰 조회 -->
+    <select id="findByCouponCode" parameterType="string" resultMap="birthdayCouponMap">
+        SELECT
+        coupon_id,
+        coupon_code,
+        coupon_name,
+        discount_amount,
+        valid_from,
+        valid_to,
+        user_id,
+        used,
+        created_at
+        FROM
+        birthday_coupon
+        WHERE
+        coupon_code = #{couponCode}
+        AND valid_to >= CURRENT_DATE
+        AND used = 0
+    </select>
+    
+    <!-- 쿠폰 사용 처리 -->
+    <update id="updateCouponUsed" parameterType="int">
+        UPDATE 
+        birthday_coupon
+        SET 
+        used = 1
+        WHERE
+        coupon_id = #{couponId}
+    </update>
 
 </mapper>

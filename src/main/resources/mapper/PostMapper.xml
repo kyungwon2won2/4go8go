@@ -145,6 +145,7 @@
     <!-- 전체 게시글 수 -->
     <select id="countAllPosts" resultType="int">
         SELECT COUNT(*) FROM post
+        WHERE post_category_id = 2
     </select>
 
 

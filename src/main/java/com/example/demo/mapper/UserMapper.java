@@ -72,6 +72,20 @@ public interface UserMapper {
     
     // 8. 최종 사용자 삭제
     public int permanentlyDeleteUser(int userId);
+  
+    // 9. 생일쿠폰 입력 시 유저 점수 추가
+    int updatePoint(int userId, int discountAmount);
+
+    // === 관리자 기능을 위한 추가 메서드들 ===
+    
+    // 사용자의 권한 목록 조회
+    public List<UserRole> getUserRolesByUserId(@Param("userId") Integer userId);
+    
+    // 관리자 권한을 가진 사용자 목록 조회
+    public List<Users> getAdminUsers();
+    
+    // 특정 권한 삭제
+    public int deleteUserRole(@Param("userId") Integer userId, @Param("roleName") String roleName);
 
 
     // 사용자 평점 업데이트

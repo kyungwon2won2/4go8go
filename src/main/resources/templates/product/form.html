@@ -115,7 +115,7 @@
 <div class="container">
     <div class="product-form-card">
         <h2 class="mb-4 text-center" style="color:#5f0080; font-weight:700;">상품 등록</h2>
-        <form th:action="@{/product}" th:object="${productDto}" method="post" enctype="multipart/form-data">
+        <form th:action="@{/user/product}" th:object="${productDto}" method="post" enctype="multipart/form-data">
             <div class="mb-3">
                 <label for="title" class="form-label">제목</label>
                 <input type="text" th:field="*{title}" class="form-control" id="title" placeholder="상품 제목을 입력하세요" required>
@@ -192,12 +192,20 @@
 
     function previewImage(event) {
         const files = event.target.files;
+        
+        // 파일이 선택되지 않았으면 리턴
+        if (!files || files.length === 0) {
+            return;
+        }
+        
         const currentTotal = selectedFiles.length;
         
         // 최대 개수 체크
         const availableSlots = MAX_IMAGES - currentTotal;
         if (availableSlots <= 0) {
             showMaxImagesWarning();
+            // input 초기화
+            event.target.value = '';
             return;
         }
         
@@ -205,7 +213,7 @@
         const filesToAdd = Math.min(files.length, availableSlots);
         for (let i = 0; i < filesToAdd; i++) {
             const file = files[i];
-            if (file.type.startsWith('image/')) {
+            if (file && file.type.startsWith('image/')) {
                 selectedFiles.push(file);
             }
         }
@@ -213,6 +221,9 @@
         if (files.length > filesToAdd) {
             showMaxImagesWarning();
         }
+
+        // input value 초기화 (같은 파일 재선택 가능하도록)
+        event.target.value = '';
 
         // 미리보기 업데이트
         updatePreview();
@@ -267,6 +278,12 @@
     }
 
     function removeImage(index) {
+        // 인덱스 유효성 검사
+        if (index < 0 || index >= selectedFiles.length) {
+            console.warn('잘못된 이미지 인덱스:', index);
+            return;
+        }
+        
         selectedFiles.splice(index, 1);
         
         // 미리보기 업데이트
@@ -278,15 +295,24 @@
     function updateFileInput() {
         const input = document.getElementById('imageFilesInput');
         
-        // DataTransfer 객체를 사용하여 새로운 FileList 생성
-        const dataTransfer = new DataTransfer();
-        
-        selectedFiles.forEach(file => {
-            dataTransfer.items.add(file);
-        });
-        
-        // input의 files 속성 업데이트
-        input.files = dataTransfer.files;
+        try {
+            // DataTransfer 객체를 사용하여 새로운 FileList 생성
+            const dataTransfer = new DataTransfer();
+            
+            selectedFiles.forEach(file => {
+                if (file) {
+                    dataTransfer.items.add(file);
+                }
+            });
+            
+            // input의 files 속성 업데이트
+            input.files = dataTransfer.files;
+        } catch (error) {
+            console.warn('DataTransfer를 사용할 수 없는 브라우저입니다:', error);
+            // DataTransfer를 지원하지 않는 경우 대체 처리는 생략
+            // 서버에서는 selectedFiles 배열 기반으로 처리할 수 있도록 
+            // 별도 hidden input을 통해 파일 정보를 전달하는 방법도 고려 가능
+        }
     }
 
     function updateImageCount() {

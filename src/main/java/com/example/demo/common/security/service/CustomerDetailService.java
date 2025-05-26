@@ -50,6 +50,12 @@ public class CustomerDetailService implements UserDetailsService, OAuth2UserServ
 			throw new InternalAuthenticationServiceException("탈퇴한 회원입니다.");
 		}
 
+		// 권한 정보 추가 로딩
+		List<UserRole> roles = userMapper.getUserRolesByUserId(user.getUserId());
+		user.setRoleList(roles);
+		log.info("사용자 권한 로딩 완료: userId={}, roles={}", user.getUserId(), 
+				roles.stream().map(UserRole::getRoleName).toList());
+
 		return new CustomerUser(user);
 	}
 
@@ -97,6 +103,12 @@ public class CustomerDetailService implements UserDetailsService, OAuth2UserServ
 			throw new InternalAuthenticationServiceException("탈퇴한 회원입니다.");
 		}
 
+		// OAuth2 로그인 시에도 권한 정보 로딩
+		List<UserRole> roles = userMapper.getUserRolesByUserId(user.getUserId());
+		user.setRoleList(roles);
+		log.info("OAuth2 사용자 권한 로딩 완료: userId={}, roles={}", user.getUserId(), 
+				roles.stream().map(UserRole::getRoleName).toList());
+
 		return new CustomerUser(user, attributes);
 	}
 
@@ -122,7 +134,7 @@ public class CustomerDetailService implements UserDetailsService, OAuth2UserServ
 			user.setName(name != null ? name : "사용자");
 			user.setPassword(UUID.randomUUID().toString());  // 임의 비밀번호 설정
 			user.setNickname(name != null ? name : "사용자_" + System.currentTimeMillis());
-			user.setSocialType(registrationId);
+			user.setSocialType(registrationId.toUpperCase());
 			user.setSocialId(socialId);
 			user.setEmailVerified(true);
 			user.setStatus("ACTIVE");
@@ -142,6 +154,10 @@ public class CustomerDetailService implements UserDetailsService, OAuth2UserServ
 				if (user == null) {
 					throw new RuntimeException("사용자 생성 후 조회 실패");
 				}
+				
+				// 새로 생성된 사용자의 권한 정보도 로딩
+				List<UserRole> roles = userMapper.getUserRolesByUserId(user.getUserId());
+				user.setRoleList(roles);
 			} else {
 				throw new RuntimeException("사용자 등록 실패");
 			}
