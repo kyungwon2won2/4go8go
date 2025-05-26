@@ -20,7 +20,7 @@ public class CommentController {
     private final CommentService commentService;
     
     // 댓글 생성 API
-    @PostMapping("/post/{postId}/comment")
+    @PostMapping("/user/post/{postId}/comment")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> createCommentApi(
             @PathVariable("postId") int postId,
@@ -41,7 +41,7 @@ public class CommentController {
     }
 
     // 댓글 수정 API
-    @PutMapping("/comment/{commentId}")
+    @PutMapping("/user/comment/{commentId}")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> updateCommentApi(
             @PathVariable("commentId") int commentId,
@@ -51,7 +51,7 @@ public class CommentController {
     }
 
     // 댓글 삭제 API
-    @DeleteMapping("/comment/{commentId}")
+    @DeleteMapping("/user/comment/{commentId}")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> deleteCommentApi(
             @PathVariable("commentId") int commentId,

@@ -115,7 +115,7 @@
 <div class="container">
     <div class="product-form-card">
         <h2 class="mb-4 text-center" style="color:#5f0080; font-weight:700;">상품 등록</h2>
-        <form th:action="@{/product}" th:object="${productDto}" method="post" enctype="multipart/form-data">
+        <form th:action="@{/user/product}" th:object="${productDto}" method="post" enctype="multipart/form-data">
             <div class="mb-3">
                 <label for="title" class="form-label">제목</label>
                 <input type="text" th:field="*{title}" class="form-control" id="title" placeholder="상품 제목을 입력하세요" required>

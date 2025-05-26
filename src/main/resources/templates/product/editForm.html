@@ -138,7 +138,7 @@
     <div class="product-form-card">
         <h2 class="mb-4 text-center" style="color:#5f0080; font-weight:700;">상품 수정</h2>
 
-        <form th:action="@{'/product/' + ${productDto.postId} + '/edit'}"
+        <form th:action="@{'/user/product/' + ${productDto.postId} + '/edit'}"
               th:object="${productDto}" method="post" enctype="multipart/form-data">
             <input type="hidden" th:field="*{postId}" />
             <input type="hidden" th:field="*{userId}" />
