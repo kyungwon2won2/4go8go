@@ -26,6 +26,7 @@ public class CommentController {
             @PathVariable("postId") int postId,
             @RequestBody CreateCommentRequest request,
             @AuthenticationPrincipal CustomerUser loginUser) {
+        System.out.println("jenkins");
         return ResponseEntity.ok(commentService.createComment(postId, request.commentContent(), loginUser));
     }
 
