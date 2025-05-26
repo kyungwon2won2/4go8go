@@ -20,12 +20,15 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.filter.HiddenHttpMethodFilter;
 import org.springframework.security.config.Customizer;
 
@@ -99,13 +102,15 @@ public class SecurityConfig {
 				.accessDeniedHandler(accessDeniedHandler())
 		);
 
-		// 자동 로그인 설정
+		// 자동 로그인 설정 (임시 비활성화)
+		/*
 		http.rememberMe(rememberMe -> rememberMe
 				.key("uniqueAndSecret")
 				.tokenValiditySeconds(86400)
 				.userDetailsService(customerDetailService)
 				.rememberMeParameter("remember-me")
 		);
+		*/
 
 		// CORS 설정
 		http.cors(withDefaults());
@@ -146,6 +151,15 @@ public class SecurityConfig {
 		            log.warn("복구 불가능한 계정 - 로그인 페이지로 리다이렉트: {}", email);
 		            request.getSession().setAttribute("loginError", "탈퇴한 회원입니다.");
 		            response.sendRedirect("/login?error=deleted");
+		            
+		        } 
+		        // 정지된 회원 처리
+		        else if (exception instanceof InternalAuthenticationServiceException &&
+		                exception.getMessage().contains("정지된 계정")) {
+		                
+		            log.info("정지된 회원 로그인 시도 - 이메일: {}", email);
+		            request.getSession().setAttribute("loginError", "정지된 계정입니다. 관리자에게 문의하세요.");
+		            response.sendRedirect("/login?error=suspended");
 		            
 		        } else {
 		            // 일반적인 로그인 실패

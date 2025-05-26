@@ -218,6 +218,90 @@
         DELETE FROM user_role 
         WHERE user_id = #{userId} AND role_name = #{roleName}
     </delete>
+
+    <!-- === 통계 기능을 위한 쿼리들 === -->
+    
+    <!-- 전체 회원 수 -->
+    <select id="getTotalUserCount" resultType="int">
+        SELECT COUNT(*) FROM user
+        WHERE status != 'DELETED' OR status IS NULL
+    </select>
+    
+    <!-- 상태별 회원 수 -->
+    <select id="getUserCountByStatus" resultType="int">
+        <choose>
+            <when test="status == 'ACTIVE'">
+                SELECT COUNT(*) FROM user
+                WHERE (status = 'ACTIVE' OR status IS NULL)
+            </when>
+            <otherwise>
+                SELECT COUNT(*) FROM user
+                WHERE status = #{status}
+            </otherwise>
+        </choose>
+    </select>
+    
+    <!-- 오늘 가입한 회원 수 -->
+    <select id="getTodayRegistrationCount" resultType="int">
+        SELECT COUNT(*) FROM user
+        WHERE DATE(created_at) = CURDATE()
+        AND (status != 'DELETED' OR status IS NULL)
+    </select>
+    
+    <!-- 이번 주 가입한 회원 수 -->
+    <select id="getThisWeekRegistrationCount" resultType="int">
+        SELECT COUNT(*) FROM user
+        WHERE YEARWEEK(created_at, 1) = YEARWEEK(CURDATE(), 1)
+        AND (status != 'DELETED' OR status IS NULL)
+    </select>
+    
+    <!-- 이번 달 가입한 회원 수 -->
+    <select id="getThisMonthRegistrationCount" resultType="int">
+        SELECT COUNT(*) FROM user
+        WHERE YEAR(created_at) = YEAR(CURDATE()) 
+        AND MONTH(created_at) = MONTH(CURDATE())
+        AND (status != 'DELETED' OR status IS NULL)
+    </select>
+    
+    <!-- 소셜 로그인 타입별 회원 수 -->
+    <select id="getUserCountBySocialType" resultType="int">
+        SELECT COUNT(*) FROM user
+        WHERE social_type = #{socialType}
+        AND (status != 'DELETED' OR status IS NULL)
+    </select>
+    
+    <!-- 일반 가입 회원 수 -->
+    <select id="getNormalRegistrationCount" resultType="int">
+        SELECT COUNT(*) FROM user
+        WHERE (social_type IS NULL OR social_type = '')
+        AND (status != 'DELETED' OR status IS NULL)
+    </select>
+    
+    <!-- 이메일 인증 완료 회원 수 -->
+    <select id="getEmailVerifiedUserCount" resultType="int">
+        SELECT COUNT(*) FROM user
+        WHERE email_verified = true
+        AND (status != 'DELETED' OR status IS NULL)
+    </select>
+    
+    <!-- 연령대별 회원 수 -->
+    <select id="getUserCountByAgeGroup" resultType="map">
+        SELECT 
+            CASE 
+                WHEN birth_date IS NULL THEN '미입력'
+                WHEN YEAR(CURDATE()) - YEAR(birth_date) &lt; 20 THEN '10대'
+                WHEN YEAR(CURDATE()) - YEAR(birth_date) &lt; 30 THEN '20대'
+                WHEN YEAR(CURDATE()) - YEAR(birth_date) &lt; 40 THEN '30대'
+                WHEN YEAR(CURDATE()) - YEAR(birth_date) &lt; 50 THEN '40대'
+                WHEN YEAR(CURDATE()) - YEAR(birth_date) &lt; 60 THEN '50대'
+                ELSE '60대 이상'
+            END as age_group,
+            COUNT(*) as count
+        FROM user
+        WHERE (status != 'DELETED' OR status IS NULL)
+        GROUP BY age_group
+        ORDER BY age_group
+    </select>
   
 
 

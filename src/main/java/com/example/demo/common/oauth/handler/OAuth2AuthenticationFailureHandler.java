@@ -48,6 +48,13 @@ public class OAuth2AuthenticationFailureHandler implements AuthenticationFailure
             return;
         }
         
+        // 정지된 회원인 경우
+        if (exception.getMessage() != null && exception.getMessage().contains("정지된 계정")) {
+            session.setAttribute("loginError", "정지된 계정입니다. 관리자에게 문의하세요.");
+            response.sendRedirect("/login?error=suspended");
+            return;
+        }
+        
         // 세션에서 직접 설정된 오류 메시지 확인
         if (session.getAttribute("deletedAccount") != null) {
             // 탈퇴한 회원 처리
@@ -64,6 +71,12 @@ public class OAuth2AuthenticationFailureHandler implements AuthenticationFailure
             if (causeMessage != null && causeMessage.contains("탈퇴한 회원")) {
                 session.setAttribute("loginError", "탈퇴한 회원입니다.");
                 response.sendRedirect("/login?error=deleted");
+                return;
+            }
+            
+            if (causeMessage != null && causeMessage.contains("정지된 계정")) {
+                session.setAttribute("loginError", "정지된 계정입니다. 관리자에게 문의하세요.");
+                response.sendRedirect("/login?error=suspended");
                 return;
             }
         }

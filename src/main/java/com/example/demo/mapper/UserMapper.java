@@ -6,6 +6,8 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Map;
 
 @Mapper
 public interface UserMapper {
@@ -87,8 +89,36 @@ public interface UserMapper {
     // 특정 권한 삭제
     public int deleteUserRole(@Param("userId") Integer userId, @Param("roleName") String roleName);
 
-
     // 사용자 평점 업데이트
     void updateUserRating(@Param("userId") int userId, @Param("rating") double rating);
+
+    // === 통계 기능을 위한 쿼리들 ===
+    
+    // 전체 회원 수
+    public int getTotalUserCount();
+    
+    // 상태별 회원 수
+    public int getUserCountByStatus(@Param("status") String status);
+    
+    // 오늘 가입한 회원 수
+    public int getTodayRegistrationCount();
+    
+    // 이번 주 가입한 회원 수
+    public int getThisWeekRegistrationCount();
+    
+    // 이번 달 가입한 회원 수
+    public int getThisMonthRegistrationCount();
+    
+    // 소셜 로그인 타입별 회원 수
+    public int getUserCountBySocialType(@Param("socialType") String socialType);
+    
+    // 일반 가입 회원 수 (소셜 로그인 아닌)
+    public int getNormalRegistrationCount();
+    
+    // 이메일 인증 완료 회원 수
+    public int getEmailVerifiedUserCount();
+    
+    // 연령대별 회원 수 (10대, 20대, 30대 등)
+    public List<Map<String, Object>> getUserCountByAgeGroup();
 
 }
