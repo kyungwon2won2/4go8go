@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 
 @Slf4j
 @Service
@@ -41,7 +42,14 @@ public class AdminService {
         if ("DELETED".equals(status)) {
             user.setDeletedAt(new Date());
         }
-        return userMapper.updateUser(user);
+        
+        int result = userMapper.updateUser(user);
+        
+        if (result > 0) {
+            log.info("사용자 상태 변경 완료: userId={}, status={}", userId, status);
+        }
+        
+        return result;
     }
 
     /**
@@ -167,5 +175,94 @@ public class AdminService {
 
     private int deleteUserRole(Integer userId, String roleName) {
         return userMapper.deleteUserRole(userId, roleName);
+    }
+
+    // === 통계 기능 메서드들 ===
+    
+    /**
+     * 회원 통계 정보 조회
+     */
+    public Map<String, Object> getUserStatistics() {
+        Map<String, Object> stats = new HashMap<>();
+        
+        try {
+            log.info("=== 회원 통계 조회 시작 ===");
+            
+            // 기본 회원 수 통계
+            log.info("기본 회원 수 통계 조회 중...");
+            int totalUsers = userMapper.getTotalUserCount();
+            log.info("전체 사용자 수: {}", totalUsers);
+            
+            int activeUsers = userMapper.getUserCountByStatus("ACTIVE");
+            log.info("활성 사용자 수: {}", activeUsers);
+            
+            int suspendedUsers = userMapper.getUserCountByStatus("SUSPENDED");
+            log.info("정지 사용자 수: {}", suspendedUsers);
+            
+            stats.put("totalUsers", totalUsers);
+            stats.put("activeUsers", activeUsers);
+            stats.put("suspendedUsers", suspendedUsers);
+            
+            // 기간별 가입자 수
+            log.info("기간별 가입자 수 조회 중...");
+            int todayRegistrations = userMapper.getTodayRegistrationCount();
+            int thisWeekRegistrations = userMapper.getThisWeekRegistrationCount();
+            int thisMonthRegistrations = userMapper.getThisMonthRegistrationCount();
+            
+            log.info("오늘 가입: {}, 이번 주: {}, 이번 달: {}", todayRegistrations, thisWeekRegistrations, thisMonthRegistrations);
+            
+            stats.put("todayRegistrations", todayRegistrations);
+            stats.put("thisWeekRegistrations", thisWeekRegistrations);
+            stats.put("thisMonthRegistrations", thisMonthRegistrations);
+            
+            // 가입 방식별 통계
+            log.info("가입 방식별 통계 조회 중...");
+            int normalUsers = userMapper.getNormalRegistrationCount();
+            int googleUsers = userMapper.getUserCountBySocialType("GOOGLE");
+            int naverUsers = userMapper.getUserCountBySocialType("NAVER");
+            
+            log.info("일반 가입: {}, 구글: {}, 네이버: {}", normalUsers, googleUsers, naverUsers);
+            
+            stats.put("normalUsers", normalUsers);
+            stats.put("googleUsers", googleUsers);
+            stats.put("naverUsers", naverUsers);
+            
+            // 이메일 인증 통계
+            log.info("이메일 인증 통계 조회 중...");
+            int verifiedUsers = userMapper.getEmailVerifiedUserCount();
+            int unverifiedUsers = totalUsers - verifiedUsers;
+            
+            log.info("이메일 인증: {}, 미인증: {}", verifiedUsers, unverifiedUsers);
+            
+            stats.put("emailVerifiedUsers", verifiedUsers);
+            stats.put("emailUnverifiedUsers", unverifiedUsers);
+            
+            // 연령대별 통계
+            log.info("연령대별 통계 조회 중...");
+            List<Map<String, Object>> ageGroups = userMapper.getUserCountByAgeGroup();
+            log.info("연령대별 통계: {}", ageGroups);
+            stats.put("ageGroups", ageGroups);
+            
+            log.info("=== 회원 통계 조회 완료 ===");
+            log.info("최종 통계 데이터: {}", stats);
+            
+        } catch (Exception e) {
+            log.error("회원 통계 조회 중 오류 발생", e);
+            // 오류 발생 시 기본값 설정
+            stats.put("totalUsers", 0);
+            stats.put("activeUsers", 0);
+            stats.put("suspendedUsers", 0);
+            stats.put("todayRegistrations", 0);
+            stats.put("thisWeekRegistrations", 0);
+            stats.put("thisMonthRegistrations", 0);
+            stats.put("normalUsers", 0);
+            stats.put("googleUsers", 0);
+            stats.put("naverUsers", 0);
+            stats.put("emailVerifiedUsers", 0);
+            stats.put("emailUnverifiedUsers", 0);
+            stats.put("ageGroups", new ArrayList<>());
+        }
+        
+        return stats;
     }
 }

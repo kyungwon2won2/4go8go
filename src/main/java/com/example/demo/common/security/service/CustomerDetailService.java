@@ -38,7 +38,6 @@ public class CustomerDetailService implements UserDetailsService, OAuth2UserServ
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		log.info("loadUserByUsername: {}", username);
 		Users user = userMapper.login(username);
 
 		if (user == null) {
@@ -50,11 +49,16 @@ public class CustomerDetailService implements UserDetailsService, OAuth2UserServ
 			throw new InternalAuthenticationServiceException("탈퇴한 회원입니다.");
 		}
 
+		// 정지된 회원 확인
+		if (user.getStatus() != null && (user.getStatus().equals("정지") || 
+			user.getStatus().equalsIgnoreCase("suspended"))) {
+			log.warn("정지된 계정 로그인 시도 차단: userId={}, email={}", user.getUserId(), user.getEmail());
+			throw new InternalAuthenticationServiceException("정지된 계정입니다. 관리자에게 문의하세요.");
+		}
+
 		// 권한 정보 추가 로딩
 		List<UserRole> roles = userMapper.getUserRolesByUserId(user.getUserId());
 		user.setRoleList(roles);
-		log.info("사용자 권한 로딩 완료: userId={}, roles={}", user.getUserId(), 
-				roles.stream().map(UserRole::getRoleName).toList());
 
 		return new CustomerUser(user);
 	}
@@ -101,6 +105,11 @@ public class CustomerDetailService implements UserDetailsService, OAuth2UserServ
 		else if (user.getStatus() != null && "DELETED".equals(user.getStatus())) {
 			// 탈퇴한 회원인 경우 별도 처리
 			throw new InternalAuthenticationServiceException("탈퇴한 회원입니다.");
+		}
+		// 정지된 회원 확인 (OAuth2)
+		else if (user.getStatus() != null && (user.getStatus().equals("정지") || 
+			user.getStatus().equalsIgnoreCase("suspended"))) {
+			throw new InternalAuthenticationServiceException("정지된 계정입니다. 관리자에게 문의하세요.");
 		}
 
 		// OAuth2 로그인 시에도 권한 정보 로딩
