@@ -222,7 +222,7 @@
       </div>
     </div>
     <div class="d-flex gap-2 mt-2"
-         th:if="${product.email == #authentication.name}">
+         th:if="${product.email == #authentication.name && product.tradeStatus != 'COMPLETED'}">
 
       <a th:href="@{'/user/product/' + ${product.postId} + '/edit'}"
          class="btn btn-outline-primary btn-sm flex-fill">수정</a>
@@ -236,7 +236,7 @@
 
     <!-- 판매 완료된 경우 (판매자가 아닐 때) -->
     <button class="btn main-action-btn mb-3"
-            th:if="${product.userId != userId && product.tradeStatus == 'COMPLETED'}"
+            th:if="${product.tradeStatus == 'COMPLETED'}"
             disabled>
       <i class="bi bi-emoji-tear me-2"></i>이미 판매된 상품입니다.
     </button>
