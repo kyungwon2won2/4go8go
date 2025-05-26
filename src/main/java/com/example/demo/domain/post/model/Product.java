@@ -22,5 +22,6 @@ public class Product {
         ProductCondition(String displayName) { this.displayName = displayName; }
         public String getDisplayName() { return displayName; }
     }
+    private int buyerId;
 
 }

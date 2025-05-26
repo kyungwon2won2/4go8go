@@ -211,16 +211,18 @@
     <div class="seller-inline-row">
       <img class="seller-profile-img" src="/image/profile.png" alt="프로필">
       <div class="seller-info">
-        <div class="seller-nickname" th:text="${product.nickname}">판매자 닉네임</div>
-        <div class="seller-location" th:text="${product.address}">판매자 지역</div>
-        <div class="seller-temp">
-          <span th:text="${#numbers.formatDecimal(product.rating, 1, 1)}">레이팅</span>
-          <span class="seller-temp-badge">점수</span>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="seller-nickname" th:text="${product.nickname}">판매자 닉네임</div>
+          <span class="seller-temp-badge">
+      <i class="bi bi-star-fill" style="color: darkorange; font-size: 1.2rem;"></i>
+      <span th:text="${#numbers.formatDecimal(product.rating, 1, 1)}">레이팅</span>
+    </span>
         </div>
+        <div class="seller-location" th:text="${product.address}">판매자 지역</div>
       </div>
     </div>
     <div class="d-flex gap-2 mt-2"
-         th:if="${product.email == #authentication.name}">
+         th:if="${product.email == #authentication.name && product.tradeStatus != 'COMPLETED'}">
 
       <a th:href="@{'/user/product/' + ${product.postId} + '/edit'}"
          class="btn btn-outline-primary btn-sm flex-fill">수정</a>
@@ -232,15 +234,24 @@
 
     </div>
 
-    <!-- 판매자가 아닐 경우 채팅하기 버튼 표시 -->
+    <!-- 판매 완료된 경우 (판매자가 아닐 때) -->
     <button class="btn main-action-btn mb-3"
-            th:if="${product.userId != userId}"
+            th:if="${product.tradeStatus == 'COMPLETED'}"
+            disabled>
+      <i class="bi bi-emoji-tear me-2"></i>이미 판매된 상품입니다.
+    </button>
+
+    <!-- 판매 중인 경우 (판매자가 아닐 때) -->
+    <button class="btn main-action-btn mb-3"
+            th:if="${product.userId != userId && product.tradeStatus != 'COMPLETED'}"
             th:data-post-user-id="${product.userId}"
             th:data-post-id="${product.postId}"
             th:disabled="${userId == 0}"
             onclick="startPrivateChat(this)">
       <i class="bi bi-chat-dots-fill me-2"></i>판매자와 채팅하기
     </button>
+
+
 
   </div>
 </div>

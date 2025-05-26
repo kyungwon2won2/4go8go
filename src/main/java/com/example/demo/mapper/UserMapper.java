@@ -89,6 +89,9 @@ public interface UserMapper {
     // 특정 권한 삭제
     public int deleteUserRole(@Param("userId") Integer userId, @Param("roleName") String roleName);
 
+    // 사용자 평점 업데이트
+    void updateUserRating(@Param("userId") int userId, @Param("rating") double rating);
+
     // === 통계 기능을 위한 쿼리들 ===
     
     // 전체 회원 수

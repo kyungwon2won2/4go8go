@@ -1,5 +1,6 @@
 package com.example.demo.domain.post.service;
 
+import com.example.demo.domain.chat.service.ChatService;
 import com.example.demo.domain.post.dto.CreateProductDto;
 import com.example.demo.domain.post.dto.ProductListDto;
 import com.example.demo.domain.post.dto.ProductDetailDto;
@@ -9,9 +10,7 @@ import com.example.demo.domain.post.model.Post;
 import com.example.demo.domain.post.model.Product;
 import com.example.demo.domain.post.model.Image;
 import com.example.demo.domain.user.model.CustomerUser;
-import com.example.demo.mapper.CommentMapper;
-import com.example.demo.mapper.ImageMapper;
-import com.example.demo.mapper.ProductMapper;
+import com.example.demo.mapper.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,9 +26,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProductService {
     private final ProductMapper productMapper;
+    private final PostMapper postMapper;
     private final ImageHelper imageHelper;
-
     private final PostService postService;
+    private final ChatParticipantMapper chatParticipantMapper;
 
     public List<ProductListDto> getProductsByPage(int offset, int limit) {
         List<ProductListDto> products = productMapper.selectByPage(offset, limit);
@@ -229,5 +229,39 @@ public class ProductService {
     // 검색 결과 개수 반환
     public int getTotalProductCountBySearch(String keyword) {
         return productMapper.countProductsBySearch(keyword);
+    }
+
+    // 싱픔 싱테 변경
+    public boolean updateProductStatus(int postId, Product.TradeStatus status) {
+        return productMapper.updateProductStatus(postId, status) > 0;
+    }
+
+    public boolean completeTransactionWithBuyer(int postId, int buyerId, int sellerId) {
+        // 1. 권한 검증: 현재 사용자가 해당 상품의 판매자인지 확인
+        Post post = postMapper.selectPostById(postId);
+        if (post == null || post.getUserId() != sellerId) {
+            throw new IllegalStateException("판매자만 판매완료 처리할 수 있습니다.");
+        }
+
+        // 2. 상품 상태 검증: 현재 상태가 AVAILABLE인지 확인
+        Product product = productMapper.selectByPostId(postId);
+        if (product == null) {
+            throw new IllegalStateException("존재하지 않는 상품입니다.");
+        }
+
+        if (product.getTradeStatus() != Product.TradeStatus.AVAILABLE) {
+            throw new IllegalStateException("판매중인 상품만 판매완료 처리할 수 있습니다.");
+        }
+
+        // 3. 구매자 유효성 검증: ChatService 대신 직접 확인
+        boolean isValidBuyer = chatParticipantMapper.existsByPostIdAndUserId(postId, buyerId);
+        if (!isValidBuyer) {
+            throw new IllegalStateException("유효하지 않은 구매자입니다. 채팅에 참여한 사용자만 구매자로 지정할 수 있습니다.");
+        }
+
+        // 4. Product 업데이트: buyer_id + trade_status = COMPLETED
+        int updatedRows = productMapper.updateProductStatusWithBuyer(postId, buyerId, Product.TradeStatus.COMPLETED);
+
+        return updatedRows > 0;
     }
 }

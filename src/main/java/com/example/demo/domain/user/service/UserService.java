@@ -38,6 +38,11 @@ public class UserService {
         return userMapper.getUserById(userId);
     }
 
+    // int형 id로 사용자 조회
+    public Users getUserById(int userId) {
+        return userMapper.findById(userId);
+    }
+
     /**
      * 사용자 정보 업데이트
      */

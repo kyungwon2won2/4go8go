@@ -305,4 +305,11 @@
   
 
 
+    <!-- 사용자 평점 업데이트 -->
+    <update id="updateUserRating">
+        UPDATE user
+        SET rating = #{rating}
+        WHERE user_id = #{userId}
+    </update>
+
 </mapper>

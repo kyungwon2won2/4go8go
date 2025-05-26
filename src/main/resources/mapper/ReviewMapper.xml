@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.mapper.ReviewMapper">
+
+    <!-- 리뷰 작성 -->
+    <insert id="insert" parameterType="com.example.demo.domain.review.model.Review">
+        INSERT INTO review (post_id, reviewer_id, reviewed_id, point, content)
+        VALUES (#{postId}, #{reviewerId}, #{reviewedId}, #{point}, #{content})
+    </insert>
+
+    <!-- 리뷰 조회 -->
+    <select id="selectByPostAndReviewer" resultType="com.example.demo.domain.review.model.Review">
+        SELECT post_id, reviewer_id, reviewed_id, point, content, created_at
+        FROM review
+        WHERE post_id = #{postId} AND reviewer_id = #{reviewerId}
+    </select>
+
+    <!-- 리뷰 목록 DTO -->
+    <resultMap id="ReviewListDtoMap" type="com.example.demo.domain.review.dto.ReviewListDto">
+        <result property="postId" column="post_id"/>
+        <result property="title" column="title"/>
+        <result property="reviewerNickname" column="reviewer_nickname"/>
+        <result property="point" column="point"/>
+        <result property="content" column="content"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- 특정 사용자가 받은 리뷰 목록 -->
+    <select id="selectByReviewedId" resultMap="ReviewListDtoMap">
+        SELECT
+            r.post_id,
+            p.title,
+            u.nickname AS reviewer_nickname,
+            r.point,
+            r.content,
+            r.created_at
+        FROM review r
+                 JOIN post p ON r.post_id = p.post_id
+                 JOIN user u ON r.reviewer_id = u.user_id
+        WHERE r.reviewed_id = #{reviewedId}
+        ORDER BY r.created_at DESC
+            LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 리뷰 상세 DTO -->
+    <resultMap id="ReviewDetailDtoMap" type="com.example.demo.domain.review.dto.ReviewDetailDto">
+        <result property="postId" column="post_id"/>
+        <result property="title" column="title"/>
+        <result property="reviewerNickname" column="reviewer_nickname"/>
+        <result property="reviewedNickname" column="reviewed_nickname"/>
+        <result property="point" column="point"/>
+        <result property="content" column="content"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- 리뷰 상세 조회 -->
+    <select id="selectDetailByPostAndReviewer" resultMap="ReviewDetailDtoMap">
+        SELECT
+            r.post_id,
+            p.title,
+            u1.nickname AS reviewer_nickname,
+            u2.nickname AS reviewed_nickname,
+            r.point,
+            r.content,
+            r.created_at
+        FROM review r
+                 JOIN post p ON r.post_id = p.post_id
+                 JOIN user u1 ON r.reviewer_id = u1.user_id
+                 JOIN user u2 ON r.reviewed_id = u2.user_id
+        WHERE r.post_id = #{postId} AND r.reviewer_id = #{reviewerId}
+    </select>
+
+    <!-- 사용자 리뷰 통계 -->
+    <select id="selectUserReviewSummary" resultType="com.example.demo.domain.review.dto.UserReviewSummaryDto">
+        SELECT
+            u.user_id AS userId,
+            u.nickname,
+            COALESCE(AVG(r.point), 0.0) AS averageRating,
+            COUNT(r.point) AS totalReviewCount
+        FROM user u
+                 LEFT JOIN review r ON u.user_id = r.reviewed_id
+        WHERE u.user_id = #{userId}
+        GROUP BY u.user_id, u.nickname
+    </select>
+
+    <!-- 리뷰 개수 조회 -->
+    <select id="countByReviewedId" resultType="int">
+        SELECT COUNT(*) FROM review WHERE reviewed_id = #{reviewedId}
+    </select>
+
+    <!-- 사용자 평균 평점 계산 -->
+    <select id="selectAverageRatingByUserId" resultType="Double">
+        SELECT AVG(point)
+        FROM review
+        WHERE reviewed_id = #{userId}
+    </select>
+
+</mapper>
