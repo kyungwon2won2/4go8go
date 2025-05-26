@@ -18,7 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @Controller
-@RequestMapping("/product")
+@RequestMapping
 @RequiredArgsConstructor
 public class ProductController {
 
@@ -26,7 +26,7 @@ public class ProductController {
     private final ChatService chatService;
 
     // 상품 list 가져오기 (카테고리 필터링 및 검색 포함)
-    @GetMapping
+    @GetMapping("/product")
     public String productList(@RequestParam(defaultValue = "1") int page, 
                             @RequestParam(required = false) ProductCategory category,
                             @RequestParam(required = false) String search,
@@ -71,7 +71,7 @@ public class ProductController {
     }
 
     // 상품 상세 페이지
-    @GetMapping("/{postId}")
+    @GetMapping("/product/{postId}")
     public String productDetail(@PathVariable int postId, Model model, @AuthenticationPrincipal CustomerUser customerUser) {
         ProductDetailDto product = productService.getProductDetailByPostId(postId);
         int chatRooms = chatService.countChatRoom(postId);
@@ -87,21 +87,21 @@ public class ProductController {
     }
 
     // 상품 등록 폼
-    @GetMapping("/new")
+    @GetMapping("user/product/new")
     public String createProductForm(Model model) {
         model.addAttribute("productDto", new CreateProductDto());
         return "product/form";
     }
 
     // 상품 등록 처리
-    @PostMapping
+    @PostMapping("/user/product")
     public String createProduct(@ModelAttribute CreateProductDto createProductDto, @AuthenticationPrincipal CustomerUser loginUser) {
         productService.addProduct(createProductDto, loginUser);
         return "redirect:/product";
     }
 
     // 상품 수정 폼
-    @GetMapping("/{postId}/edit")
+    @GetMapping("user/product/{postId}/edit")
     public String editProductForm(@PathVariable int postId, Model model) {
         UpdateProductDto productDto = productService.getProductByPostId(postId);
         model.addAttribute("productDto", productDto);
@@ -109,7 +109,7 @@ public class ProductController {
     }
 
     // 상품 수정 처리
-    @PostMapping("/{postId}/edit")
+    @PostMapping("user/product/{postId}/edit")
     public String updateProduct(@PathVariable int postId, @ModelAttribute UpdateProductDto productDto, 
                               @RequestParam(value = "imageFiles", required = false) MultipartFile[] imageFiles,
                               @RequestParam(value = "deletedImageIds", required = false) String deletedImageIds) {
@@ -118,7 +118,7 @@ public class ProductController {
     }
 
     // 상품 삭제
-    @PostMapping("/{postId}/delete")
+    @PostMapping("user/product/{postId}/delete")
     public String deleteProduct(@PathVariable int postId) {
         productService.deleteProduct(postId);
         return "redirect:/product";

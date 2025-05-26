@@ -26,7 +26,7 @@ public record CreateUserDTO(
         String name,
         @NotBlank
         @Length(min = 8, max = VerifyUtil.MAX_DEFAULT_LENGTH)
-//        @Pattern(regexp = RegexUtil.REGEXP_PASSWORD, message = "invalid password format")
+        @Pattern(regexp = RegexUtil.REGEXP_PASSWORD, message = "invalid password format")
         String password,
         @NotBlank
         @Length(max = VerifyUtil.MAX_ADDRESS_LENGTH)
