@@ -24,7 +24,7 @@ public interface PostMapper {
     GeneralDetailDto selectPostByIdDto(int postId);
 
     //게시글 단일조회
-    //Post selectPostById(int postId);
+    Post selectPostById(int postId);
 
     //게시글 수정
     void updatePost(Post post);

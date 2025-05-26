@@ -55,4 +55,23 @@
             LIMIT 1
     </select>
 
+    <!-- 채팅방 참여 여부 확인 -->
+    <select id="existsByPostIdAndUserId" resultType="boolean">
+        SELECT COUNT(*) > 0
+        FROM chat_participant cp
+                 JOIN chat_room_post crp ON cp.chat_room_id = crp.chat_room_id
+        WHERE crp.post_id = #{postId} AND cp.user_id = #{userId}
+    </select>
+
+    <!-- 상품별 채팅 참여자 조회 -->
+    <select id="selectParticipantsByPostId" resultType="com.example.demo.domain.chat.dto.ChatParticipantDto">
+        SELECT DISTINCT u.user_id as userId, u.nickname, u.email
+        FROM chat_participant cp
+                 JOIN chat_room cr ON cp.chat_room_id = cr.chat_room_id
+                 JOIN chat_room_post crp ON cr.chat_room_id = crp.chat_room_id
+                 JOIN user u ON cp.user_id = u.user_id
+        WHERE crp.post_id = #{postId}
+          AND cp.user_id != #{sellerId}
+    </select>
+
 </mapper>

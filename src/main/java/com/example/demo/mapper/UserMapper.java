@@ -3,6 +3,7 @@ package com.example.demo.mapper;
 import com.example.demo.domain.user.model.UserRole;
 import com.example.demo.domain.user.model.Users;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -71,5 +72,9 @@ public interface UserMapper {
     
     // 8. 최종 사용자 삭제
     public int permanentlyDeleteUser(int userId);
+
+
+    // 사용자 평점 업데이트
+    void updateUserRating(@Param("userId") int userId, @Param("rating") double rating);
 
 }

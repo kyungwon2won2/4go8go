@@ -1,9 +1,11 @@
 package com.example.demo.domain.chat.service;
 
 import com.example.demo.domain.chat.dto.ChatMessageDto;
+import com.example.demo.domain.chat.dto.ChatParticipantDto;
 import com.example.demo.domain.chat.dto.MyChatListResDto;
 import com.example.demo.domain.chat.model.*;
 import com.example.demo.domain.post.dto.ProductDetailDto;
+import com.example.demo.domain.post.model.Post;
 import com.example.demo.domain.post.service.ImageUploadService;
 import com.example.demo.domain.post.service.ProductService;
 import com.example.demo.domain.user.model.Users;
@@ -33,6 +35,7 @@ public class ChatService {
     private final ImageUploadService imageUploadService;
     private final ChatRoomPostMapper chatRoomPostMapper;
     private final ProductService productService;
+    private final PostMapper postMapper;
 
     //로그인한 유저 정보
     private Users getCurrentUser() {
@@ -465,5 +468,29 @@ public class ChatService {
     //해당 글에 연결된 채팅방의 개수
     public int countChatRoom(int postId) {
         return chatRoomPostMapper.countChatRoomsByPostId(postId);
+    }
+
+    // ChatService.java에 추가할 메서드
+    public List<ChatParticipantDto> getChatParticipantsByPostId(int postId) {
+        // 1. 해당 상품의 판매자 ID 조회
+        Post post = postMapper.selectPostById(postId);
+        if (post == null) {
+            throw new IllegalArgumentException("존재하지 않는 상품입니다.");
+        }
+        int sellerId = post.getUserId();
+
+        // 2. 채팅 참여자 조회 (판매자 제외, 중복 제거)
+        List<ChatParticipantDto> participants = chatParticipantMapper.selectParticipantsByPostId(postId, sellerId);
+
+        return participants;
+    }
+
+    public boolean isValidBuyer(int postId, int buyerId) {
+        // 1. 해당 상품의 채팅 참여자인지 확인
+        List<ChatParticipantDto> participants = getChatParticipantsByPostId(postId);
+
+        // 2. buyerId가 참여자 목록에 있는지 확인
+        return participants.stream()
+                .anyMatch(participant -> participant.getUserId() == buyerId);
     }
 }

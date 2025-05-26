@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>내 거래 관리</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/header.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/footer.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/notification.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/myproducts.css}" />
+
+    <!-- CSRF 토큰 (필수) -->
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+</head>
+<body>
+
+<!-- 상단 배너 -->
+<div th:replace="~{fragments/header :: header}"></div>
+
+<!-- 내 상품 관리 본문 -->
+<main class="content-container">
+    <h1 class="page-title">내 상품 관리</h1>
+
+    <!-- 탭 메뉴 -->
+    <div class="tab-container">
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link active" href="#" data-status="all">전체 상품</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" data-status="available">판매중</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" data-status="completed">판매완료</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" data-status="purchased">구매한 상품</a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- 필터 및 검색 -->
+    <div class="filter-container">
+        <div class="filter-controls">
+            <span class="filter-label">정렬</span>
+            <select class="filter-select" id="sort-select">
+                <option value="latest">최신순</option>
+                <option value="oldest">오래된순</option>
+                <option value="price-high">가격높은순</option>
+                <option value="price-low">가격낮은순</option>
+                <option value="views">조회순</option>
+            </select>
+        </div>
+
+        <div class="search-controls">
+            <input type="text" class="search-input" placeholder="상품명 검색">
+            <button class="search-button"><i class="bi bi-search"></i></button>
+        </div>
+    </div>
+
+    <!-- 상품 목록 -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4" id="products-container">
+        <!-- 상품 카드 -->
+        <div class="col" th:each="product : ${products}">
+            <div class="card h-100">
+                <div class="product-image-container">
+                    <img th:src="${product.imageUrl}" alt="상품 이미지" class="product-image">
+                    <!-- 상품 상태 표시 -->
+                    <div th:if="${product.tradeStatus == T(com.example.demo.domain.post.model.Product.TradeStatus).AVAILABLE}" 
+                         class="status-badge status-available">판매중</div>
+                    <div th:if="${product.tradeStatus == T(com.example.demo.domain.post.model.Product.TradeStatus).COMPLETED}" 
+                         class="status-badge status-completed">판매완료</div>
+                    
+                    <!-- 다중 이미지 표시 -->
+                    <div th:if="${product.hasMultipleImages}" class="multi-image-badge">
+                        <i class="bi bi-images"></i>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <h5 class="card-title" th:text="${product.title}">상품명</h5>
+                    <p class="product-price" th:text="${#numbers.formatInteger(product.price, 3, 'COMMA') + '원'}">가격</p>
+                    
+                    <!-- 상품 통계 -->
+                    <div class="product-stats">
+                        <div class="product-stat-item">
+                            <i class="bi bi-eye"></i>
+                            <span th:text="${product.viewCount}">0</span>
+                        </div>
+                        <div class="product-stat-item">
+                            <i class="bi bi-heart"></i>
+                            <span th:text="${product.likeCount}">0</span>
+                        </div>
+                        <div class="product-stat-item">
+                            <i class="bi bi-chat"></i>
+                            <span th:text="${product.chatCount}">0</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 작업 버튼 -->
+                    <div class="action-buttons">
+                        <!-- 내가 등록한 상품인 경우 -->
+                        <div th:if="${selectedStatus != 'purchased'}">
+                            <button class="action-button edit-button" th:onclick="'location.href=\'/product/' + ${product.postId} + '/edit\''">
+<!--                                <i class="bi bi-pencil"></i> -->
+                                수정
+                            </button>
+                            <button class="action-button delete-button" th:onclick="'confirmDelete(' + ${product.postId} + ')'">
+<!--                                <i class="bi bi-trash"></i> -->
+                                삭제
+                            </button>
+                            <button th:if="${product.tradeStatus == T(com.example.demo.domain.post.model.Product.TradeStatus).AVAILABLE}"
+                                    class="action-button complete-button" th:onclick="'openBuyerSelectModal(' + ${product.postId} + ')'">
+                                    <i class="bi bi-check-circle"></i> 판매
+                            </button>
+                        </div>
+                        <!-- 구매한 상품인 경우 -->
+                        <div th:if="${selectedStatus == 'purchased'}">
+                            <button class="action-button review-button" th:onclick="'writeReview(' + ${product.postId} + ')'">
+                                <i class="bi bi-star"></i> 리뷰작성
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-footer bg-white border-0 text-end">
+                    <small class="text-muted" th:text="${#dates.format(product.createdAt, 'yyyy.MM.dd HH:mm')}">2023.05.15</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 상품 없을 때 표시 -->
+    <div th:if="${#lists.isEmpty(products)}" class="empty-state">
+        <i class="bi bi-shop"></i>
+        <p>등록한 상품이 없습니다.</p>
+        <a href="/product/new" class="add-product-button">
+            <i class="bi bi-plus-circle"></i> 상품 등록하기
+        </a>
+    </div>
+
+    <!-- 페이징 -->
+    <nav aria-label="Page navigation" th:if="${totalPages > 1}">
+        <ul class="pagination">
+            <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+                <a class="page-link" th:href="@{/product/my(page=${currentPage - 1})}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            
+            <li class="page-item" th:each="pageNum : ${#numbers.sequence(1, totalPages)}" 
+                th:classappend="${pageNum == currentPage} ? 'active'">
+                <a class="page-link" th:href="@{/product/my(page=${pageNum})}" th:text="${pageNum}">1</a>
+            </li>
+            
+            <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
+                <a class="page-link" th:href="@{/product/my(page=${currentPage + 1})}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</main>
+
+<!-- 구매자 선택 모달 -->
+<div class="modal fade" id="buyerSelectModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">구매자 선택</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="buyer-list">
+                    <!-- 동적으로 채팅 참여자 목록 표시 -->
+                </div>
+<!--                <p>구매자를 선택해주세요</p>-->
+                <input type="hidden" id="selectedPostId">
+                <input type="hidden" id="selectedBuyerId">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                <button type="button" class="btn btn-primary" id="completeButton" onclick="completeTransaction()">판매완료</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 삭제 확인 모달 -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">상품 삭제</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>정말 이 상품을 삭제하시겠습니까?</p>
+                <p class="text-danger">이 작업은 되돌릴 수 없습니다.</p>
+                <input type="hidden" id="deleteProductId">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                <button type="button" class="btn btn-danger" onclick="deleteProduct()">삭제하기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 푸터 -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<!-- JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- 알림 관련 스크립트 (로드 순서 중요) -->
+<script th:src="@{/js/notification-utils.js}" sec:authorize="isAuthenticated()"></script>
+<script th:src="@{/js/notification-chat.js}" sec:authorize="isAuthenticated()"></script>
+<script th:src="@{/js/notification-ui.js}" sec:authorize="isAuthenticated()"></script>
+<script th:src="@{/js/notification-sse.js}" sec:authorize="isAuthenticated()"></script>
+<script th:src="@{/js/myproducts.js}"></script>
+</body>
+</html>

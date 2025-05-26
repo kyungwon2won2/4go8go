@@ -53,13 +53,14 @@
         from post p join
         order by post_id desc
     </select>
+    -->
 
     <select id="selectPostById" resultType="com.example.demo.domain.post.model.Post">
         select *
         from post
         where post_id = #{postId}
     </select>
-    -->
+
     <select id="selectPostByIdDto" resultMap="GeneralDetailDtoMap">
         select p.post_id, p.title, u.name, p.view_count, p.comment_count, p.created_at, p.updated_at, p.content, p.post_category_id, p.user_id
         from post p

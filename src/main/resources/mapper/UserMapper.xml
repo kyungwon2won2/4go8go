@@ -188,4 +188,11 @@
         DELETE FROM user WHERE user_id = #{userId}
     </delete>
 
+    <!-- 사용자 평점 업데이트 -->
+    <update id="updateUserRating">
+        UPDATE users
+        SET rating = #{rating}
+        WHERE user_id = #{userId}
+    </update>
+
 </mapper>
