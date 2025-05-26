@@ -85,6 +85,7 @@ public class ReviewService {
         }
     }
 
+    // 리뷰 생성시, 검증 로직
     private void validateReviewCreation(int postId, int reviewerId) {
         // 1. 중복 리뷰 확인
         Review existingReview = reviewMapper.selectByPostAndReviewer(postId, reviewerId);

@@ -29,4 +29,6 @@ public class MyProductDto {
     private String location;        // 위치 정보
     private String imageUrl;        // 대표 이미지 URL
     private boolean hasMultipleImages; // 이미지가 여러장인지 여부
+    //private boolean hasReviewed;    // 리뷰 작성 여부
+
 }

@@ -135,7 +135,7 @@ function loadProductsWithCurrentFilters(newParams = {}) {
     const token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
     const header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
 
-    fetch(`/product/my/api?${currentParams.toString()}`, {
+    fetch(`/user/product/my/api?${currentParams.toString()}`, {
         method: 'GET',
         headers: {
             [header]: token
@@ -272,7 +272,7 @@ function createProductCard(product, selectedStatus) {
         // 내가 등록한 상품 버튼들 (원본과 동일한 구조로 div 래퍼 추가)
         actionButtonsHtml = `
             <div>
-                <button class="action-button edit-button" onclick="event.stopPropagation(); location.href='/product/${product.postId}/edit'">
+                <button class="action-button edit-button" onclick="event.stopPropagation(); location.href='/user/product/${product.postId}/edit'">
                     수정
                 </button>
                 <button class="action-button delete-button" onclick="event.stopPropagation(); confirmDelete(${product.postId})">
@@ -436,7 +436,7 @@ function openBuyerSelectModal(postId) {
     const token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
     const header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
 
-    fetch(`/product/${postId}/chat-participants`, {
+    fetch(`/user/product/${postId}/chat-participants`, {
         method: 'GET',
         headers: {
             [header]: token
@@ -524,7 +524,7 @@ function completeTransactionDirect(postId, buyerId) {
     const formData = new FormData();
     formData.append('buyerId', buyerId);
 
-    fetch(`/product/${postId}/complete`, {
+    fetch(`/user/product/${postId}/complete`, {
         method: 'POST',
         headers: {
             [header]: token
@@ -561,9 +561,7 @@ function confirmDelete(postId) {
     deleteModal.show();
 }
 
-/**
- * 상품 삭제 처리
- */
+// 상품 삭제 처리
 function deleteProduct() {
     const productId = document.getElementById('deleteProductId').value;
 
@@ -572,7 +570,7 @@ function deleteProduct() {
     const header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
 
     // AJAX 요청으로 삭제
-    fetch(`/product/${productId}/my`, {
+    fetch(`/user/product/${productId}/my`, {
         method: 'POST',
         headers: {
             [header]: token
@@ -595,9 +593,155 @@ function deleteProduct() {
         });
 }
 
+// 리뷰 작성 모달 열기
+function openReviewModal(postId) {
+    // 모달 초기화
+    resetReviewModal();
+
+    // 상품 ID 저장
+    document.getElementById('reviewPostId').value = postId;
+
+    // 별점 초기화 (5점으로 설정)
+    initializeStarRating();
+
+    // 모달 열기
+    const reviewModal = new bootstrap.Modal(document.getElementById('reviewModal'));
+    reviewModal.show();
+}
+
+// 별점 초기화 + 별점 클릭 이벤트
+function initializeStarRating() {
+    const starRatingContainer = document.getElementById('star-rating');
+
+    // 5개 별 생성
+    let starsHtml = '';
+    for (let i = 1; i <= 5; i++) {
+        starsHtml += `<span class="star" data-rating="${i}">★</span>`;
+    }
+    starRatingContainer.innerHTML = starsHtml;
+
+    // 기본 5점으로 설정
+    setStarRating(5);
+
+    // 별 클릭 이벤트 추가
+    starRatingContainer.querySelectorAll('.star').forEach(star => {
+        star.addEventListener('click', function() {
+            const rating = parseInt(this.getAttribute('data-rating'));
+            setStarRating(rating);
+        });
+    });
+}
+
+// 별점 저장
+function setStarRating(rating) {
+    // 선택된 평점 저장
+    document.getElementById('selectedRating').value = rating;
+
+    // 별 활성화 상태 업데이트
+    const stars = document.querySelectorAll('#star-rating .star');
+    stars.forEach((star, index) => {
+        if (index < rating) {
+            star.classList.add('active');
+        } else {
+            star.classList.remove('active');
+        }
+    });
+}
+
+// 리뷰 모달 초기화
+function resetReviewModal() {
+    // 텍스트 영역 초기화
+    document.getElementById('reviewContent').value = '';
+
+    // 별점 5점으로 초기화
+    document.getElementById('selectedRating').value = '5';
+
+    // 상품 ID 초기화
+    document.getElementById('reviewPostId').value = '';
+}
+
+// 리뷰 제출
+function submitReview() {
+    const postId = document.getElementById('reviewPostId').value;
+    const rating = document.getElementById('selectedRating').value;
+    const content = document.getElementById('reviewContent').value.trim();
+
+    // 입력 검증
+    if (!content) {
+        alert('리뷰 내용을 입력해주세요.');
+        return;
+    }
+
+    if (content.length < 10) {
+        alert('리뷰 내용을 10자 이상 입력해주세요.');
+        return;
+    }
+
+    // CSRF 토큰
+    const token = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+    const header = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
+    // 리뷰 데이터
+    const reviewData = {
+        postId: parseInt(postId),
+        point: parseInt(rating),
+        content: content
+    };
+
+    // AJAX 요청
+    fetch('/user/review/create/api', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            [header]: token
+        },
+        body: JSON.stringify(reviewData)
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // 성공 시
+                alert('리뷰가 성공적으로 작성되었습니다.');
+
+                // 모달 닫기
+                const modal = bootstrap.Modal.getInstance(document.getElementById('reviewModal'));
+                if (modal) {
+                    modal.hide();
+                }
+
+                // 리뷰 버튼 비활성화
+                disableReviewButton(postId);
+
+                // 필요시 페이지 새로고침 또는 데이터 다시 로드
+                // loadProductsWithCurrentFilters(); // AJAX 방식인 경우
+                // location.reload(); // 간단한 새로고침
+
+            } else {
+                // 실패 시
+                alert(data.message || '리뷰 작성에 실패했습니다.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('리뷰 작성 중 오류가 발생했습니다.');
+        });
+}
+
 // 리뷰 작성 함수 (구매한 상품용)
 function writeReview(postId) {
-    // 리뷰 작성 페이지로 이동 또는 모달 띄우기
-    // 구현 필요
-    console.log('리뷰 작성:', postId);
+    openReviewModal(postId);
+}
+
+// 리뷰 작성시 비활성화해주는 함수
+function disableReviewButton(postId) {
+    // onclick 속성에서 postId를 찾음
+    const reviewButtons = document.querySelectorAll('.review-button');
+    reviewButtons.forEach(button => {
+        const onclick = button.getAttribute('onclick');
+        if (onclick && onclick.includes(postId)) {
+            button.disabled = true;
+            button.innerHTML = '<i class="bi bi-check-circle"></i> 리뷰 완료';
+            button.classList.add('disabled');
+        }
+    });
 }

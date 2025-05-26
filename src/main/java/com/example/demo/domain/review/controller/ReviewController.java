@@ -6,22 +6,24 @@ import com.example.demo.domain.review.dto.UserReviewSummaryDto;
 import com.example.demo.domain.review.service.ReviewService;
 import com.example.demo.domain.user.model.CustomerUser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Controller
-@RequestMapping("/review")
+@RequestMapping
 public class ReviewController {
 
     @Autowired
     private ReviewService reviewService;
 
     // 리뷰 작성 폼
-    @GetMapping("/create/{postId}")
+    @GetMapping("/user/review/create/{postId}")
     public String createReviewForm(@PathVariable int postId, Model model, @AuthenticationPrincipal CustomerUser user) {
         int userId = user.getUserId();
 
@@ -35,23 +37,21 @@ public class ReviewController {
     }
 
     // 리뷰 작성 처리
-    @PostMapping("/create")
-    public String createReview(@ModelAttribute CreateReviewDto dto,
-                               @AuthenticationPrincipal CustomerUser user,
-                               Model model) {
+    @PostMapping("/user/review/create/api")
+    @ResponseBody
+    public ResponseEntity<?> createReviewApi(@RequestBody CreateReviewDto dto,
+                                             @AuthenticationPrincipal CustomerUser user) {
         try {
             int reviewerId = user.getUserId();
             reviewService.createReview(dto, reviewerId);
-            return "redirect:/post/" + dto.getPostId() + "?success=review_created";
+            return ResponseEntity.ok(Map.of("success", true, "message", "리뷰가 작성되었습니다."));
         } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
-            model.addAttribute("postId", dto.getPostId());
-            return "review/create";
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         }
     }
 
     // 사용자별 리뷰 목록 + 페이징
-    @GetMapping("/user/{userId}")
+    @GetMapping("/user/review/{userId}")
     public String getUserReviews(@PathVariable int userId,
                                  @RequestParam(defaultValue = "1") int page,
                                  Model model) {

@@ -106,7 +106,7 @@
                     <div class="action-buttons">
                         <!-- 내가 등록한 상품인 경우 -->
                         <div th:if="${selectedStatus != 'purchased'}">
-                            <button class="action-button edit-button" th:onclick="'location.href=\'/product/' + ${product.postId} + '/edit\''">
+                            <button class="action-button edit-button" th:onclick="'location.href=\'/user/product/' + ${product.postId} + '/edit\''">
 <!--                                <i class="bi bi-pencil"></i> -->
                                 수정
                             </button>
@@ -139,7 +139,7 @@
     <div th:if="${#lists.isEmpty(products)}" class="empty-state">
         <i class="bi bi-shop"></i>
         <p>등록한 상품이 없습니다.</p>
-        <a href="/product/new" class="add-product-button">
+        <a href="/user/product/new" class="add-product-button">
             <i class="bi bi-plus-circle"></i> 상품 등록하기
         </a>
     </div>
@@ -148,18 +148,18 @@
     <nav aria-label="Page navigation" th:if="${totalPages > 1}">
         <ul class="pagination">
             <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
-                <a class="page-link" th:href="@{/product/my(page=${currentPage - 1})}" aria-label="Previous">
+                <a class="page-link" th:href="@{/user/product/my(page=${currentPage - 1})}" aria-label="Previous">
                     <span aria-hidden="true">&laquo;</span>
                 </a>
             </li>
             
             <li class="page-item" th:each="pageNum : ${#numbers.sequence(1, totalPages)}" 
                 th:classappend="${pageNum == currentPage} ? 'active'">
-                <a class="page-link" th:href="@{/product/my(page=${pageNum})}" th:text="${pageNum}">1</a>
+                <a class="page-link" th:href="@{/user/product/my(page=${pageNum})}" th:text="${pageNum}">1</a>
             </li>
             
             <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
-                <a class="page-link" th:href="@{/product/my(page=${currentPage + 1})}" aria-label="Next">
+                <a class="page-link" th:href="@{/user/product/my(page=${currentPage + 1})}" aria-label="Next">
                     <span aria-hidden="true">&raquo;</span>
                 </a>
             </li>
@@ -179,7 +179,6 @@
                 <div id="buyer-list">
                     <!-- 동적으로 채팅 참여자 목록 표시 -->
                 </div>
-<!--                <p>구매자를 선택해주세요</p>-->
                 <input type="hidden" id="selectedPostId">
                 <input type="hidden" id="selectedBuyerId">
             </div>
@@ -207,6 +206,43 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
                 <button type="button" class="btn btn-danger" onclick="deleteProduct()">삭제하기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 리뷰 작성 모달 -->
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">리뷰 작성</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- 상품 정보 표시 영역 -->
+                <div id="review-product-info"></div>
+
+                <!-- 별점 선택 -->
+                <div class="rating-section">
+                    <label>평점:</label>
+                    <div id="star-rating">
+                        <!-- 5개 별 버튼 -->
+                    </div>
+                </div>
+
+                <!-- 리뷰 내용 -->
+                <div class="review-content-section">
+                    <label>리뷰 내용:</label>
+                    <textarea id="reviewContent" class="form-control"></textarea>
+                </div>
+
+                <input type="hidden" id="reviewPostId">
+                <input type="hidden" id="selectedRating" value="5">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                <button type="button" class="btn btn-primary" onclick="submitReview()">리뷰 작성</button>
             </div>
         </div>
     </div>

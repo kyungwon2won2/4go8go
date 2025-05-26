@@ -8,6 +8,8 @@ import com.example.demo.domain.post.service.MyProductService;
 import com.example.demo.domain.post.service.ProductService;
 import com.example.demo.domain.stringcode.ProductCategory;
 import com.example.demo.domain.user.model.CustomerUser;
+import com.example.demo.domain.user.model.Users;
+import com.example.demo.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +32,7 @@ public class ProductController {
     private final ProductService productService;
     private final ChatService chatService;
     private final MyProductService myProductService;
+    private final UserService userService;
 
     // 상품 list 가져오기 (카테고리 필터링 및 검색 포함)
     @GetMapping("/product")
@@ -77,7 +80,7 @@ public class ProductController {
     }
     
      //내가 등록한 상품 관리 페이지
-    @GetMapping("/my")
+    @GetMapping("/user/product/my")
     public String myProducts(@RequestParam(defaultValue = "1") int page,
                              @RequestParam(required = false) ProductCategory category,
                              @RequestParam(required = false) String search,
@@ -128,8 +131,11 @@ public class ProductController {
     public String productDetail(@PathVariable int postId, Model model, @AuthenticationPrincipal CustomerUser customerUser) {
         ProductDetailDto product = productService.getProductDetailByPostId(postId);
         int chatRooms = chatService.countChatRoom(postId);
+        Users writer = userService.getUserById(product.getUserId());
+
         model.addAttribute("product", product);
         model.addAttribute("chatRooms", chatRooms);
+        model.addAttribute("rating", writer.getRating());
         // 로그인 안 된 사용자도 접근 가능하도록
         if (customerUser != null) {
             model.addAttribute("userId", customerUser.getUserId());
@@ -177,7 +183,8 @@ public class ProductController {
         return "redirect:/product";
     }
 
-    @PostMapping("/{postId}/status")
+    //상품 상태(판패여부) 업데이트
+    @PostMapping("/user/product/{postId}/status")
     @ResponseBody
     public ResponseEntity<?> updateProductStatus(@PathVariable int postId,
                                                  @RequestBody Map<String, String> statusRequest) {
@@ -207,7 +214,7 @@ public class ProductController {
     }
 
     //나의 상품보기에서 바로 상품 삭제
-    @PostMapping("/{postId}/my")
+    @PostMapping("/user/product/{postId}/my")
     @ResponseBody
     public ResponseEntity<?> deleteProductInMy(@PathVariable int postId) {
 
@@ -221,7 +228,7 @@ public class ProductController {
     }
 
     // 채팅 참여자 목록 조회
-    @GetMapping("/{postId}/chat-participants")
+    @GetMapping("/user/product/{postId}/chat-participants")
     @ResponseBody
     public ResponseEntity<?> getChatParticipants(@PathVariable int postId,
                                                  @AuthenticationPrincipal CustomerUser loginUser) {
@@ -235,7 +242,7 @@ public class ProductController {
     }
 
     // AJAX용 API 엔드포인트 추가
-    @GetMapping("/my/api")
+    @GetMapping("/user/product/my/api")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> myProductsApi(@RequestParam(defaultValue = "1") int page,
                                                            @RequestParam(required = false) ProductCategory category,
@@ -284,7 +291,7 @@ public class ProductController {
     }
 
     // 판매완료 처리
-    @PostMapping("/{postId}/complete")
+    @PostMapping("/user/product/{postId}/complete")
     @ResponseBody
     public ResponseEntity<?> completeTransaction(@PathVariable int postId,
                                                  @RequestParam int buyerId,

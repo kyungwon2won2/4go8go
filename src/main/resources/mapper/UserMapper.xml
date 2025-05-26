@@ -223,7 +223,7 @@
 
     <!-- 사용자 평점 업데이트 -->
     <update id="updateUserRating">
-        UPDATE users
+        UPDATE user
         SET rating = #{rating}
         WHERE user_id = #{userId}
     </update>
