@@ -8,6 +8,10 @@
     <style>
         :root {
             --primary-color: #5f0080;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --warning-color: #ffc107;  
+            --danger-color: #dc3545;
             --light-color: #f7f7f7;
             --border-color: #ddd;
         }
@@ -27,32 +31,71 @@
         .admin-container {
             padding: 20px;
             background-color: white;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-
-        .nav-pills .nav-link.active {
-            background-color: var(--primary-color);
-        }
-
-        .nav-pills .nav-link {
-            color: #333;
-        }
-
-        .status-active {
-            color: #28a745;
-        }
-
-        .status-suspended {
-            color: #ffc107;
-        }
-
-        .status-deleted {
-            color: #dc3545;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
         }
 
         .table th {
             background-color: #f8f9fa;
+            border-top: none;
+        }
+
+        .stat-card {
+            border-left: 4px solid var(--primary-color);
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        }
+
+        .stat-card .stat-icon {
+            font-size: 2rem;
+            color: var(--primary-color);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .role-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+        }
+
+        .search-box {
+            border-radius: 20px;
+            border: 2px solid #e9ecef;
+            transition: border-color 0.3s;
+        }
+
+        .search-box:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(95, 0, 128, 0.25);
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .list-group-item.active {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
         }
     </style>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -62,7 +105,6 @@
     <link rel="stylesheet" type="text/css" th:href="@{/css/footer.css}" />
     <link rel="stylesheet" type="text/css" th:href="@{/css/postlist.css}" />
     <link rel="stylesheet" type="text/css" th:href="@{/css/notification.css}" />
-
 </head>
 <body>
 
@@ -73,10 +115,12 @@
 <div class="admin-header">
     <div class="container">
         <div class="d-flex justify-content-between align-items-center">
-            <h2 class="m-0">관리자 대시보드</h2>
+            <h2 class="m-0"><i class="bi bi-shield-check"></i> 관리자 대시보드</h2>
             <div>
                 <span class="text-white me-3" sec:authentication="principal.username"></span>
-                <a href="/" class="btn btn-outline-light btn-sm">메인으로</a>
+                <a href="/" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-house"></i> 메인으로
+                </a>
             </div>
         </div>
     </div>
@@ -84,132 +128,310 @@
 
 <!-- 관리자 컨텐츠 -->
 <div class="container mb-5">
+    <!-- 상단 통계 카드 -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="admin-container stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon me-3">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0" th:text="${totalUsers ?: 0}">0</h4>
+                        <small class="text-muted">총 사용자</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="admin-container stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon me-3">
+                        <i class="bi bi-person-check-fill"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0" th:text="${activeUsers ?: 0}">0</h4>
+                        <small class="text-muted">활성 사용자</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="admin-container stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon me-3">
+                        <i class="bi bi-calendar-plus"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0" th:text="${newUsersToday ?: 0}">0</h4>
+                        <small class="text-muted">오늘 가입</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="admin-container stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon me-3">
+                        <i class="bi bi-person-x-fill"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0" th:text="${suspendedUsers ?: 0}">0</h4>
+                        <small class="text-muted">정지된 사용자</small>
+                    </div>
+                </div>  
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <!-- 사이드 메뉴 -->
         <div class="col-md-3 mb-4">
-            <div class="list-group">
-                <a href="/admin" class="list-group-item list-group-item-action active">
-                    <i class="bi bi-speedometer2"></i> 대시보드
-                </a>
-                <a href="/admin/users" class="list-group-item list-group-item-action">
-                    <i class="bi bi-people"></i> 사용자 관리
-                </a>
-                <a href="/admin/products" class="list-group-item list-group-item-action">
-                    <i class="bi bi-cart"></i> 상품 관리
-                </a>
-                <a href="/admin/orders" class="list-group-item list-group-item-action">
-                    <i class="bi bi-bag"></i> 주문 관리
-                </a>
-                <a href="/admin/statistics" class="list-group-item list-group-item-action">
-                    <i class="bi bi-graph-up"></i> 통계
-                </a>
+            <div class="admin-container">
+                <h5 class="section-title">
+                    <i class="bi bi-list"></i> 관리 메뉴
+                </h5>
+                <div class="list-group list-group-flush">
+                    <a href="#dashboard-section" class="list-group-item list-group-item-action active" onclick="showSection('dashboard-section', this)">
+                        <i class="bi bi-speedometer2"></i> 대시보드
+                    </a>
+                    <a href="#user-management-section" class="list-group-item list-group-item-action" onclick="showSection('user-management-section', this)">
+                        <i class="bi bi-people"></i> 사용자 관리
+                    </a>
+                    <a href="#role-management-section" class="list-group-item list-group-item-action" onclick="showSection('role-management-section', this)">
+                        <i class="bi bi-shield-lock"></i> 권한 관리
+                    </a>
+                </div>
             </div>
         </div>
 
         <!-- 메인 컨텐츠 -->
         <div class="col-md-9">
-            <div class="admin-container">
-                <h3 class="mb-4">사용자 관리</h3>
-
-                <!-- 필터 및 검색 -->
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <div class="input-group">
-                            <input type="text" class="form-control" placeholder="이메일 또는 이름 검색">
-                            <button class="btn btn-outline-secondary" type="button">검색</button>
+            <!-- 1. 대시보드 섹션 -->
+            <div id="dashboard-section" class="content-section active">
+                <div class="admin-container">
+                    <h3 class="section-title">
+                        <i class="bi bi-graph-up"></i> 시스템 현황
+                    </h3>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <h5>가입 유형별 통계</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>가입 유형</th>
+                                            <th>사용자 수</th>
+                                            <th>비율</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><i class="bi bi-envelope"></i> 일반 가입</td>
+                                            <td th:text="${normalUsers ?: 0}">0</td>
+                                            <td>
+                                                <span th:text="${totalUsers > 0 ? (#numbers.formatDecimal((normalUsers ?: 0) * 100.0 / totalUsers, 1, 1)) + '%' : '0%'}">0%</span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><i class="bi bi-google"></i> 구글</td>
+                                            <td th:text="${googleUsers ?: 0}">0</td>
+                                            <td>
+                                                <span th:text="${totalUsers > 0 ? (#numbers.formatDecimal((googleUsers ?: 0) * 100.0 / totalUsers, 1, 1)) + '%' : '0%'}">0%</span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><i class="bi bi-person-square"></i> 네이버</td>
+                                            <td th:text="${naverUsers ?: 0}">0</td>
+                                            <td>
+                                                <span th:text="${totalUsers > 0 ? (#numbers.formatDecimal((naverUsers ?: 0) * 100.0 / totalUsers, 1, 1)) + '%' : '0%'}">0%</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-md-6 text-end">
-                        <div class="btn-group">
-                            <button type="button" class="btn btn-outline-primary active">전체</button>
-                            <button type="button" class="btn btn-outline-primary">활성</button>
-                            <button type="button" class="btn btn-outline-primary">정지</button>
-                            <button type="button" class="btn btn-outline-primary">삭제</button>
+                        
+                        <div class="col-md-6 mb-4">
+                            <h5>최근 활동</h5>
+                            <div class="recent-activities">
+                                <div class="text-muted">최근 활동 기능은 추후 구현 예정입니다.</div>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- 사용자 목록 테이블 -->
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>이메일</th>
-                            <th>이름</th>
-                            <th>닉네임</th>
-                            <th>가입일</th>
-                            <th>상태</th>
-                            <th>관리</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <!-- Thymeleaf로 사용자 목록 출력 -->
-                        <tr th:each="user : ${users}">
-                            <td th:text="${user.userId}">1</td>
-                            <td th:text="${user.email}">user@example.com</td>
-                            <td th:text="${user.name}">홍길동</td>
-                            <td th:text="${user.nickname}">길동이</td>
-                            <td th:text="${#dates.format(user.createdAt, 'yyyy-MM-dd')}">2023-01-01</td>
-                            <td>
-                                <span th:if="${user.status == 'ACTIVE'}" class="badge bg-success">활성</span>
-                                <span th:if="${user.status == 'SUSPENDED'}" class="badge bg-warning">정지</span>
-                                <span th:if="${user.status == 'DELETED'}" class="badge bg-danger">삭제</span>
-                                <span th:if="${user.status == null}" class="badge bg-success">활성</span>
-                            </td>
-                            <td>
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-                                        상태변경
+            <!-- 2. 사용자 관리 섹션 -->
+            <div id="user-management-section" class="content-section">
+                <div class="admin-container">
+                    <h3 class="section-title">
+                        <i class="bi bi-people"></i> 사용자 관리
+                    </h3>
+
+                    <!-- 필터 및 검색 -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" id="searchInput" class="form-control search-box" placeholder="이메일 또는 이름 검색">
+                                <button class="btn btn-outline-secondary" type="button" onclick="searchUsers()">
+                                    <i class="bi bi-search"></i> 검색
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-primary active" onclick="filterUsers('all', this)">전체</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="filterUsers('ACTIVE', this)">활성</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="filterUsers('SUSPENDED', this)">정지</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="filterUsers('DELETED', this)">삭제</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 사용자 목록 테이블 -->
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="usersTable">
+                            <thead>
+                            <tr>
+                                <th width="8%">ID</th>
+                                <th width="20%">이메일</th>
+                                <th width="12%">이름</th>
+                                <th width="12%">닉네임</th>
+                                <th width="10%">가입일</th>
+                                <th width="8%">유형</th>
+                                <th width="8%">상태</th>
+                                <th width="22%">관리</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="user : ${users}" class="user-row" 
+                                th:data-status="${user.status ?: 'ACTIVE'}"
+                                th:data-email="${user.email}"
+                                th:data-name="${user.name}">
+                                <td>
+                                    <div class="user-avatar" th:text="${#strings.substring(user.nickname ?: 'U', 0, 1)}">U</div>
+                                </td>
+                                <td>
+                                    <div th:text="${user.email}">user@example.com</div>
+                                    <small class="text-muted" th:if="${user.emailVerified}">
+                                        <i class="bi bi-check-circle-fill text-success"></i> 인증됨
+                                    </small>
+                                </td>
+                                <td th:text="${user.name}">홍길동</td>
+                                <td th:text="${user.nickname}">길동이</td>
+                                <td th:text="${#dates.format(user.createdAt, 'yyyy-MM-dd')}">2023-01-01</td>
+                                <td>
+                                    <span th:if="${user.socialType == null}" class="badge bg-primary">일반</span>
+                                    <span th:if="${user.socialType == 'GOOGLE'}" class="badge bg-danger">구글</span>
+                                    <span th:if="${user.socialType == 'NAVER'}" class="badge bg-success">네이버</span>
+                                </td>
+                                <td>
+                                    <span th:if="${user.status == 'ACTIVE' or user.status == null}" class="badge bg-success">활성</span>
+                                    <span th:if="${user.status == 'SUSPENDED'}" class="badge bg-warning">정지</span>
+                                    <span th:if="${user.status == 'DELETED'}" class="badge bg-danger">삭제</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" style="font-size: 0.8rem;">
+                                            상태변경
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <form th:action="@{/admin/user/status}" method="post" style="display: inline;">
+                                                    <input type="hidden" name="userId" th:value="${user.userId}">
+                                                    <input type="hidden" name="status" value="ACTIVE">
+                                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                                    <button type="submit" class="dropdown-item">
+                                                        <i class="bi bi-check-circle"></i> 활성화
+                                                    </button>
+                                                </form>
+                                            </li>
+                                            <li>
+                                                <form th:action="@{/admin/user/status}" method="post" style="display: inline;">
+                                                    <input type="hidden" name="userId" th:value="${user.userId}">
+                                                    <input type="hidden" name="status" value="SUSPENDED">
+                                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                                    <button type="submit" class="dropdown-item">
+                                                        <i class="bi bi-pause-circle"></i> 정지
+                                                    </button>
+                                                </form>
+                                            </li>
+                                            <li>
+                                                <form th:action="@{/admin/user/status}" method="post" style="display: inline;" 
+                                                      onsubmit="return confirm('정말 삭제하시겠습니까?')">
+                                                    <input type="hidden" name="userId" th:value="${user.userId}">
+                                                    <input type="hidden" name="status" value="DELETED">
+                                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                                    <button type="submit" class="dropdown-item text-danger">
+                                                        <i class="bi bi-trash"></i> 삭제
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. 권한 관리 섹션 -->
+            <div id="role-management-section" class="content-section">
+                <div class="admin-container">
+                    <h3 class="section-title">
+                        <i class="bi bi-shield-lock"></i> 권한 관리
+                    </h3>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>권한별 사용자 수</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>권한</th>
+                                            <th>사용자 수</th>
+                                            <th>설명</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><span class="badge bg-primary role-badge">USER</span></td>
+                                            <td th:text="${userRoleCount ?: 0}">0</td>
+                                            <td>일반 사용자</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-danger role-badge">ADMIN</span></td>
+                                            <td th:text="${adminRoleCount ?: 0}">0</td>
+                                            <td>관리자</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <h5>관리자 권한 부여</h5>
+                            <form th:action="@{/admin/role/assign}" method="post">
+                                <div class="input-group mb-3">
+                                    <input type="email" class="form-control" name="userEmail" placeholder="사용자 이메일 입력" required>
+                                    <select class="form-select" name="roleName" required>
+                                        <option value="ROLE_ADMIN">관리자</option>
+                                        <option value="ROLE_USER">일반사용자</option>
+                                    </select>
+                                    <button class="btn btn-primary" type="submit">
+                                        <i class="bi bi-person-plus"></i> 권한 부여
                                     </button>
-                                    <ul class="dropdown-menu">
-                                        <li>
-                                            <form th:action="@{/admin/user/status}" method="post">
-                                                <input type="hidden" name="userId" th:value="${user.userId}">
-                                                <input type="hidden" name="status" value="ACTIVE">
-                                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                                                <button type="submit" class="dropdown-item">활성화</button>
-                                            </form>
-                                        </li>
-                                        <li>
-                                            <form th:action="@{/admin/user/status}" method="post">
-                                                <input type="hidden" name="userId" th:value="${user.userId}">
-                                                <input type="hidden" name="status" value="SUSPENDED">
-                                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                                                <button type="submit" class="dropdown-item">정지</button>
-                                            </form>
-                                        </li>
-                                        <li>
-                                            <form th:action="@{/admin/user/status}" method="post">
-                                                <input type="hidden" name="userId" th:value="${user.userId}">
-                                                <input type="hidden" name="status" value="DELETED">
-                                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                                                <button type="submit" class="dropdown-item">삭제</button>
-                                            </form>
-                                        </li>
-                                    </ul>
                                 </div>
-                                <a th:href="@{/admin/user/{id}(id=${user.userId})}" class="btn btn-sm btn-outline-primary">상세</a>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            </form>
+                        </div>
+                    </div>
                 </div>
-
-                <!-- 페이지네이션 -->
-                <nav>
-                    <ul class="pagination justify-content-center">
-                        <li class="page-item disabled">
-                            <a class="page-link" href="#" tabindex="-1">이전</a>
-                        </li>
-                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item">
-                            <a class="page-link" href="#">다음</a>
-                        </li>
-                    </ul>
-                </nav>
             </div>
         </div>
     </div>
@@ -223,5 +445,65 @@
 <script th:src="@{/js/notification-chat.js}" sec:authorize="isAuthenticated()"></script>
 <script th:src="@{/js/notification-ui.js}" sec:authorize="isAuthenticated()"></script>
 <script th:src="@{/js/notification-sse.js}" sec:authorize="isAuthenticated()"></script>
+
+<script>
+    // 섹션 전환 함수
+    function showSection(sectionId, element) {
+        document.querySelectorAll('.content-section').forEach(section => {
+            section.classList.remove('active');
+        });
+        
+        document.getElementById(sectionId).classList.add('active');
+        
+        document.querySelectorAll('.list-group-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        element.classList.add('active');
+    }
+
+    // 사용자 검색 함수
+    function searchUsers() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const rows = document.querySelectorAll('#usersTable tbody .user-row');
+        
+        rows.forEach(row => {
+            const email = row.getAttribute('data-email').toLowerCase();
+            const name = row.getAttribute('data-name').toLowerCase();
+            
+            if (email.includes(searchTerm) || name.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    // 사용자 필터링 함수
+    function filterUsers(status, element) {
+        const rows = document.querySelectorAll('#usersTable tbody .user-row');
+        
+        document.querySelectorAll('.btn-group .btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        element.classList.add('active');
+        
+        rows.forEach(row => {
+            const userStatus = row.getAttribute('data-status');
+            
+            if (status === 'all' || userStatus === status || (status === 'ACTIVE' && (userStatus === 'ACTIVE' || userStatus === null))) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    // Enter 키로 검색
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            searchUsers();
+        }
+    });
+</script>
 </body>
 </html>

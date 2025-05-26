@@ -31,7 +31,10 @@
 
 <!-- 회원가입 성공 메시지 -->
 <div class="alert alert-success alert-dismissible fade show text-center" th:if="${registrationSuccess}" role="alert">
-    회원가입이 완료되었습니다. 환영합니다!
+    <i class="bi bi-check-circle-fill me-2"></i>
+    <span th:if="${socialRegistration}">소셜 로그인 회원가입이 완료되었습니다!</span>
+    <span th:unless="${socialRegistration}">회원가입이 완료되었습니다!</span>
+    환영합니다!
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 
