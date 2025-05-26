@@ -22,7 +22,7 @@ public class ImageHelper {
     private final ImageMapper imageMapper;
 
     /**
-     * 이미지를 1:1 비율로 변환한다.
+     * 이미지를 1:1 비율로 변환
      * 이미지가 정사각형이 아닌 경우, 중앙에서 크롭하여 정사각형으로 만든다.
      *
      * @param file 원본 이미지 파일
@@ -34,13 +34,13 @@ public class ImageHelper {
         if (file == null || file.isEmpty()) {
             throw new IOException("이미지 파일이 비어있습니다.");
         }
-        
+
         // 이미지 파일 포맷 검사
         String contentType = file.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
             throw new IOException("지원하지 않는 파일 형식입니다. 이미지 파일만 업로드 가능합니다.");
         }
-        
+
         // MultipartFile을 BufferedImage로 변환
         BufferedImage originalImage;
         try {
@@ -76,16 +76,25 @@ public class ImageHelper {
             // 세로가 더 긴 경우
             y = (height - size) / 2;
         }
-        
+
         // 중앙에서 크롭하여 정사각형 이미지 생성
         BufferedImage squareImage = originalImage.getSubimage(x, y, size, size);
         
         // BufferedImage를 바이트 배열로 변환
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         String formatName = contentType.split("/")[1]; // image/jpeg -> jpeg
-        
+
         // formatName 유효성 검사
-        if (!ImageIO.getWriterFormatNames().toString().toLowerCase().contains(formatName.toLowerCase())) {
+        String[] supportedFormats = ImageIO.getWriterFormatNames();
+        boolean isSupported = false;
+        for (String format : supportedFormats) {
+            if (format.equalsIgnoreCase(formatName)) {
+                isSupported = true;
+                break;
+            }
+        }
+        
+        if (!isSupported) {
             formatName = "jpg"; // 기본값으로 jpg 사용
         }
         
@@ -94,7 +103,7 @@ public class ImageHelper {
         } catch (IOException e) {
             throw new IOException("이미지 변환 중 오류가 발생했습니다: " + e.getMessage());
         }
-        
+
         return baos.toByteArray();
     }
 
@@ -102,22 +111,31 @@ public class ImageHelper {
         if (imageFiles != null) {
             for (MultipartFile file : imageFiles) {
                 if (!file.isEmpty()) {
+                    String originalFilename = file.getOriginalFilename();
+                    String contentType = file.getContentType();
+
                     try {
+                        // ContentType 유효성 검사
+                        if (contentType == null || !contentType.startsWith("image/")) {
+                            System.err.println("지원하지 않는 파일 형식 - 파일명: " + originalFilename + ", ContentType: " + contentType);
+                            continue; // 해당 파일은 스킵하고 다음 파일 처리
+                        }
+                        
                         // 이미지를 1:1 비율로 처리
                         byte[] squareImageBytes = processToSquareImage(file);
-                        
-                        String s3Url = imageUploadService.uploadBase64Image(
-                                "data:" + file.getContentType() + ";base64," + java.util.Base64.getEncoder().encodeToString(squareImageBytes),
-                                "post-images");
+                        String base64EncodedData = java.util.Base64.getEncoder().encodeToString(squareImageBytes);
+
+                        // Base64 문자열 구성 - ContentType 재검증
+                        String base64String = "data:" + contentType + ";base64," + base64EncodedData;
+
+                        String s3Url = imageUploadService.uploadBase64Image(base64String, "post-images");
                         Image image = new Image();
                         image.setPostId(postId);
                         image.setUrl(s3Url);
                         imageMapper.insertImage(image);
                     } catch (IOException e) {
-                        System.err.println("이미지 처리 실패 - 파일명: " + file.getOriginalFilename() + ", 오류: " + e.getMessage());
                         throw new RuntimeException("이미지 업로드 실패: " + e.getMessage(), e);
                     } catch (Exception e) {
-                        System.err.println("예상치 못한 오류 발생 - 파일명: " + file.getOriginalFilename() + ", 오류: " + e.getMessage());
                         throw new RuntimeException("이미지 업로드 중 예상치 못한 오류가 발생했습니다: " + e.getMessage(), e);
                     }
                 }
