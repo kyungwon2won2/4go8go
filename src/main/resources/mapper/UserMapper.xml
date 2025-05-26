@@ -187,6 +187,13 @@
     <delete id="permanentlyDeleteUser">
         DELETE FROM user WHERE user_id = #{userId}
     </delete>
+  
+    <!-- 쿠폰 사용시 포인트 추가 -->
+    <update id="updatePoint">
+        UPDATE user
+        SET points = points + #{discountAmount}
+        WHERE user_id = #{userId}
+    </update>
 
     <!-- === 관리자 기능을 위한 추가 쿼리들 === -->
     
@@ -211,5 +218,7 @@
         DELETE FROM user_role 
         WHERE user_id = #{userId} AND role_name = #{roleName}
     </delete>
+  
+
 
 </mapper>

@@ -222,10 +222,10 @@
     <div class="d-flex gap-2 mt-2"
          th:if="${product.email == #authentication.name}">
 
-      <a th:href="@{'/product/' + ${product.postId} + '/edit'}"
+      <a th:href="@{'/user/product/' + ${product.postId} + '/edit'}"
          class="btn btn-outline-primary btn-sm flex-fill">수정</a>
 
-      <form th:action="@{'/product/' + ${product.postId} + '/delete'}" method="post"
+      <form th:action="@{'/user/product/' + ${product.postId} + '/delete'}" method="post"
             style="display:inline;" class="flex-fill">
         <button type="submit" class="btn btn-outline-danger btn-sm w-100">삭제</button>
       </form>

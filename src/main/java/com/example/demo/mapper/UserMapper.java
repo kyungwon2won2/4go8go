@@ -72,6 +72,9 @@ public interface UserMapper {
     
     // 8. 최종 사용자 삭제
     public int permanentlyDeleteUser(int userId);
+  
+    // 9. 생일쿠폰 입력 시 유저 점수 추가
+    int updatePoint(int userId, int discountAmount);
 
     // === 관리자 기능을 위한 추가 메서드들 ===
     
@@ -83,4 +86,5 @@ public interface UserMapper {
     
     // 특정 권한 삭제
     public int deleteUserRole(@Param("userId") Integer userId, @Param("roleName") String roleName);
+
 }
