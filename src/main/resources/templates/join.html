@@ -33,7 +33,6 @@
             padding-bottom: 50px;
         }
 
-
         /*     회원가입 폼 영역     */
         .join-container {
             max-width: 640px;
@@ -114,10 +113,7 @@
             border-top-right-radius: 0.375rem;
             border-bottom-right-radius: 0.375rem;
         }
-
     </style>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/header.css}"/>
-    <link rel="stylesheet" type="text/css" th:href="@{/css/footer.css}"/>
 </head>
 <body>
 
@@ -138,7 +134,7 @@
             <div class="mb-3">
                 <label for="email" class="form-label required">이메일</label>
                 <div class="input-group">
-                    <input type="email" class="form-control" id="email" name="email">
+                    <input type="email" class="form-control" id="email" name="email" required>
                     <button type="button" class="btn btn-outline-secondary" id="emailVerifyBtn">이메일 인증</button>
                 </div>
                 <div class="error-message" id="emailError"></div>
@@ -167,381 +163,13 @@
             <div class="mb-3">
                 <label for="nickname" class="form-label required">닉네임</label>
                 <input type="text" class="form-control" id="nickname" name="nickname" 
-                       th:value="${socialMode ? socialName : ''}"
                        placeholder="사용하실 닉네임을 입력해주세요" required>
-                <small th:if="${socialMode}" class="form-text text-muted">
-                    <i class="bi bi-info-circle"></i> 기본값으로 소셜 로그인 이름이 설정됩니다. 변경 가능합니다.
-                </small>
             </div>
 
             <div class="mb-3">
                 <label for="phone" class="form-label required">휴대폰 번호</label>
                 <input type="tel" class="form-control" id="phone" name="phone"
-                       th:value="${socialMode ? socialPhone : ''}"
-                       placeholder="숫자만 입력해주세요" required>
-                <div class="error-message" id="phoneError"></div>
-                <small th:if="${socialMode and socialPhone != null}" class="form-text text-muted">
-                    <i class="bi bi-info-circle"></i> 소셜 로그인에서 제공받은 전화번호입니다.
-                </small>
-            </div>
-
-            <div class="mb-3">
-                <label for="address" class="form-label required">주소</label>
-                <div class="input-group">
-                    <input type="text" class="form-control" id="address" name="address" required readonly>
-                    <button type="button" class="btn btn-outline-secondary" id="searchAddressBtn">주소 검색</button>
-                </div>
-                <div class="error-message" id="addressError"></div>
-            </div>
-
-            <div class="mb-3">
-                <label for="birthDate" class="form-label">생년월일</label>
-                <input type="date" class="form-control" id="birthDate" name="birthDate"
-                       th:value="${socialMode ? socialBirthDate : ''}">
-                <small class="form-text text-muted">생일에 특별한 혜택을 드립니다!</small>
-                <small th:if="${socialMode and socialBirthDate != null}" class="form-text text-muted">
-                    <i class="bi bi-info-circle"></i> 소셜 로그인에서 제공받은 생년월일입니다.
-                </small>
-            </div>
-
-            <div class="mb-3 form-check">
-                <input type="hidden" name="receiveMail" value="false"/>
-                <input type="checkbox" class="form-check-input" id="receiveMail" name="receiveMail" value="true">
-                <label class="form-check-label" for="receiveMail">이메일 수신 동의</label>
-                <small class="form-text text-muted d-block">4고8고마켓의 할인/이벤트 정보를 받아보실 수 있습니다.</small>
-            </div>
-
-            <div class="terms-section">
-                <div class="mb-3 form-check">
-                    <input type="checkbox" class="form-check-input" id="termsAll">
-                    <label class="form-check-label" for="termsAll"><strong>전체 동의</strong></label>
-                </div>
-                <div class="mb-2 form-check">
-                    <input type="checkbox" class="form-check-input terms" id="terms1" required>
-                    <label class="form-check-label" for="terms1">이용약관 동의 (필수)</label>
-                </div>
-                <div class="mb-2 form-check">
-                    <input type="checkbox" class="form-check-input terms" id="terms2" required>
-                    <label class="form-check-label" for="terms2">개인정보 수집·이용 동의 (필수)</label>
-                </div>
-            </div>
-
-            <button type="submit" class="btn btn-primary join-btn"
-                    th:classappend="${socialMode ? 'social-join-btn' : ''}"
-                    th:text="${socialMode ? '소셜 회원가입 완료' : '가입하기'}">가입하기</button>
-        </form>
-
-        <!-- 소셜 로그인 취소 버튼 -->
-        <div th:if="${socialMode}" class="text-center mt-3">
-            <a href="/login" class="btn btn-outline-secondary">취소하고 로그인 페이지로</a>
-        </div>
-    </div>
-</div>
-
-<!-- 푸터 -->
-<div th:replace="~{fragments/footer :: footer}"></div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-
-    const csrfTokenField = document.getElementById('csrfTokenField');
-    const csrfToken = csrfTokenField.value;
-    const csrfHeaderName = 'X-CSRF-TOKEN';
-    
-    // 소셜 로그인 모드 확인
-    const socialMode = /*[[${socialMode}]]*/ false;
-
-        // 전체 동의 체크박스 기능
-        document.getElementById('termsAll').addEventListener('change', function() {
-        const allChecked = this.checked;
-        document.querySelectorAll('.terms').forEach(checkbox => {
-            checkbox.checked = allChecked;
-        });
-        });
-
-        // 개별 체크박스 변경시 전체 동의 상태 업데이트
-        document.querySelectorAll('.terms').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const allChecked = [...document.querySelectorAll('.terms')].every(c => c.checked);
-            document.getElementById('termsAll').checked = allChecked;
-        });
-        });
-
-        // 주소 API 스크립트 동적 로드 - 카카오만 사용
-        function loadDaumPostcode() {
-        if (!window.daumPostLoaded) {
-            const script = document.createElement('script');
-            script.src = 'https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';
-            script.onload = () => { window.daumPostLoaded = true; };
-            document.body.appendChild(script);
-        }
-        }
-
-        // 주소 검색 버튼 클릭 이벤트
-        document.getElementById('searchAddressBtn').addEventListener('click', function() {
-        loadDaumPostcode();
-        setTimeout(() => {
-            if (window.daum && window.daum.Postcode) {
-                new window.daum.Postcode({
-                    oncomplete: function(data) {
-                        document.getElementById('address').value = data.address;
-                        document.getElementById('addressError').textContent = '';
-                        document.getElementById('address').classList.remove('is-invalid', 'shake');
-                    }
-                }).open();
-            }
-        }, 300);
-        });
-
-
-        // validation 강화: shake, 컬러, 아이콘
-        function showValidationError(inputId, errorId, message) {
-        const input = document.getElementById(inputId);
-        const error = document.getElementById(errorId);
-        error.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + message;
-        input.classList.add('is-invalid', 'shake');
-        input.style.backgroundColor = '#ffe6e6';
-        input.style.borderColor = '#dc3545';
-        setTimeout(() => { input.classList.remove('shake'); }, 600);
-        }
-        // shake 애니메이션 추가
-        const style = document.createElement('style');
-        style.innerHTML = `
-        .shake {
-        animation: shake 0.6s;
-        }
-        @keyframes shake {
-        0% { transform: translateX(0); }
-        20% { transform: translateX(-8px); }
-        40% { transform: translateX(8px); }
-        60% { transform: translateX(-8px); }
-        80% { transform: translateX(8px); }
-        100% { transform: translateX(0); }
-        }
-        .is-invalid {
-        border-color: #dc3545 !important;
-        background-color: #ffe6e6 !important;
-        }
-        .error-message i {
-        color: #dc3545;
-        margin-right: 4px;
-        }
-        `;
-        document.head.appendChild(style);
-
-        //validation
-        document.querySelector('form').addEventListener('submit', function(event) {
-            let isValid = true;
-            
-            // 소셜 로그인 모드가 아닐 때만 이메일 검사
-            if (!socialMode) {
-                const email = document.getElementById('email');
-                const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-                
-                if (!emailPattern.test(email.value)) {
-                    showValidationError('email', 'emailError', '올바른 이메일 형식이 아닙니다.');
-                    isValid = false;
-                } else {
-                    document.getElementById('emailError').textContent = '';
-                    email.classList.remove('is-invalid');
-                    email.style.backgroundColor = '';
-                    email.style.borderColor = '';
-                }
-                
-                // 비밀번호 검사 (소셜 로그인 모드가 아닐 때만)
-                const password = document.getElementById('password');
-                const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,16}$/;
-                if (!passwordPattern.test(password.value)) {
-                    showValidationError('password', 'passwordError', '비밀번호는 영문, 숫자, 특수문자를 포함하여 8-16자로 입력해주세요.');
-                    isValid = false;
-                } else {
-                    document.getElementById('passwordError').textContent = '';
-                    password.classList.remove('is-invalid');
-                    password.style.backgroundColor = '';
-                    password.style.borderColor = '';
-                }
-                
-                // 비밀번호 확인
-                const passwordConfirm = document.getElementById('passwordConfirm');
-                if (password.value !== passwordConfirm.value) {
-                    showValidationError('passwordConfirm', 'passwordConfirmError', '비밀번호가 일치하지 않습니다.');
-                    isValid = false;
-                } else {
-                    document.getElementById('passwordConfirmError').textContent = '';
-                    passwordConfirm.classList.remove('is-invalid');
-                    passwordConfirm.style.backgroundColor = '';
-                    passwordConfirm.style.borderColor = '';
-                }
-            }
-            
-            // 전화번호 검사
-            const phone = document.getElementById('phone');
-            const phonePattern = /^[0-9]{10,11}$/;
-            if (!phonePattern.test(phone.value)) {
-                showValidationError('phone', 'phoneError', '올바른 전화번호 형식이 아닙니다.');
-                isValid = false;
-            } else {
-                document.getElementById('phoneError').textContent = '';
-                phone.classList.remove('is-invalid');
-                phone.style.backgroundColor = '';
-                phone.style.borderColor = '';
-            }
-            
-            // 주소 검사
-            const address = document.getElementById('address');
-            if (!address.value) {
-                showValidationError('address', 'addressError', '주소를 입력해주세요.');
-                isValid = false;
-            } else {
-                document.getElementById('addressError').textContent = '';
-                address.classList.remove('is-invalid');
-                address.style.backgroundColor = '';
-                address.style.borderColor = '';
-            }
-            
-            if (!isValid) {
-                event.preventDefault();
-            }
-        });
-
-        // 이메일 인증 기능 (소셜 로그인 모드가 아닐 때만)
-        if (!socialMode) {
-            // 이메일 인증 타이머 및 인증 요청
-            let emailTimerInterval = null;
-            let emailTimerSeconds = 0;
-            function startEmailTimer() {
-            emailTimerSeconds = 180;
-            updateEmailTimer();
-            if (emailTimerInterval) clearInterval(emailTimerInterval);
-            emailTimerInterval = setInterval(() => {
-                emailTimerSeconds--;
-                updateEmailTimer();
-                if (emailTimerSeconds <= 0) {
-                    clearInterval(emailTimerInterval);
-                    document.getElementById('emailTimer').textContent = '인증 시간이 만료되었습니다.';
-                }
-            }, 1000);
-            }
-            function updateEmailTimer() {
-                if (emailTimerSeconds > 0) {
-                    const min = String(Math.floor(emailTimerSeconds / 60)).padStart(2, '0');
-                    const sec = String(emailTimerSeconds % 60).padStart(2, '0');
-                    document.getElementById('emailTimer').textContent = `남은 시간: ${min}:${sec}`;
-                }
-            }
-
-            // 이메일 인증
-            document.getElementById('emailVerifyBtn').addEventListener('click', function() {
-                const email = document.getElementById('email').value.trim();
-                const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-                if (!emailPattern.test(email)) {
-                    showValidationError('email', 'emailError', '올바른 이메일 형식이 아닙니다.');
-                    return;
-                }
-                document.getElementById('emailError').textContent = '';
-                document.getElementById('email').classList.remove('is-invalid');
-                // 이메일 인증 요청
-                fetch('/email/send', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        [csrfHeaderName]: csrfToken
-                    },
-                    body: JSON.stringify({ email })
-                })
-                .then(res => {
-                    if (!res.ok) throw new Error('이메일이 존재하거나 잘못된 요청입니다');
-                    return res.json ? res.json() : res;
-                })
-
-                .then(() => {
-                    // 인증번호 입력란과 타이머 UI 생성
-                    let verifyBox = document.getElementById('emailVerifyBox');
-                    if (!verifyBox) {
-                        verifyBox = document.createElement('div');
-                        verifyBox.id = 'emailVerifyBox';
-                        verifyBox.className = 'input-group mt-2';
-                        verifyBox.innerHTML = `
-                            <input type="text" class="form-control" id="emailCode" placeholder="인증번호 입력">
-                            <button type="button" class="btn btn-outline-secondary" id="emailCodeBtn">인증 확인</button>
-                            <span id="emailTimer" style="color:#6c757d; font-size:14px; min-width:90px; display:flex; align-items:center; margin-left:10px;"></span>
-                        `;
-                        document.getElementById('emailError').after(verifyBox);
-                    }
-                    startEmailTimer();
-                })
-                .catch(error => {
-                    showValidationError('email', 'emailError', error.message || '이메일 인증 요청에 실패했습니다.');
-                });
-            });
-
-            // 이메일 확인버튼 이벤트
-            document.addEventListener('click', function (event) {
-                if (event.target && event.target.id === 'emailCodeBtn') {
-                    const codeInput = document.getElementById('emailCode');
-                    const emailInput = document.getElementById('email');
-                    const code = codeInput.value.trim();
-                    const email = emailInput.value.trim();
-
-                    if (!code) {
-                        alert('인증번호를 입력해주세요.');
-                        return;
-                    }
-
-                    fetch('/email/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            [csrfHeaderName]: csrfToken
-                        },
-                        body: JSON.stringify({ email: email, code: code })
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            return response.json().then(err => {
-                                throw new Error(err.message || '서버 오류');
-                            });
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.success) {
-                            alert(data.message || '이메일 인증이 완료되었습니다.');
-                            // 타이머 중지 및 UI 정리
-                            if (emailTimerInterval) {
-                                clearInterval(emailTimerInterval);
-                                emailTimerInterval = null;
-                            }
-                            document.getElementById('emailVerifyBox')?.remove();
-                        } else {
-                            alert(data.message || '인증번호가 올바르지 않습니다.');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('인증 요청 중 오류:', error);
-                        alert(error.message || '인증 요청 중 문제가 발생했습니다.');
-                    });
-                }
-            });
-        }
-
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script th:src="@{/js/notification-utils.js}" sec:authorize="isAuthenticated()"></script>
-<script th:src="@{/js/notification-chat.js}" sec:authorize="isAuthenticated()"></script>
-<script th:src="@{/js/notification-ui.js}" sec:authorize="isAuthenticated()"></script>
-<script th:src="@{/js/notification-sse.js}" sec:authorize="isAuthenticated()"></script>
-</body>
-<div th:replace="~{fragments/footer :: footer}"></div>
-</html>label required">닉네임</label>
-                <input type="text" class="form-control" id="nickname" name="nickname" required>
-            </div>
-
-            <div class="mb-3">
-                <label for="phone" class="form-label required">휴대폰 번호</label>
-                <input type="tel" class="form-control" id="phone" name="phone"
-                       placeholder="숫자만 입력해주세요" required>
+                       placeholder="010-1234-5678" required>
                 <div class="error-message" id="phoneError"></div>
             </div>
 
@@ -553,7 +181,6 @@
                 </div>
                 <div class="error-message" id="addressError"></div>
             </div>
-
 
             <div class="mb-3">
                 <label for="birthDate" class="form-label">생년월일</label>
@@ -596,36 +223,36 @@
 
     const csrfTokenField = document.getElementById('csrfTokenField');
     const csrfToken = csrfTokenField.value;
-    const csrfHeaderName = 'X-CSRF-TOKEN'; // Spring Security의 기본 헤더 이름
+    const csrfHeaderName = 'X-CSRF-TOKEN';
 
-        // 전체 동의 체크박스 기능
-        document.getElementById('termsAll').addEventListener('change', function() {
+    // 전체 동의 체크박스 기능
+    document.getElementById('termsAll').addEventListener('change', function() {
         const allChecked = this.checked;
         document.querySelectorAll('.terms').forEach(checkbox => {
             checkbox.checked = allChecked;
         });
-        });
+    });
 
-        // 개별 체크박스 변경시 전체 동의 상태 업데이트
-        document.querySelectorAll('.terms').forEach(checkbox => {
+    // 개별 체크박스 변경시 전체 동의 상태 업데이트
+    document.querySelectorAll('.terms').forEach(checkbox => {
         checkbox.addEventListener('change', function() {
             const allChecked = [...document.querySelectorAll('.terms')].every(c => c.checked);
             document.getElementById('termsAll').checked = allChecked;
         });
-        });
+    });
 
-        // 주소 API 스크립트 동적 로드 - 카카오만 사용
-        function loadDaumPostcode() {
+    // 주소 API 스크립트 동적 로드 - 카카오만 사용
+    function loadDaumPostcode() {
         if (!window.daumPostLoaded) {
             const script = document.createElement('script');
             script.src = 'https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';
             script.onload = () => { window.daumPostLoaded = true; };
             document.body.appendChild(script);
         }
-        }
+    }
 
-        // 주소 검색 버튼 클릭 이벤트
-        document.getElementById('searchAddressBtn').addEventListener('click', function() {
+    // 주소 검색 버튼 클릭 이벤트
+    document.getElementById('searchAddressBtn').addEventListener('click', function() {
         loadDaumPostcode();
         setTimeout(() => {
             if (window.daum && window.daum.Postcode) {
@@ -638,11 +265,10 @@
                 }).open();
             }
         }, 300);
-        });
+    });
 
-
-        // validation 강화: shake, 컬러, 아이콘
-        function showValidationError(inputId, errorId, message) {
+    // validation 강화: shake, 컬러, 아이콘
+    function showValidationError(inputId, errorId, message) {
         const input = document.getElementById(inputId);
         const error = document.getElementById(errorId);
         error.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> ' + message;
@@ -650,103 +276,128 @@
         input.style.backgroundColor = '#ffe6e6';
         input.style.borderColor = '#dc3545';
         setTimeout(() => { input.classList.remove('shake'); }, 600);
-        }
-        // shake 애니메이션 추가
-        const style = document.createElement('style');
-        style.innerHTML = `
+    }
+
+    // shake 애니메이션 추가
+    const style = document.createElement('style');
+    style.innerHTML = `
         .shake {
-        animation: shake 0.6s;
+            animation: shake 0.6s;
         }
         @keyframes shake {
-        0% { transform: translateX(0); }
-        20% { transform: translateX(-8px); }
-        40% { transform: translateX(8px); }
-        60% { transform: translateX(-8px); }
-        80% { transform: translateX(8px); }
-        100% { transform: translateX(0); }
+            0% { transform: translateX(0); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-8px); }
+            80% { transform: translateX(8px); }
+            100% { transform: translateX(0); }
         }
         .is-invalid {
-        border-color: #dc3545 !important;
-        background-color: #ffe6e6 !important;
+            border-color: #dc3545 !important;
+            background-color: #ffe6e6 !important;
         }
         .error-message i {
-        color: #dc3545;
-        margin-right: 4px;
+            color: #dc3545;
+            margin-right: 4px;
         }
-        `;
-        document.head.appendChild(style);
+    `;
+    document.head.appendChild(style);
 
-        //validation
-        document.querySelector('form').addEventListener('submit', function(event) {
-            let isValid = true;
-            // 이메일 검사
-            const email = document.getElementById('email');
-            const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-            
-            if (!emailPattern.test(email.value)) {
-                showValidationError('email', 'emailError', '올바른 이메일 형식이 아닙니다.');
-                isValid = false;
-            } else {
-                document.getElementById('emailError').textContent = '';
-                email.classList.remove('is-invalid');
-                email.style.backgroundColor = '';
-                email.style.borderColor = '';
-            }
-            // 비밀번호 검사
-            const password = document.getElementById('password');
-            const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,16}$/;
-            if (!passwordPattern.test(password.value)) {
-                showValidationError('password', 'passwordError', '비밀번호는 영문, 숫자, 특수문자를 포함하여 8-16자로 입력해주세요.');
-                isValid = false;
-            } else {
-                document.getElementById('passwordError').textContent = '';
-                password.classList.remove('is-invalid');
-                password.style.backgroundColor = '';
-                password.style.borderColor = '';
-            }
-            // 비밀번호 확인
-            const passwordConfirm = document.getElementById('passwordConfirm');
-            if (password.value !== passwordConfirm.value) {
-                showValidationError('passwordConfirm', 'passwordConfirmError', '비밀번호가 일치하지 않습니다.');
-                isValid = false;
-            } else {
-                document.getElementById('passwordConfirmError').textContent = '';
-                passwordConfirm.classList.remove('is-invalid');
-                passwordConfirm.style.backgroundColor = '';
-                passwordConfirm.style.borderColor = '';
-            }
-            // 전화번호 검사
-            const phone = document.getElementById('phone');
-            const phonePattern = /^[0-9]{10,11}$/;
-            if (!phonePattern.test(phone.value)) {
-                showValidationError('phone', 'phoneError', '올바른 전화번호 형식이 아닙니다.');
-                isValid = false;
-            } else {
-                document.getElementById('phoneError').textContent = '';
-                phone.classList.remove('is-invalid');
-                phone.style.backgroundColor = '';
-                phone.style.borderColor = '';
-            }
-            // 주소 검사
-            const address = document.getElementById('address');
-            if (!address.value) {
-                showValidationError('address', 'addressError', '주소를 입력해주세요.');
-                isValid = false;
-            } else {
-                document.getElementById('addressError').textContent = '';
-                address.classList.remove('is-invalid');
-                address.style.backgroundColor = '';
-                address.style.borderColor = '';
-            }
-            if (!isValid) {
-                event.preventDefault();
-            }
-        });
+    // validation
+    document.querySelector('form').addEventListener('submit', function(event) {
+        let isValid = true;
+        
+        // 이메일 검사
+        const email = document.getElementById('email');
+        const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+        
+        if (!emailPattern.test(email.value)) {
+            showValidationError('email', 'emailError', '올바른 이메일 형식이 아닙니다.');
+            isValid = false;
+        } else {
+            document.getElementById('emailError').textContent = '';
+            email.classList.remove('is-invalid');
+            email.style.backgroundColor = '';
+            email.style.borderColor = '';
+        }
+        
+        // 비밀번호 검사
+        const password = document.getElementById('password');
+        const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,16}$/;
+        if (!passwordPattern.test(password.value)) {
+            showValidationError('password', 'passwordError', '비밀번호는 영문, 숫자, 특수문자를 포함하여 8-16자로 입력해주세요.');
+            isValid = false;
+        } else {
+            document.getElementById('passwordError').textContent = '';
+            password.classList.remove('is-invalid');
+            password.style.backgroundColor = '';
+            password.style.borderColor = '';
+        }
+        
+        // 비밀번호 확인
+        const passwordConfirm = document.getElementById('passwordConfirm');
+        if (password.value !== passwordConfirm.value) {
+            showValidationError('passwordConfirm', 'passwordConfirmError', '비밀번호가 일치하지 않습니다.');
+            isValid = false;
+        } else {
+            document.getElementById('passwordConfirmError').textContent = '';
+            passwordConfirm.classList.remove('is-invalid');
+            passwordConfirm.style.backgroundColor = '';
+            passwordConfirm.style.borderColor = '';
+        }
+        
+        // 전화번호 검사
+        const phone = document.getElementById('phone');
+        const phonePattern = /^\d{2,3}-\d{3,4}-\d{4}$/;
+        if (!phonePattern.test(phone.value)) {
+            showValidationError('phone', 'phoneError', '올바른 전화번호 형식이 아닙니다. (예: 010-1234-5678)');
+            isValid = false;
+        } else {
+            document.getElementById('phoneError').textContent = '';
+            phone.classList.remove('is-invalid');
+            phone.style.backgroundColor = '';
+            phone.style.borderColor = '';
+        }
+        
+        // 주소 검사
+        const address = document.getElementById('address');
+        if (!address.value) {
+            showValidationError('address', 'addressError', '주소를 입력해주세요.');
+            isValid = false;
+        } else {
+            document.getElementById('addressError').textContent = '';
+            address.classList.remove('is-invalid');
+            address.style.backgroundColor = '';
+            address.style.borderColor = '';
+        }
+        
+        if (!isValid) {
+            event.preventDefault();
+        }
+    });
 
-        // 이메일 인증 타이머 및 인증 요청
-        let emailTimerInterval = null;
-        let emailTimerSeconds = 0;
-        function startEmailTimer() {
+    // 전화번호 자동 하이픈 추가
+    document.getElementById('phone').addEventListener('input', function(e) {
+        let value = e.target.value.replace(/[^0-9]/g, ''); // 숫자만 남기기
+        
+        if (value.length >= 3) {
+            if (value.length <= 6) {
+                value = value.slice(0, 3) + '-' + value.slice(3);
+            } else if (value.length <= 10) {
+                value = value.slice(0, 3) + '-' + value.slice(3, 7) + '-' + value.slice(7);
+            } else {
+                value = value.slice(0, 3) + '-' + value.slice(3, 7) + '-' + value.slice(7, 11);
+            }
+        }
+        
+        e.target.value = value;
+    });
+
+    // 이메일 인증 타이머 및 인증 요청
+    let emailTimerInterval = null;
+    let emailTimerSeconds = 0;
+    
+    function startEmailTimer() {
         emailTimerSeconds = 180;
         updateEmailTimer();
         if (emailTimerInterval) clearInterval(emailTimerInterval);
@@ -758,116 +409,115 @@
                 document.getElementById('emailTimer').textContent = '인증 시간이 만료되었습니다.';
             }
         }, 1000);
+    }
+    
+    function updateEmailTimer() {
+        if (emailTimerSeconds > 0) {
+            const min = String(Math.floor(emailTimerSeconds / 60)).padStart(2, '0');
+            const sec = String(emailTimerSeconds % 60).padStart(2, '0');
+            document.getElementById('emailTimer').textContent = `남은 시간: ${min}:${sec}`;
         }
-        function updateEmailTimer() {
-            if (emailTimerSeconds > 0) {
-                const min = String(Math.floor(emailTimerSeconds / 60)).padStart(2, '0');
-                const sec = String(emailTimerSeconds % 60).padStart(2, '0');
-                document.getElementById('emailTimer').textContent = `남은 시간: ${min}:${sec}`;
-            }
-        }
+    }
 
-        // 이메일 인증
-        document.getElementById('emailVerifyBtn').addEventListener('click', function() {
-            const email = document.getElementById('email').value.trim();
-            const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-            if (!emailPattern.test(email)) {
-                showValidationError('email', 'emailError', '올바른 이메일 형식이 아닙니다.');
+    // 이메일 인증
+    document.getElementById('emailVerifyBtn').addEventListener('click', function() {
+        const email = document.getElementById('email').value.trim();
+        const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+        if (!emailPattern.test(email)) {
+            showValidationError('email', 'emailError', '올바른 이메일 형식이 아닙니다.');
+            return;
+        }
+        document.getElementById('emailError').textContent = '';
+        document.getElementById('email').classList.remove('is-invalid');
+        
+        // 이메일 인증 요청
+        fetch('/email/send', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                [csrfHeaderName]: csrfToken
+            },
+            body: JSON.stringify({ email })
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('이메일이 존재하거나 잘못된 요청입니다');
+            return res.json ? res.json() : res;
+        })
+        .then(() => {
+            // 인증번호 입력란과 타이머 UI 생성
+            let verifyBox = document.getElementById('emailVerifyBox');
+            if (!verifyBox) {
+                verifyBox = document.createElement('div');
+                verifyBox.id = 'emailVerifyBox';
+                verifyBox.className = 'input-group mt-2';
+                verifyBox.innerHTML = `
+                    <input type="text" class="form-control" id="emailCode" placeholder="인증번호 입력">
+                    <button type="button" class="btn btn-outline-secondary" id="emailCodeBtn">인증 확인</button>
+                    <span id="emailTimer" style="color:#6c757d; font-size:14px; min-width:90px; display:flex; align-items:center; margin-left:10px;"></span>
+                `;
+                document.getElementById('emailError').after(verifyBox);
+            }
+            startEmailTimer();
+        })
+        .catch(error => {
+            showValidationError('email', 'emailError', error.message || '이메일 인증 요청에 실패했습니다.');
+        });
+    });
+
+    // 이메일 확인버튼 이벤트
+    document.addEventListener('click', function (event) {
+        if (event.target && event.target.id === 'emailCodeBtn') {
+            const codeInput = document.getElementById('emailCode');
+            const emailInput = document.getElementById('email');
+            const code = codeInput.value.trim();
+            const email = emailInput.value.trim();
+
+            if (!code) {
+                alert('인증번호를 입력해주세요.');
                 return;
             }
-            document.getElementById('emailError').textContent = '';
-            document.getElementById('email').classList.remove('is-invalid');
-            // 이메일 인증 요청
-            fetch('/email/send', {
+
+            fetch('/email/verify', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     [csrfHeaderName]: csrfToken
                 },
-                body: JSON.stringify({ email })
+                body: JSON.stringify({ email: email, code: code })
             })
-            .then(res => {
-                if (!res.ok) throw new Error('이메일이 존재하거나 잘못된 요청입니다');
-                return res.json ? res.json() : res;
-            })
-
-            .then(() => {
-                // 인증번호 입력란과 타이머 UI 생성
-                let verifyBox = document.getElementById('emailVerifyBox');
-                if (!verifyBox) {
-                    verifyBox = document.createElement('div');
-                    verifyBox.id = 'emailVerifyBox';
-                    verifyBox.className = 'input-group mt-2';
-                    verifyBox.innerHTML = `
-                        <input type="text" class="form-control" id="emailCode" placeholder="인증번호 입력">
-                        <button type="button" class="btn btn-outline-secondary" id="emailCodeBtn">인증 확인</button>
-                        <span id="emailTimer" style="color:#6c757d; font-size:14px; min-width:90px; display:flex; align-items:center; margin-left:10px;"></span>
-                    `;
-                    document.getElementById('emailError').after(verifyBox);
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error(err.message || '서버 오류');
+                    });
                 }
-                startEmailTimer();
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert(data.message || '이메일 인증이 완료되었습니다.');
+                    // 타이머 중지 및 UI 정리
+                    if (emailTimerInterval) {
+                        clearInterval(emailTimerInterval);
+                        emailTimerInterval = null;
+                    }
+                    document.getElementById('emailVerifyBox')?.remove();
+                } else {
+                    alert(data.message || '인증번호가 올바르지 않습니다.');
+                }
             })
             .catch(error => {
-                showValidationError('email', 'emailError', error.message || '이메일 인증 요청에 실패했습니다.');
+                console.error('인증 요청 중 오류:', error);
+                alert(error.message || '인증 요청 중 문제가 발생했습니다.');
             });
-        });
-
-        // 이메일 확인버튼 이벤트
-        document.addEventListener('click', function (event) {
-            if (event.target && event.target.id === 'emailCodeBtn') {
-                const codeInput = document.getElementById('emailCode');
-                const emailInput = document.getElementById('email');
-                const code = codeInput.value.trim();
-                const email = emailInput.value.trim();
-
-                if (!code) {
-                    alert('인증번호를 입력해주세요.');
-                    return;
-                }
-
-                fetch('/email/verify', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        [csrfHeaderName]: csrfToken // CSRF 적용 필요 시
-                    },
-                    body: JSON.stringify({ email: email, code: code })
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        return response.json().then(err => {
-                            throw new Error(err.message || '서버 오류');
-                        });
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message || '이메일 인증이 완료되었습니다.');
-                        // 타이머 중지 및 UI 정리
-                        if (emailTimerInterval) {
-                            clearInterval(emailTimerInterval);
-                            emailTimerInterval = null;
-                        }
-                        document.getElementById('emailVerifyBox')?.remove();
-                    } else {
-                        alert(data.message || '인증번호가 올바르지 않습니다.');
-                    }
-                })
-                .catch(error => {
-                    console.error('인증 요청 중 오류:', error);
-                    alert(error.message || '인증 요청 중 문제가 발생했습니다.');
-                });
-            }
-        });
+        }
+    });
 
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script th:src="@{/js/notification-utils.js}" sec:authorize="isAuthenticated()"></script>
 <script th:src="@{/js/notification-chat.js}" sec:authorize="isAuthenticated()"></script>
 <script th:src="@{/js/notification-ui.js}" sec:authorize="isAuthenticated()"></script>
 <script th:src="@{/js/notification-sse.js}" sec:authorize="isAuthenticated()"></script>
 </body>
-<div th:replace="~{fragments/footer :: footer}"></div>
 </html>

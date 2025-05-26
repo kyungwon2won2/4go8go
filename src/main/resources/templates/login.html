@@ -136,8 +136,11 @@
                 <div class="card-body p-5">
                     <h2 class="text-center mb-4">로그인</h2>
 
-                    <!-- 로그인 폼 - CSRF 토큰 없이 -->
+                    <!-- 로그인 폼 -->
                     <form th:action="@{/loginPro}" method="post">
+                        <!-- CSRF 토큰 -->
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        
                         <div class="mb-3">
                             <label for="email" class="form-label">이메일</label>
                             <input type="email" class="form-control" id="email" name="email" required>

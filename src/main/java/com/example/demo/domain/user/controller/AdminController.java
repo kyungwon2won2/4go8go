@@ -39,9 +39,18 @@ public class AdminController {
 		// 통계 데이터 계산
 		long activeUsers = users.stream().filter(u -> "ACTIVE".equals(u.getStatus()) || u.getStatus() == null).count();
 		long suspendedUsers = users.stream().filter(u -> "SUSPENDED".equals(u.getStatus())).count();
-		long normalUsers = users.stream().filter(u -> u.getSocialType() == null).count();
-		long googleUsers = users.stream().filter(u -> "GOOGLE".equals(u.getSocialType())).count();
-		long naverUsers = users.stream().filter(u -> "NAVER".equals(u.getSocialType())).count();
+		long normalUsers = users.stream().filter(u -> u.getSocialType() == null || u.getSocialType().isEmpty()).count();
+		long googleUsers = users.stream().filter(u -> 
+			"google".equalsIgnoreCase(u.getSocialType()) || "GOOGLE".equals(u.getSocialType())).count();
+		long naverUsers = users.stream().filter(u -> 
+			"naver".equalsIgnoreCase(u.getSocialType()) || "NAVER".equals(u.getSocialType())).count();
+
+		log.info("사용자 통계 - 전체: {}, 일반: {}, 구글: {}, 네이버: {}", 
+				users.size(), normalUsers, googleUsers, naverUsers);
+		
+		// 디버깅을 위한 상세 로그
+		users.forEach(u -> log.debug("사용자 ID: {}, 이메일: {}, 소셜타입: '{}'", 
+				u.getUserId(), u.getEmail(), u.getSocialType()));
 
 		model.addAttribute("activeUsers", activeUsers);
 		model.addAttribute("suspendedUsers", suspendedUsers);
