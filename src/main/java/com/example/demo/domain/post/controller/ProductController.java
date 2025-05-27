@@ -5,6 +5,8 @@ import com.example.demo.domain.chat.service.ChatService;
 import com.example.demo.domain.post.dto.*;
 import com.example.demo.domain.post.model.Product;
 import com.example.demo.domain.post.service.MyProductService;
+import com.example.demo.domain.post.service.FavoriteService;
+import com.example.demo.domain.post.service.ImageUploadService;
 import com.example.demo.domain.post.service.ProductService;
 import com.example.demo.domain.stringcode.ProductCategory;
 import com.example.demo.domain.user.model.CustomerUser;
@@ -30,13 +32,14 @@ import java.util.Map;
 public class ProductController {
 
     private final ProductService productService;
+    private final FavoriteService favoriteService;
     private final ChatService chatService;
     private final MyProductService myProductService;
     private final UserService userService;
 
     // 상품 list 가져오기 (카테고리 필터링 및 검색 포함)
     @GetMapping("/product")
-    public String productList(@RequestParam(defaultValue = "1") int page, 
+    public String productList(@RequestParam(defaultValue = "1") int page,
                             @RequestParam(required = false) ProductCategory category,
                             @RequestParam(required = false) String search,
                             Model model) {
@@ -45,7 +48,7 @@ public class ProductController {
 
         List<ProductListDto> products;
         int totalCount;
-        
+
         // 검색어가 있는 경우
         if (search != null && !search.trim().isEmpty()) {
             products = productService.getProductsBySearch(offset, pageSize, search.trim());
@@ -56,13 +59,13 @@ public class ProductController {
         else if (category != null) {
             products = productService.getProductsByPageAndCategory(offset, pageSize, category);
             totalCount = productService.getTotalProductCountByCategory(category);
-        } 
+        }
         // 전체 상품 조회
         else {
             products = productService.getProductsByPage(offset, pageSize);
             totalCount = productService.getTotalProductCount();
         }
-        
+
         int totalPages = (int) Math.ceil((double) totalCount / pageSize);
         boolean hasNext = page < totalPages;
         boolean hasPrev = page > 1;
@@ -75,10 +78,10 @@ public class ProductController {
         model.addAttribute("selectedCategory", category);
         model.addAttribute("selectedCategoryName", category != null ? category.name() : null);
         model.addAttribute("categoryDisplayName", category != null ? category.getKoreanName() : "전체");
-        
+
         return "product/index";
     }
-    
+
      //내가 등록한 상품 관리 페이지
     @GetMapping("/user/product/my")
     public String myProducts(@RequestParam(defaultValue = "1") int page,
@@ -128,20 +131,24 @@ public class ProductController {
 
     // 상품 상세 페이지
     @GetMapping("/product/{postId}")
-    public String productDetail(@PathVariable int postId, Model model, @AuthenticationPrincipal CustomerUser customerUser) {
+    public String productDetail(@PathVariable int postId, Model model, @AuthenticationPrincipal CustomerUser loginUser) {
         ProductDetailDto product = productService.getProductDetailByPostId(postId);
         int chatRooms = chatService.countChatRoom(postId);
         Users writer = userService.getUserById(product.getUserId());
 
         model.addAttribute("product", product);
+
+        int favoriteCount = favoriteService.getFavoriteCount(postId);
+        model.addAttribute("favoriteCount", favoriteCount);
+
+        boolean hasFavorited = false;
+        if(loginUser != null){
+            hasFavorited = favoriteService.hasFavorited(postId, loginUser.getUserId());
+        }
+        model.addAttribute("hasFavorited", hasFavorited);
+
         model.addAttribute("chatRooms", chatRooms);
         model.addAttribute("rating", writer.getRating());
-        // 로그인 안 된 사용자도 접근 가능하도록
-        if (customerUser != null) {
-            model.addAttribute("userId", customerUser.getUserId());
-        } else {
-            model.addAttribute("userId", 0); // 또는 "guest", 0, 등 처리 방식에 따라
-        }
         return "product/detail";
     }
 
@@ -169,7 +176,7 @@ public class ProductController {
 
     // 상품 수정 처리
     @PostMapping("/user/product/{postId}/edit")
-    public String updateProduct(@PathVariable int postId, @ModelAttribute UpdateProductDto productDto, 
+    public String updateProduct(@PathVariable int postId, @ModelAttribute UpdateProductDto productDto,
                               @RequestParam(value = "imageFiles", required = false) MultipartFile[] imageFiles,
                               @RequestParam(value = "deletedImageIds", required = false) String deletedImageIds) {
         productService.updateProduct(postId, productDto, imageFiles, deletedImageIds);

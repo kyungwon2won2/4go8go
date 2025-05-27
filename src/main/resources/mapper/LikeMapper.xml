@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+    int countByPostId(@Param("postId") int postId);
+ -->
+<mapper namespace="com.example.demo.mapper.LikeMapper">
+
+    <insert id="insert" parameterType="Like">
+        INSERT INTO likes (user_id, post_id, created_at)
+        VALUES (#{userId}, #{postId}, NOW())
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM likes
+        WHERE user_id = #{userId} AND post_id = #{postId}
+    </delete>
+
+    <select id="exists" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1 FROM likes WHERE user_id = #{userId} AND post_id = #{postId}
+        )
+    </select>
+
+    <select id="countByPostId" resultType="int">
+        SELECT COUNT(*) FROM likes WHERE post_id = #{postId}
+    </select>
+
+</mapper>

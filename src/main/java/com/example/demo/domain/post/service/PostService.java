@@ -51,6 +51,7 @@ public class PostService {
         post.setCreatedAt(new Date());
         post.setUpdatedAt(new Date());
         post.setUserId(userId);
+        post.setPostCategoryId(2);  //일반게시판 고정
         postMapper.insertPost(post);
 
         List<String> base64List = HtmlImageExtractor.extractImageUrls(post.getContent());
@@ -197,22 +198,22 @@ public class PostService {
     }
 
     // 페이징
-    public List<GeneralPostDto> getPostsByPage(int page, int pageSize){
+    public List<GeneralPostDto> getPostsByPage(int postCategoryId, int page, int pageSize) {
         int offset = (page - 1) * pageSize;
-        List<GeneralPostDto> posts = postMapper.selectPostsByPage(offset, pageSize);
-        
+        List<GeneralPostDto> posts = postMapper.selectPostsByPage(2, offset, pageSize);
+
         // 각 게시글에 댓글 개수 설정
         for (GeneralPostDto post : posts) {
             int commentCount = commentMapper.selectCommentCountByPostId(post.getPostId());
             post.setCommentCount(commentCount);
         }
-        
+
         return posts;
     }
 
     // 일반게시판 전체 글 갯수
-    public int getTotalPostCount(){
-        return postMapper.countAllPosts();
+    public int getTotalPostCount(int postCategoryId){
+        return postMapper.countAllPosts(postCategoryId);
     }
 
     // 게시글 제목과 내용만 업데이트 (상품 수정에서 사용)

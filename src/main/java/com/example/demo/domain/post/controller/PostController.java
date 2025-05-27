@@ -5,6 +5,7 @@ import com.example.demo.domain.comment.helper.CommentHelper;
 import com.example.demo.domain.post.dto.GeneralDetailDto;
 import com.example.demo.domain.post.dto.GeneralPostDto;
 import com.example.demo.domain.post.model.Post;
+import com.example.demo.domain.post.service.LikeService;
 import com.example.demo.domain.post.service.PostService;
 import com.example.demo.domain.user.model.CustomerUser;
 import lombok.RequiredArgsConstructor;
@@ -29,15 +30,17 @@ public class PostController {
 
     private final PostService postService;
     private final CommentHelper commentHelper;
+    private final LikeService likeService;
 
     //전체조회
     @GetMapping("/post")
     public String getAllPosts(@RequestParam(defaultValue = "1") int page, Model model){
         int pageSize = 10;
+        int postCategoryId = 2; // 일반게시판 고정
 
         //List<GeneralPostDto> posts = postService.getAllPostsDto();
-        List<GeneralPostDto> posts = postService.getPostsByPage(page, pageSize);
-        int totalPosts = postService.getTotalPostCount();
+        List<GeneralPostDto> posts = postService.getPostsByPage(postCategoryId, page, pageSize);
+        int totalPosts = postService.getTotalPostCount(postCategoryId);
         int totalPages = (int) Math.ceil((double) totalPosts / pageSize);
 
         model.addAttribute("posts", posts);
@@ -58,7 +61,7 @@ public class PostController {
         if(post == null){
             return "redirect:/post";
         }
-        
+
         // 비로그인 사용자 처리
         Integer currentUserId = null;
         boolean isOwner = false;
@@ -70,6 +73,10 @@ public class PostController {
             isAdmin = customerUser.hasRole("ROLE_ADMIN");
         }
 
+        //좋아요 여부 확인
+        int likeCount = likeService.getLikeCount(postId);
+        boolean hasLiked = likeService.hasLiked(postId, customerUser.getUserId());
+
         // 댓글 가져오기 (닉네임 포함)
         List<CommentDTO> commentList = commentHelper.getCommentWithNicknameByPostId(postId);
 
@@ -78,6 +85,9 @@ public class PostController {
         model.addAttribute("userId", currentUserId);
         model.addAttribute("isOwner", isOwner);
         model.addAttribute("isAdmin", isAdmin);
+        model.addAttribute("hasLiked", hasLiked);
+        model.addAttribute("likeCount", likeCount);
+        log.info("customerUser.getUserId(): " + customerUser.getUserId());
         log.info("post.getUserId(): " + post.getUserId());
         return "post/detail";
     }
