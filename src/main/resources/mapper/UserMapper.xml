@@ -277,13 +277,6 @@
         AND (status != 'DELETED' OR status IS NULL)
     </select>
     
-    <!-- 이메일 인증 완료 회원 수 -->
-    <select id="getEmailVerifiedUserCount" resultType="int">
-        SELECT COUNT(*) FROM user
-        WHERE email_verified = true
-        AND (status != 'DELETED' OR status IS NULL)
-    </select>
-    
     <!-- 연령대별 회원 수 -->
     <select id="getUserCountByAgeGroup" resultType="map">
         SELECT 
@@ -311,5 +304,16 @@
         SET rating = #{rating}
         WHERE user_id = #{userId}
     </update>
+    
+    <!-- 평점 높은 상위 회원 조회 -->
+    <select id="getTopRatedUsers" resultMap="userMap">
+        SELECT u.user_id, u.email, u.name, u.nickname, u.rating, u.points, u.social_type,
+               u.created_at, u.status
+        FROM user u
+        WHERE (u.status = 'ACTIVE' OR u.status IS NULL)
+        AND u.rating > 0.0
+        ORDER BY u.rating DESC, u.points DESC
+        LIMIT #{limit}
+    </select>
 
 </mapper>
