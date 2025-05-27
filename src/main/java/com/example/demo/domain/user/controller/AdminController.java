@@ -49,12 +49,12 @@ public class AdminController {
 		model.addAttribute("googleUsers", userStats.get("googleUsers"));
 		model.addAttribute("naverUsers", userStats.get("naverUsers"));
 		
-		// 이메일 인증 통계
-		model.addAttribute("emailVerifiedUsers", userStats.get("emailVerifiedUsers"));
-		model.addAttribute("emailUnverifiedUsers", userStats.get("emailUnverifiedUsers"));
-		
 		// 연령대별 통계
 		model.addAttribute("ageGroups", userStats.get("ageGroups"));
+
+		// 평점 상위 회원 조회 (TOP 5)
+		List<Users> topRatedUsers = adminService.getTopRatedUsers(5);
+		model.addAttribute("topRatedUsers", topRatedUsers);
 
 		// 기존 사용자 목록 (사용자 관리용)
 		List<Users> users = userService.getAllUsers();

@@ -218,11 +218,11 @@
             <div class="admin-container stat-card">
                 <div class="d-flex align-items-center">
                     <div class="stat-icon me-3">
-                        <i class="bi bi-envelope-check"></i>
+                        <i class="bi bi-trophy-fill"></i>
                     </div>
                     <div>
-                        <h4 class="mb-0" th:text="${emailVerifiedUsers ?: 0}">0</h4>
-                        <small class="text-muted">이메일 인증</small>
+                        <h4 class="mb-0" th:text="${#lists.size(topRatedUsers)}">0</h4>
+                        <small class="text-muted">우수 회원</small>
                     </div>
                 </div>
             </div>
@@ -236,6 +236,98 @@
                     <div>
                         <h4 class="mb-0" th:text="${emailUnverifiedUsers ?: 0}">0</h4>
                         <small class="text-muted">미인증</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 우수 회원 TOP 5 섹션 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="admin-container">
+                <h3 class="section-title">
+                    <i class="bi bi-trophy-fill text-warning"></i> 우수 회원 TOP 5
+                </h3>
+                
+                <!-- 우수 회원이 없는 경우 -->
+                <div th:if="${#lists.isEmpty(topRatedUsers)}" class="text-center py-4">
+                    <i class="bi bi-emoji-smile" style="font-size: 3rem; color: #6c757d;"></i>
+                    <p class="text-muted mt-2">아직 평점을 받은 회원이 없습니다.</p>
+                    <small class="text-muted">거래가 활발해지면 우수 회원들이 나타날 예정입니다!</small>
+                </div>
+
+                <!-- 우수 회원 목록 -->
+                <div th:if="${!#lists.isEmpty(topRatedUsers)}" class="row">
+                    <div th:each="user, iterStat : ${topRatedUsers}" 
+                         th:class="${iterStat.index == 0} ? 'col-12 mb-4' : 'col-md-6 col-lg-3 mb-3'">
+                        
+                        <!-- 1등 회원 - 특별 디자인 -->
+                        <div th:if="${iterStat.index == 0}" class="card border-warning shadow-lg" 
+                             style="background: linear-gradient(135deg, #fff3cd 0%, #ffffff 50%, #fff3cd 100%);">
+                            <div class="card-body text-center position-relative">
+                                <!-- 왕관 아이콘 -->
+                                <div class="position-absolute top-0 start-50 translate-middle">
+                                    <i class="bi bi-award-fill text-warning" style="font-size: 2rem; 
+                                       filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));"></i>
+                                </div>
+                                
+                                <!-- 1등 배지 -->
+                                <div class="d-flex justify-content-center align-items-center mb-3 mt-3">
+                                    <span class="badge bg-warning text-dark fs-6 px-3 py-2 rounded-pill shadow-sm">
+                                        🥇 1st PLACE
+                                    </span>
+                                </div>
+                                
+                                <!-- 사용자 아바타 -->
+                                <div class="d-flex justify-content-center mb-3">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-lg"
+                                         style="width: 80px; height: 80px; background: linear-gradient(135deg, #ffc107, #ffb300); font-size: 1.5rem;"
+                                         th:text="${#strings.substring(user.nickname ?: 'U', 0, 1)}">U</div>
+                                </div>
+                                
+                                <!-- 사용자 정보 -->
+                                <h4 class="card-title text-warning fw-bold mb-2" th:text="${user.nickname}">닉네임</h4>
+                                <div class="mb-2">
+                                    <span class="badge bg-warning text-dark rounded-pill">
+                                        ⭐ <span th:text="${#numbers.formatDecimal(user.rating, 1, 1)}">5.0</span>
+                                    </span>
+                                </div>
+                                <div class="text-muted small mt-1">
+                                    <span th:if="${user.socialType == null}" class="badge bg-primary">일반</span>
+                                    <span th:if="${user.socialType == 'GOOGLE'}" class="badge bg-danger">구글</span>
+                                    <span th:if="${user.socialType == 'NAVER'}" class="badge bg-success">네이버</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 2-5등 회원 - 일반 디자인 -->
+                        <div th:unless="${iterStat.index == 0}" class="card h-100 shadow-sm border-0" 
+                             style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);">
+                            <div class="card-body text-center">
+                                <!-- 순위 배지 -->
+                                <div class="mb-2">
+                                    <span class="badge rounded-pill px-3 py-2"
+                                          th:classappend="${iterStat.index == 1} ? 'bg-secondary' : (${iterStat.index == 2} ? 'bg-warning text-dark' : 'bg-light text-dark')"
+                                          th:text="${iterStat.index == 1} ? '🥈 2nd' : (${iterStat.index == 2} ? '🥉 3rd' : (${iterStat.count} + 'th'))">2nd</span>
+                                </div>
+                                
+                                <!-- 사용자 아바타 -->
+                                <div class="d-flex justify-content-center mb-3">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow"
+                                         style="width: 50px; height: 50px; background: linear-gradient(135deg, #6c757d, #495057);"
+                                         th:text="${#strings.substring(user.nickname ?: 'U', 0, 1)}">U</div>
+                                </div>
+                                
+                                <!-- 사용자 정보 -->
+                                <h6 class="card-title mb-2" th:text="${user.nickname}">닉네임</h6>
+                                <div class="mb-1">
+                                    <small class="text-warning">
+                                        ⭐ <span th:text="${#numbers.formatDecimal(user.rating, 1, 1)}">4.5</span>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -294,8 +386,8 @@
                         </div>
 
                         <div class="col-md-6 mb-4">
-                            <h5>이메일 인증 현황</h5>
-                            <canvas id="emailVerificationChart" width="400" height="200"></canvas>
+                            <h5>우수 회원 평점 분포</h5>
+                            <canvas id="topUsersChart" width="400" height="200"></canvas>
                         </div>
                     </div>
                 </div>
@@ -514,9 +606,8 @@
         normalUsers: [[${normalUsers ?: 0}]],
         googleUsers: [[${googleUsers ?: 0}]],
         naverUsers: [[${naverUsers ?: 0}]],
-        emailVerifiedUsers: [[${emailVerifiedUsers ?: 0}]],
-        emailUnverifiedUsers: [[${emailUnverifiedUsers ?: 0}]],
-        ageGroups: /*[[${ageGroups}]]*/ []
+        ageGroups: /*[[${ageGroups}]]*/ [],
+        topRatedUsers: /*[[${topRatedUsers}]]*/ []
     };
 
     // 데이터 확인 로그
@@ -727,45 +818,73 @@
             console.error('userStatusChart 캔버스를 찾을 수 없습니다');
         }
 
-        // 4. 이메일 인증 현황 도넛 차트
-        const emailVerificationCtx = document.getElementById('emailVerificationChart');
-        if (emailVerificationCtx) {
-            console.log('이메일 인증 차트 데이터:', [statsData.emailVerifiedUsers, statsData.emailUnverifiedUsers]);
+        // 4. 우수 회원 평점 분포 바 차트
+        const topUsersCtx = document.getElementById('topUsersChart');
+        if (topUsersCtx) {
+            console.log('우수 회원 차트 데이터:', statsData.topRatedUsers);
 
-            const hasData = statsData.emailVerifiedUsers + statsData.emailUnverifiedUsers > 0;
-            const chartData = hasData ?
-                [statsData.emailVerifiedUsers, statsData.emailUnverifiedUsers] :
-                [6, 4]; // 샘플 데이터
+            let userLabels, userRatings;
+
+            if (statsData.topRatedUsers && Array.isArray(statsData.topRatedUsers) && statsData.topRatedUsers.length > 0) {
+                userLabels = statsData.topRatedUsers.map(user => user.nickname || '사용자');
+                userRatings = statsData.topRatedUsers.map(user => user.rating || 0);
+            } else {
+                // 샘플 데이터
+                userLabels = ['샘플1', '샘플2', '샘플3'];
+                userRatings = [4.8, 4.5, 4.2];
+            }
 
             try {
-                new Chart(emailVerificationCtx.getContext('2d'), {
-                    type: 'doughnut',
+                new Chart(topUsersCtx.getContext('2d'), {
+                    type: 'bar',
                     data: {
-                        labels: ['인증 완료', '미인증'],
+                        labels: userLabels,
                         datasets: [{
-                            data: chartData,
-                            backgroundColor: ['#28a745', '#dc3545']
+                            label: '평점',
+                            data: userRatings,
+                            backgroundColor: [
+                                '#ffc107', // 1등 - 금색
+                                '#6c757d', // 2등 - 은색  
+                                '#cd7f32', // 3등 - 동색
+                                '#5f0080', // 4-5등 - 보라색
+                                '#5f0080'
+                            ],
+                            borderColor: '#ffffff',
+                            borderWidth: 2
                         }]
                     },
                     options: {
                         responsive: true,
                         plugins: {
                             legend: {
-                                position: 'bottom'
+                                display: false
                             },
                             title: {
-                                display: !hasData,
+                                display: !statsData.topRatedUsers || statsData.topRatedUsers.length === 0,
                                 text: '데이터가 없습니다 (샘플 표시)'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                min: 0,
+                                max: 5,
+                                ticks: {
+                                    stepSize: 0.5,
+                                    callback: function(value) {
+                                        return value.toFixed(1) + '⭐';
+                                    }
+                                }
                             }
                         }
                     }
                 });
-                console.log('이메일 인증 차트 생성 완료');
+                console.log('우수 회원 차트 생성 완료');
             } catch (error) {
-                console.error('이메일 인증 차트 생성 오류:', error);
+                console.error('우수 회원 차트 생성 오류:', error);
             }
         } else {
-            console.error('emailVerificationChart 캔버스를 찾을 수 없습니다');
+            console.error('topUsersChart 캔버스를 찾을 수 없습니다');
         }
 
         console.log('=== 차트 생성 완료 ===');

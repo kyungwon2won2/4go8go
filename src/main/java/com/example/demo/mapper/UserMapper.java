@@ -115,10 +115,10 @@ public interface UserMapper {
     // 일반 가입 회원 수 (소셜 로그인 아닌)
     public int getNormalRegistrationCount();
     
-    // 이메일 인증 완료 회원 수
-    public int getEmailVerifiedUserCount();
-    
     // 연령대별 회원 수 (10대, 20대, 30대 등)
     public List<Map<String, Object>> getUserCountByAgeGroup();
+    
+    // 평점 높은 상위 회원 조회
+    public List<Users> getTopRatedUsers(@Param("limit") int limit);
 
 }

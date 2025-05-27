@@ -227,16 +227,6 @@ public class AdminService {
             stats.put("googleUsers", googleUsers);
             stats.put("naverUsers", naverUsers);
             
-            // 이메일 인증 통계
-            log.info("이메일 인증 통계 조회 중...");
-            int verifiedUsers = userMapper.getEmailVerifiedUserCount();
-            int unverifiedUsers = totalUsers - verifiedUsers;
-            
-            log.info("이메일 인증: {}, 미인증: {}", verifiedUsers, unverifiedUsers);
-            
-            stats.put("emailVerifiedUsers", verifiedUsers);
-            stats.put("emailUnverifiedUsers", unverifiedUsers);
-            
             // 연령대별 통계
             log.info("연령대별 통계 조회 중...");
             List<Map<String, Object>> ageGroups = userMapper.getUserCountByAgeGroup();
@@ -258,11 +248,29 @@ public class AdminService {
             stats.put("normalUsers", 0);
             stats.put("googleUsers", 0);
             stats.put("naverUsers", 0);
-            stats.put("emailVerifiedUsers", 0);
-            stats.put("emailUnverifiedUsers", 0);
             stats.put("ageGroups", new ArrayList<>());
         }
         
         return stats;
+    }
+    
+    /**
+     * 평점 상위 회원 조회
+     */
+    public List<Users> getTopRatedUsers(int limit) {
+        try {
+            log.info("평점 상위 회원 조회 - limit: {}", limit);
+            List<Users> topUsers = userMapper.getTopRatedUsers(limit);
+            log.info("평점 상위 회원 조회 완료 - 조회된 회원 수: {}", topUsers.size());
+            
+            if (!topUsers.isEmpty()) {
+                log.info("1등 회원: 닉네임={}, 평점={}", topUsers.get(0).getNickname(), topUsers.get(0).getRating());
+            }
+            
+            return topUsers;
+        } catch (Exception e) {
+            log.error("평점 상위 회원 조회 중 오류 발생", e);
+            return new ArrayList<>();
+        }
     }
 }
