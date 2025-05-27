@@ -5,7 +5,7 @@
  -->
 <mapper namespace="com.example.demo.mapper.LikeMapper">
 
-    <insert id="insert" parameterType="Like">
+    <insert id="insert" parameterType="com.example.demo.domain.post.model.Like">
         INSERT INTO likes (user_id, post_id, created_at)
         VALUES (#{userId}, #{postId}, NOW())
     </insert>

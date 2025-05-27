@@ -26,7 +26,6 @@ public class CommentController {
             @PathVariable("postId") int postId,
             @RequestBody CreateCommentRequest request,
             @AuthenticationPrincipal CustomerUser loginUser) {
-        System.out.println("jenkins");
         return ResponseEntity.ok(commentService.createComment(postId, request.commentContent(), loginUser));
     }
 
@@ -61,12 +60,12 @@ public class CommentController {
     }
 
     // 예외 핸들러 추가
-    @ExceptionHandler({IllegalStateException.class, IllegalArgumentException.class})
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> handleIllegalState(Exception ex) {
-        Map<String, Object> error = new java.util.HashMap<>();
-        error.put("success", false);
-        error.put("message", ex.getMessage());
-        return ResponseEntity.badRequest().body(error);
-    }
+//    @ExceptionHandler({IllegalStateException.class, IllegalArgumentException.class})
+//    @ResponseBody
+//    public ResponseEntity<Map<String, Object>> handleIllegalState(Exception ex) {
+//        Map<String, Object> error = new java.util.HashMap<>();
+//        error.put("success", false);
+//        error.put("message", ex.getMessage());
+//        return ResponseEntity.badRequest().body(error);
+//    }
 }

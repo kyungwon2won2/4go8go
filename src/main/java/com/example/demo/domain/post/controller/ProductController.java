@@ -144,6 +144,9 @@ public class ProductController {
         boolean hasFavorited = false;
         if(loginUser != null){
             hasFavorited = favoriteService.hasFavorited(postId, loginUser.getUserId());
+            model.addAttribute("userId", loginUser.getUserId());
+        } else {
+            model.addAttribute("userId", 0); // 또는 "guest", 0, 등 처리 방식에 따라
         }
         model.addAttribute("hasFavorited", hasFavorited);
 
