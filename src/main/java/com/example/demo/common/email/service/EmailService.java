@@ -33,8 +33,6 @@ public class EmailService {
     private final UserMapper userMapper;
     private final EmailVerificationMapper emailVerificationMapper;
 
-    private static final int MAX_TRIES = 5; // 로그인 시도횟수 제한
-
     // 인증 코드 생성 + 메일 전송 (이메일 대소문자 무시)
     @Transactional
     public void generateAndSendCode(String email) {
@@ -55,7 +53,7 @@ public class EmailService {
         emailVerificationMapper.insert(verification);
 
         // 3. 이메일 전송
-        sendVerificationEmail(normalizedEmail, code);
+//        sendVerificationEmail(normalizedEmail, code);
 
         // 테스트시 로그로 회원가입
         log.info(">>>>  code : " + code);

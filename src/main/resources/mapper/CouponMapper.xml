@@ -93,4 +93,19 @@
         coupon_id = #{couponId}
     </update>
 
+    <!-- BULK-INSERT -->
+    <insert id="bulkInsertBirthdayCoupons" parameterType="list">
+        INSERT INTO birthday_coupon (
+        coupon_code, coupon_name, discount_amount,
+        valid_from, valid_to, user_id, created_at
+        ) VALUES
+        <foreach collection="list" item="coupon" separator=",">
+            (
+            #{coupon.couponCode}, #{coupon.couponName}, #{coupon.discountAmount},
+            #{coupon.validFrom}, #{coupon.validTo}, #{coupon.userId}, #{coupon.createdAt}
+            )
+        </foreach>
+    </insert>
+
+
 </mapper>
