@@ -70,7 +70,7 @@ public class ProductService {
         post.setTitle(productDto.getTitle());
         post.setContent(productDto.getContent());
         post.setCreatedAt(new Date());
-        postService.insertPost(post, loginUser.getUserId());
+        postMapper.insertPost(post);
 
         Product product = new Product();
         product.setPostId(post.getPostId());

@@ -252,14 +252,30 @@
     <div class="kurly-container">
         <div class="kurly-card">
             <div class="kurly-header">
-                <h1 class="kurly-title" th:text="${post.title}">게시글 제목</h1>
-                <div class="meta-info d-flex justify-content-between">
-                    <div>
-                        <span th:text="${post.userName}">작성자</span> •
-                        <span th:text="${#dates.format(post.createdAt, 'yyyy.MM.dd HH:mm')}">작성일</span>
+                <div class="category-tag" th:text="'카테고리 ' + ${post.postCategoryId}"></div>
+                <h1 class="kurly-title" th:text="${post.title}"></h1>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold" th:text="${post.userName}"></div>
+                            <div class="meta-info">
+                                <span th:text="${#dates.format(post.createdAt, 'yyyy.MM.dd HH:mm')}"></span>
+                                <span class="ms-2">조회 <span id="viewCount" th:text="${post.viewCount}"></span></span>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <span>조회 <span th:text="${post.viewCount}">0</span></span>
+                    <!-- 좋아요 버튼-->
+                    <div class="d-flex align-items-center gap-3">
+                        <button class="btn-like border-0 bg-transparent"
+                                th:classappend="${hasLiked} ? 'active text-purple':''">
+                            <i th:class="${hasLiked} ? 'fa-heart fas text-purple':'fa-heart far'"></i>
+                            <span th:classappend="${hasLiked}?'text-purple':''"
+                                    th:text="${likeCount}">0</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -641,6 +657,45 @@
             } catch (err) {
                 console.error('❌ 댓글 수정 실패:', err);
                 alert('댓글 수정 실패');
+            }
+        });
+
+        // 좋아요 토글 이벤트
+        const likeBtn = document.querySelector('.btn-like');
+        const likeIcon = likeBtn.querySelector('i');
+        const likeCountSpan = likeBtn.querySelector('span');
+
+        likeBtn.addEventListener('click', async () => {
+            try{
+                const response = await fetch('/like/toggle?postId=' + postId, {
+                    method: 'POST',
+                    headers : {
+                        'X-CSRF-TOKEN' : getCsrfToken()
+                    }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 403) {
+                        window.location.href = '/login';
+                    }
+                    throw new Error('서버 오류');
+                }
+
+                const data = await response.json();
+                likeCountSpan.textContent = data.count;
+
+                if (data.liked) {
+                    likeIcon.className='fa-heart fas text-purple';
+                    likeCountSpan.className='text-purple';
+                    likeBtn.classList.add('active','text-purple');
+                } else {
+                    likeIcon.className='fa-heart far';
+                    likeCountSpan.className='';
+                    likeBtn.classList.remove('active','text-purple');
+                }
+            } catch(e){
+                alert('좋아요 처리 중 오류 발생');
+                console.error(e);
             }
         });
 

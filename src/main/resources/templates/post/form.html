@@ -19,7 +19,7 @@
     <link rel="stylesheet" type="text/css" th:href="@{/css/header.css}" />
     <link rel="stylesheet" type="text/css" th:href="@{/css/footer.css}" />
     <link rel="stylesheet" type="text/css" th:href="@{/css/notification.css}" />
-    
+
     <style>
         :root {
             --kurly-purple: #5f0080;
@@ -179,7 +179,16 @@
                     <input type="text" class="form-control" id="title" name="title" placeholder="제목을 입력해주세요" required>
                 </div>
 
-                <input type="hidden" name="postCategoryId" value="2" />
+                <!-- 카테고리 선택
+                <div class="mb-4">
+                    <label for="postCategoryId" class="form-label">카테고리 선택</label>
+                    <select class="form-select" id="postCategoryId" name="postCategoryId" required>
+                        <option value="" disabled selected>카테고리를 선택해주세요</option>
+                        <option value="1">물품게시판</option>
+                        <option value="2">일반게시판</option>
+                    </select>
+                </div>
+                 -->
 
                 <!--Summernote-->
                 <div class="mb-4">

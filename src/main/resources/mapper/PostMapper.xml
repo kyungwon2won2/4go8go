@@ -44,6 +44,7 @@
         select p.post_id, p.title, u.name, p.view_count, p.comment_count, p.created_at
         from post p
         join user u on p.user_id = u.user_id
+        where p.post_category_id = 2
         order by p.post_id desc
     </select>
 
@@ -134,18 +135,17 @@
 
     <!-- 페이징된 게시글 목록 -->
     <select id="selectPostsByPage" resultMap="GeneralPostDtoMap">
-        SELECT p.post_id, p.title, u.nickname, p.view_count, p.comment_count, p.created_at
+        SELECT p.post_id, p.title, u.name, p.view_count, p.comment_count, p.created_at
         FROM post p
         JOIN user u ON p.user_id = u.user_id
-        WHERE p.post_category_id = 2
+        WHERE p.post_category_id = #{postCategoryId}
         ORDER BY p.created_at DESC
         LIMIT #{limit} OFFSET #{offset}
     </select>
 
     <!-- 전체 게시글 수 -->
     <select id="countAllPosts" resultType="int">
-        SELECT COUNT(*) FROM post
-        WHERE post_category_id = 2
+        SELECT COUNT(*) FROM post WHERE post_category_id = #{postCategoryId}
     </select>
 
 

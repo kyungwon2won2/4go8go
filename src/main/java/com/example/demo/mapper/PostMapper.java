@@ -39,9 +39,13 @@ public interface PostMapper {
                                    @Param("content") String content);
 
     // 페이징 목록 조회
-    List<GeneralPostDto> selectPostsByPage(@Param("offset") int offset, @Param("limit") int limit);
+    List<GeneralPostDto> selectPostsByPage(
+            @Param("postCategoryId") int postCategoryId,
+            @Param("offset") int offset,
+            @Param("limit") int limit
+            );
 
     // 전체 게시글 수
-    int countAllPosts();
+    int countAllPosts(@Param("postCategoryId") int postCategoryId);
 }
 
