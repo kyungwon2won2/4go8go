@@ -5,7 +5,7 @@
     -->
 <mapper namespace="com.example.demo.mapper.FavoriteMapper">
 
-    <insert id="insert" parameterType="Favorite">
+    <insert id="insert" parameterType="com.example.demo.domain.post.model.Favorite">
         INSERT INTO favorites (user_id, post_id, created_at)
         VALUES (#{userId}, #{postId}, NOW())
     </insert>

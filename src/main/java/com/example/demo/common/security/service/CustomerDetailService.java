@@ -52,7 +52,6 @@ public class CustomerDetailService implements UserDetailsService, OAuth2UserServ
 		// 정지된 회원 확인
 		if (user.getStatus() != null && (user.getStatus().equals("정지") || 
 			user.getStatus().equalsIgnoreCase("suspended"))) {
-			log.warn("정지된 계정 로그인 시도 차단: userId={}, email={}", user.getUserId(), user.getEmail());
 			throw new InternalAuthenticationServiceException("정지된 계정입니다. 관리자에게 문의하세요.");
 		}
 
@@ -71,7 +70,6 @@ public class CustomerDetailService implements UserDetailsService, OAuth2UserServ
 
 		// OAuth2 서비스 ID (google, naver 등)
 		String registrationId = userRequest.getClientRegistration().getRegistrationId();
-		log.info("OAuth2 로그인 - 서비스 제공자: {}", registrationId);
 
 		String userNameAttributeName = userRequest.getClientRegistration()
 				.getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName();
@@ -115,8 +113,6 @@ public class CustomerDetailService implements UserDetailsService, OAuth2UserServ
 		// OAuth2 로그인 시에도 권한 정보 로딩
 		List<UserRole> roles = userMapper.getUserRolesByUserId(user.getUserId());
 		user.setRoleList(roles);
-		log.info("OAuth2 사용자 권한 로딩 완료: userId={}, roles={}", user.getUserId(), 
-				roles.stream().map(UserRole::getRoleName).toList());
 
 		return new CustomerUser(user, attributes);
 	}

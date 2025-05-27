@@ -27,7 +27,7 @@ public class EmailHelper {
     private String fromEmail;
 
     // 생일 축하 이메일 발송
-    public boolean sendBirthdayEmail(Users user, BirthdayCoupon coupon) {
+    public void sendBirthdayEmail(Users user, BirthdayCoupon coupon) {
         try {
             // 이메일 메시지 생성
             MimeMessage message = mailSender.createMimeMessage();
@@ -53,11 +53,8 @@ public class EmailHelper {
 
             // 이메일 발송
             mailSender.send(message);
-            log.info("생일 축하 이메일 발송 성공: {}", user.getEmail());
-            return true;
         } catch (MessagingException e) {
             log.error("생일 축하 이메일 발송 실패: {}", user.getEmail(), e);
-            return false;
         }
     }
 

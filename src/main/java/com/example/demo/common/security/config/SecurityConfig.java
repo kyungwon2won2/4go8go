@@ -128,27 +128,21 @@ public class SecurityConfig {
 		    public void onAuthenticationFailure(HttpServletRequest request, 
 		                                        HttpServletResponse response, 
 		                                        AuthenticationException exception) throws java.io.IOException, jakarta.servlet.ServletException {
-		        log.info("일반 로그인 인증 실패: {}", exception.getMessage());
-		        
+
 		        // 이메일 값 가져오기
 		        String email = request.getParameter("email");
-		        log.info("로그인 시도 이메일: {}", email);
 
 		        // 탈퇴한 회원 처리 - 소셜 로그인과 동일한 로직 적용
 		        if (exception instanceof InternalAuthenticationServiceException &&
 		                exception.getMessage().contains("탈퇴한 회원")) {
-		                
-		            log.info("탈퇴한 회원 로그인 시도 - 이메일: {}", email);
 		            
 		            // 복구 가능 여부 확인 (소셜 로그인과 동일)
 		            if (email != null && userService.isAccountRecoverable(email)) {
-		                log.info("복구 가능한 계정 - 복구 페이지로 리다이렉트: {}", email);
 		                response.sendRedirect("/account/recover?email=" + email);
 		                return;
 		            }
 		            
 		            // 복구 불가능한 경우
-		            log.warn("복구 불가능한 계정 - 로그인 페이지로 리다이렉트: {}", email);
 		            request.getSession().setAttribute("loginError", "탈퇴한 회원입니다.");
 		            response.sendRedirect("/login?error=deleted");
 		            
@@ -156,8 +150,7 @@ public class SecurityConfig {
 		        // 정지된 회원 처리
 		        else if (exception instanceof InternalAuthenticationServiceException &&
 		                exception.getMessage().contains("정지된 계정")) {
-		                
-		            log.info("정지된 회원 로그인 시도 - 이메일: {}", email);
+
 		            request.getSession().setAttribute("loginError", "정지된 계정입니다. 관리자에게 문의하세요.");
 		            response.sendRedirect("/login?error=suspended");
 		            

@@ -57,7 +57,6 @@ public class SampleJobConfig {
     @StepScope
     public ItemReader<Users> birthdayUserReader(UserMapper userMapper) {
         List<Users> birthdayUsers = userMapper.findUsersByBirthdayToday();
-        log.info("오늘 생일인 사용자 수: {}", birthdayUsers.size());
         return new ListItemReader<>(birthdayUsers);
     }
     
@@ -66,10 +65,8 @@ public class SampleJobConfig {
     public ItemProcessor<Users, Users> birthdayUserProcessor() {
         return user -> {
             if (user.getEmail() != null && !user.getEmail().isEmpty()) {
-                log.info("생일 이메일 처리 대상: {}님, 이메일: {}", user.getNickname(), user.getEmail());
                 return user;
             }
-            log.warn("이메일 정보가 없는 사용자: {}", user.getNickname());
             return null;
         };
     }
@@ -98,7 +95,6 @@ public class SampleJobConfig {
             if (!birthdayCoupons.isEmpty()) {
                 try {
                     couponMapper.bulkInsertBirthdayCoupons(birthdayCoupons);
-                    log.info("여기 도달은 함");
                 } catch (Exception e) {
                     log.error("생일 쿠폰 bulk insert 실패: {}", e.getMessage(), e);
                 }
