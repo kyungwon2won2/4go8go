@@ -221,4 +221,25 @@ public class PostService {
         postMapper.updatePostContentAndTitle(postId, title, content);
     }
 
+    // 검색 기능
+    public List<GeneralPostDto> searchPostsByKeyword(String keyword, int page, int pageSize) {
+        int offset = (page - 1) * pageSize;
+        int postCategoryId = 2; // 일반게시판 고정
+        List<GeneralPostDto> posts = postMapper.searchPostsByKeyword(postCategoryId, keyword, offset, pageSize);
+
+        // 각 게시글에 댓글 개수 설정
+        for (GeneralPostDto post : posts) {
+            int commentCount = commentMapper.selectCommentCountByPostId(post.getPostId());
+            post.setCommentCount(commentCount);
+        }
+
+        return posts;
+    }
+
+    // 검색 결과 총 개수
+    public int getSearchPostCount(String keyword) {
+        int postCategoryId = 2; // 일반게시판 고정
+        return postMapper.countSearchPosts(postCategoryId, keyword);
+    }
+
 }

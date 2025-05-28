@@ -47,5 +47,16 @@ public interface PostMapper {
 
     // 전체 게시글 수
     int countAllPosts(@Param("postCategoryId") int postCategoryId);
+
+    // 검색 기능
+    List<GeneralPostDto> searchPostsByKeyword(
+            @Param("postCategoryId") int postCategoryId,
+            @Param("keyword") String keyword,
+            @Param("offset") int offset,
+            @Param("limit") int limit
+    );
+
+    // 검색 결과 총 개수
+    int countSearchPosts(@Param("postCategoryId") int postCategoryId, @Param("keyword") String keyword);
 }
 

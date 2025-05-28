@@ -163,5 +163,31 @@ public class PostController {
         return ResponseEntity.ok(response);
     }
 
+    //게시글 검색 처리
+    @GetMapping("/post/search")
+    public String searchPosts(@RequestParam(required = false) String keyword, 
+                             @RequestParam(defaultValue = "1") int page,
+                             Model model) {
+        // 키워드가 없거나 비어있으면 전체 목록으로 리다이렉트
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return "redirect:/post";
+        }
+
+        int pageSize = 10;
+        
+        // 검색 수행
+        List<GeneralPostDto> posts = postService.searchPostsByKeyword(keyword.trim(), page, pageSize);
+        int totalPosts = postService.getSearchPostCount(keyword.trim());
+        int totalPages = (int) Math.ceil((double) totalPosts / pageSize);
+
+        model.addAttribute("posts", posts);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("keyword", keyword.trim());
+        model.addAttribute("isSearchResult", true);
+
+        return "post/list";
+    }
+
 
 }
