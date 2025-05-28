@@ -203,14 +203,14 @@
     <div class="product-desc" th:text="${product.content}">상품 설명</div>
 
     <div class="product-interaction">
-      <span><i class="bi bi-chat"></i> 채팅 0</span>
+      <span><i class="bi bi-chat"></i> 채팅 <span th:text="${chatRooms ?: 0}">0</span></span>
       <span>
         <i id="fav-icon"
            th:class="'bi ' + (${hasFavorited} ? 'bi-heart-fill text-danger' : 'bi-heart')"
            style="cursor:pointer;"></i>
         <span id="fav-count" th:text="'찜하기 '+${favoriteCount}">찜하기 0</span>
       </span>
-      <span><i class="bi bi-eye"></i> 조회 0</span>
+      <span><i class="bi bi-eye"></i> 조회 <span th:text="${product.viewCount ?: 0}">0</span></span>
     </div>
     <!-- 유저 정보(판매자 정보) - 채팅/관심/조회 밑, 수정/삭제 버튼 위 -->
     <div class="seller-inline-row">
