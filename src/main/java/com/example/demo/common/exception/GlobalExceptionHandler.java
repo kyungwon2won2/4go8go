@@ -5,6 +5,7 @@ import com.example.demo.common.exception.dto.ErrorResponse;
 import com.example.demo.common.stringcode.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.http.ResponseEntity;
@@ -135,6 +136,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<ErrorResponse> handleCustomException(
             CustomException ex) {
+        log.error("CustomException 발생: code={}, message={}", ex.getErrorCode().name(), ex.getMessage());
+        if (ex.getErrorCode() == ErrorCode.LOGIN_REQUIRED){
+            //로그인 필요 에러면 401 상태로 반환
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponse(false, ex.getErrorCode().getMessage(), ex.getErrorCode().name()));
+        }
 
         ErrorResponse body = new ErrorResponse(
                 false,

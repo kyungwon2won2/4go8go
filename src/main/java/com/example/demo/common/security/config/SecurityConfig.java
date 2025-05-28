@@ -28,6 +28,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.filter.HiddenHttpMethodFilter;
 import org.springframework.security.config.Customizer;
@@ -99,6 +100,7 @@ public class SecurityConfig {
 
 		// 예외 처리
 		http.exceptionHandling(exception -> exception
+				.authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))
 				.accessDeniedHandler(accessDeniedHandler())
 		);
 

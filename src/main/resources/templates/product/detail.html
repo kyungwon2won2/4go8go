@@ -328,6 +328,7 @@
       try{
         const response = await fetch('/favorite/toggle?postId=' + [[${product.postId}]],{
           method: 'POST',
+          credentials: 'same-origin',
           headers:{
             'X-CSRF-TOKEN':document.querySelector('meta[name="_csrf"]').content
           }
