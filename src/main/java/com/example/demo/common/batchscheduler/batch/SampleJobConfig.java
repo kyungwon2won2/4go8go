@@ -19,10 +19,12 @@ import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.support.ListItemReader;
+import org.mybatis.spring.batch.MyBatisPagingItemReader;
+import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,14 +54,17 @@ public class SampleJobConfig {
                 .writer(birthdayUserWriter)
                 .build();
     }
-    
+
     @Bean
     @StepScope
-    public ItemReader<Users> birthdayUserReader(UserMapper userMapper) {
-        List<Users> birthdayUsers = userMapper.findUsersByBirthdayToday();
-        return new ListItemReader<>(birthdayUsers);
+    public ItemReader<Users> birthdayUserReader(SqlSessionFactory sqlSessionFactory) {
+        MyBatisPagingItemReader<Users> reader = new MyBatisPagingItemReader<>();
+        reader.setSqlSessionFactory(sqlSessionFactory);
+        reader.setQueryId("com.example.demo.mapper.UserMapper.findUsersByBirthdayTodayWithPaging");
+        reader.setPageSize(1000);
+        return reader;
     }
-    
+
     @Bean
     @StepScope
     public ItemProcessor<Users, Users> birthdayUserProcessor() {
@@ -70,12 +75,13 @@ public class SampleJobConfig {
             return null;
         };
     }
-    
+
     @Bean
     @Transactional
     public ItemWriter<Users> birthdayUserWriter(EmailHelper emailHelper, CouponService couponService, CouponMapper couponMapper) {
-        List<BirthdayCoupon> birthdayCoupons = new ArrayList<>();
         return users -> {
+            List<BirthdayCoupon> birthdayCoupons = new ArrayList<>();
+
             for (Users user : users) {
                 try {
                     // 쿠폰 생성
@@ -90,7 +96,7 @@ public class SampleJobConfig {
                     log.error("생일 쿠폰 생성 실패: {} - 오류: {}", user.getNickname(), e.getMessage(), e);
                 }
             }
-            
+
             // Bulk Insert 로 한 번에 DB에 저장
             if (!birthdayCoupons.isEmpty()) {
                 try {
