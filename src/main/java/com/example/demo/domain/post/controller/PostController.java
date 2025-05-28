@@ -39,7 +39,7 @@ public class PostController {
         int postCategoryId = 2; // 일반게시판 고정
 
         //List<GeneralPostDto> posts = postService.getAllPostsDto();
-        List<GeneralPostDto> posts = postService.getPostsByPage(postCategoryId, page, pageSize);
+        List<GeneralPostDto> posts = postService.getPostsByPage(page, pageSize);
         int totalPosts = postService.getTotalPostCount(postCategoryId);
         int totalPages = (int) Math.ceil((double) totalPosts / pageSize);
 

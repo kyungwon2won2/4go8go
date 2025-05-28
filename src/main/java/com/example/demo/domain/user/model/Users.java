@@ -19,8 +19,8 @@ public class Users implements Serializable {
 
 	private int userId;
 	private String email;
-	private String name;      // 추가
-	private String phone;     // 추가
+	private String name;
+	private String phone;
 	private String password;
 	private String nickname;
 	private String address;
@@ -28,7 +28,7 @@ public class Users implements Serializable {
 	private int points;
 	private BigDecimal rating;
 	private boolean receiveMail;
-	private boolean emailVerified; // 이메일 인증 상태 필드 추가
+	private boolean emailVerified; // 이메일 인증 상태
 	private Date createdAt;
 	private Date updatedAt;
 	private String socialType;    // GOOGLE, KAKAO, NAVER 등

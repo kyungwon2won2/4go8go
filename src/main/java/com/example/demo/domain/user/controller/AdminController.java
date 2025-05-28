@@ -103,7 +103,6 @@ public class AdminController {
 	@PostMapping("/user/status")
 	public String updateUserStatus(@RequestParam Integer userId,
 								   @RequestParam String status) {
-		log.info("사용자 상태 변경 요청: id={}, status={}", userId, status);
 		adminService.updateUserStatus(userId, status);
 		return "redirect:/admin";
 	}
@@ -128,7 +127,6 @@ public class AdminController {
 				response.put("message", "사용자를 찾을 수 없습니다.");
 			}
 		} catch (Exception e) {
-			log.error("사용자 검색 중 오류 발생", e);
 			response.put("success", false);
 			response.put("message", "검색 중 오류가 발생했습니다.");
 		}
@@ -140,7 +138,6 @@ public class AdminController {
 	@PostMapping("/role/assign")
 	public String assignRole(@RequestParam String userEmail,
 							 @RequestParam String roleName) {
-		log.info("권한 부여 요청: email={}, role={}", userEmail, roleName);
 		
 		try {
 			boolean result = adminService.assignRole(userEmail, roleName);
@@ -150,7 +147,6 @@ public class AdminController {
 				return "redirect:/admin?error=user-not-found";
 			}
 		} catch (Exception e) {
-			log.error("권한 부여 중 오류 발생", e);
 			return "redirect:/admin?error=role-assign-failed";
 		}
 	}
@@ -172,7 +168,6 @@ public class AdminController {
 				response.put("message", "권한 회수에 실패했습니다.");
 			}
 		} catch (Exception e) {
-			log.error("권한 회수 중 오류 발생", e);
 			response.put("success", false);
 			response.put("message", "권한 회수 중 오류가 발생했습니다.");
 		}

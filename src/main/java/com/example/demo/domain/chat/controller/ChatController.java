@@ -40,7 +40,6 @@ public class ChatController {
     @GetMapping("/history/{roomId}")
     public ResponseEntity<?> getChatHistory(@PathVariable Long roomId) {
         if (roomId == null) {
-            log.warn("채팅 이력 조회 시 roomId가 null입니다.");
             return ResponseEntity.badRequest().body("유효하지 않은 채팅방 ID입니다.");
         }
 
@@ -48,7 +47,6 @@ public class ChatController {
             List<ChatMessageDto> chatMessageDtos = chatService.getChatHistory(roomId);
             return new ResponseEntity<>(chatMessageDtos, HttpStatus.OK);
         } catch (Exception e) {
-            log.error("채팅 이력 조회 오류: roomId={}", roomId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("채팅 이력 조회 중 오류가 발생했습니다: " + e.getMessage());
         }
@@ -58,7 +56,6 @@ public class ChatController {
     @PostMapping("/room/{roomId}/read")
     public ResponseEntity<?> messageRead(@PathVariable Long roomId) {
         if (roomId == null) {
-            log.warn("메시지 읽음 처리 시 roomId가 null입니다.");
             return ResponseEntity.badRequest().body("유효하지 않은 채팅방 ID입니다.");
         }
 
@@ -66,7 +63,6 @@ public class ChatController {
             chatService.messageRead(roomId);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            log.error("메시지 읽음 처리 오류: roomId={}", roomId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("메시지 읽음 처리 중 오류가 발생했습니다.");
         }
@@ -79,7 +75,6 @@ public class ChatController {
             List<MyChatListResDto> myChatListResDtos = chatService.getMyChatRooms();
             return new ResponseEntity<>(myChatListResDtos, HttpStatus.OK);
         } catch (Exception e) {
-            log.error("채팅방 목록 조회 오류", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("채팅방 목록 조회 중 오류가 발생했습니다.");
         }
@@ -89,7 +84,6 @@ public class ChatController {
     @PostMapping("/room/{roomId}/leave")
     public ResponseEntity<?> leaveRoom(@PathVariable Long roomId) {
         if (roomId == null) {
-            log.warn("채팅방 나가기 시 roomId가 null입니다.");
             return ResponseEntity.badRequest().body("유효하지 않은 채팅방 ID입니다.");
         }
 
@@ -115,7 +109,6 @@ public class ChatController {
 
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            log.error("채팅방 나가기 오류: roomId={}", roomId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("채팅방 나가기 중 오류가 발생했습니다.");
         }
@@ -133,12 +126,9 @@ public class ChatController {
             }
 
             Long roomId = chatService.getOrCreatePrivateRoom(otherMemberId, postId);
-            log.info("채팅방 생성 결과: roomId={}, 요청자={}, 상대방={}, 포스트ID={}",
-                    roomId, currentUser.getUserId(), otherMemberId, postId);
 
             return new ResponseEntity<>(roomId, HttpStatus.OK);
         } catch (Exception e) {
-            log.error("채팅방 생성 중 오류 발생", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("채팅방 생성 중 오류가 발생했습니다: " + e.getMessage());
         }
@@ -189,7 +179,6 @@ public class ChatController {
 
             // 6. RabbitMQ용 destination으로 이미지 메시지 브로드캐스트
             messagingTemplate.convertAndSend("/topic/chat.room." + roomId, messageDto);
-            log.info("이미지 메시지 WebSocket 브로드캐스트 완료: roomId={}, messageId={}", roomId, messageId);
 
             // 7. 참가자들에게 읽지 않은 메시지 개수 업데이트 알림
             broadcastUnreadCountUpdates(roomId);
@@ -201,7 +190,6 @@ public class ChatController {
             ));
 
         } catch (Exception e) {
-            log.error("이미지 메시지 전송 실패", e);
             return ResponseEntity.internalServerError().body("이미지 전송에 실패했습니다.");
         }
     }

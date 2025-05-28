@@ -135,7 +135,7 @@
 
     <!-- 페이징된 게시글 목록 -->
     <select id="selectPostsByPage" resultMap="GeneralPostDtoMap">
-        SELECT p.post_id, p.title, u.name, p.view_count, p.comment_count, p.created_at
+        SELECT p.post_id, p.title, u.nickname, p.view_count, p.comment_count, p.created_at
         FROM post p
         JOIN user u ON p.user_id = u.user_id
         WHERE p.post_category_id = #{postCategoryId}

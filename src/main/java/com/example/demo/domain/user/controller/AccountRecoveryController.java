@@ -30,24 +30,11 @@ public class AccountRecoveryController {
      */
     @GetMapping("/recover")
     public String showRecoveryPage(@RequestParam String email, Model model, HttpServletRequest request) {
-        log.info("계정 복구 페이지 요청 - 이메일: {}", email);
-        
-        // 요청 정보 로깅
-        log.info("요청 URL: {}", request.getRequestURL());
-        log.info("요청 파라미터: {}", request.getParameterMap());
-        
-        // 세션 정보 로깅
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            log.info("세션 ID: {}", session.getId());
-            log.info("세션 lastLoginEmail: {}", session.getAttribute("lastLoginEmail"));
-            log.info("세션 oauth2Email: {}", session.getAttribute("oauth2Email"));
-        }
-        
+
         // 사용자 정보 조회
         Users user = userService.getUserByEmail(email);
         if (user != null) {
-            log.info("사용자 조회 결과 - ID: {}, 상태: {}, 삭제시간: {}", 
+            log.info("사용자 조회 결과 - ID: {}, 상태: {}, 삭제시간: {}",
                     user.getUserId(), user.getStatus(), user.getDeletedAt());
         } else {
             log.warn("해당 이메일의 사용자가 없음: {}", email);

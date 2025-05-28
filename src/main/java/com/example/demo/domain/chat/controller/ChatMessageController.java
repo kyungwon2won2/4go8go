@@ -50,9 +50,7 @@ public class ChatMessageController {
         this.notificationService = notificationService;
     }
     
-    /**
-     * 채팅방 입장 메시지 처리
-     */
+    // 채팅방 입장 메시지 처리
     @MessageMapping("/chat/enter")
     public void enter(@Payload ChatMessageDto message, SimpMessageHeaderAccessor headerAccessor) {
         try {
@@ -93,14 +91,10 @@ public class ChatMessageController {
                         if (chatParticipant.getHasEntered() == null || !chatParticipant.getHasEntered()) {
                             // RabbitMQ용 destination으로 입장 메시지 브로드캐스팅
                             messagingTemplate.convertAndSend("/topic/chat.room." + message.getRoomId(), message);
-                            log.info("입장 메시지 전송 완료: roomId={}, user={}", message.getRoomId(), email);
                             
                             // 입장 상태 업데이트
                             chatParticipantMapper.updateHasEntered(message.getRoomId(), user.getUserId(), true);
                         }
-                    } else {
-                        log.error("채팅방 참가자 정보를 찾을 수 없음: roomId={}, userId={}", 
-                                message.getRoomId(), user.getUserId());
                     }
                 }
             }
@@ -135,7 +129,6 @@ public class ChatMessageController {
             }
             
             if (email == null) {
-                log.error("사용자 이메일을 확인할 수 없습니다.");
                 return;
             }
             
@@ -156,15 +149,12 @@ public class ChatMessageController {
                 
                 // RabbitMQ용 destination으로 메시지 브로드캐스팅
                 messagingTemplate.convertAndSend("/topic/chat.room." + message.getRoomId(), message);
-                log.info("메시지 브로드캐스트 완료: roomId={}, message={}", message.getRoomId(), message.getMessage());
                 
                 // 참가자들에게 읽지 않은 메시지 개수 업데이트 알림
                 broadcastUnreadCountUpdates(message.getRoomId());
                 
                 // 채팅방 참가자들에게 알림 생성 (추가)
                 sendChatNotifications(message, user.getUserId());
-            } else {
-                log.error("roomId가 null입니다.");
             }
         } catch (Exception e) {
             log.error("메시지 처리 오류", e);

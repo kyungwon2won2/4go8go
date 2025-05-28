@@ -198,7 +198,7 @@ public class PostService {
     }
 
     // 페이징
-    public List<GeneralPostDto> getPostsByPage(int postCategoryId, int page, int pageSize) {
+    public List<GeneralPostDto> getPostsByPage(int page, int pageSize) {
         int offset = (page - 1) * pageSize;
         List<GeneralPostDto> posts = postMapper.selectPostsByPage(2, offset, pageSize);
 

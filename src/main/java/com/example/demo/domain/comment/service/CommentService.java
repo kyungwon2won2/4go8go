@@ -24,7 +24,6 @@ public class CommentService {
     private final CommentMapper commentMapper;
     private final PostMapper postMapper;
     private final NotificationService notificationService;
-    private final UserMapper userMapper; // 사용자 닉네임 조회용
 
     @Transactional
     public Map<String, Object> createComment(int postId, String commentContent, CustomerUser loginUser) {
@@ -43,8 +42,8 @@ public class CommentService {
                 new Date() // createdAt
         );
 
-        // 2. DB에 삽입 (insertComment가 생성된 ID를 세팅해주어야 함)
-        commentMapper.insertComment(comment);  // 이 시점에 comment.getCommentId() 값이 있어야 함
+        // 2. DB에 삽입
+        commentMapper.insertComment(comment);
 
         // 3. 삽입된 댓글 ID로 조회
         CommentDTO newComment = commentMapper.selectCommentWithNickname(comment.getCommentId());
@@ -62,8 +61,6 @@ public class CommentService {
                 Notification notification = Notification.builder()
                         .userId(postWriterId)
                         .type("POST_COMMENT")
-//                        .content(userNickname + "님이 회원님의 게시글에 댓글을 남겼습니다: " +
-//                                (commentContent.length() > 20 ? commentContent.substring(0, 20) + "..." : commentContent))
                         .content(userNickname + "님이 회원님의 게시글에 댓글을 남겼습니다")
                         .url("/post/" + postId)
                         .referenceId((long) postId)

@@ -43,7 +43,6 @@ public class ChatViewController {
             model.addAttribute("username", email);
             return "chat/room";
         } catch (Exception e) {
-            log.error("채팅방 목록 페이지 로드 중 오류 발생", e);
             return "redirect:/";
         }
     }
@@ -52,7 +51,6 @@ public class ChatViewController {
     //채팅방 접속
     @GetMapping("/room/{roomId}")
     public String chatRoom(@PathVariable Long roomId, Model model, @AuthenticationPrincipal CustomerUser user) {
-        log.info("채팅방 접속: roomId={}, user={}", roomId, user.getUsername());
 
         try {
             // CustomerUser에서 직접 Users 객체를 가져옴
@@ -62,14 +60,12 @@ public class ChatViewController {
             // 채팅방 정보 조회
             ChatRoom room = chatRoomMapper.findById(roomId);
             if (room == null) {
-                log.error("채팅방을 찾을 수 없음: {}", roomId);
                 return "redirect:/chat/my/rooms";
             }
 
             // 사용자가 채팅방 참여자인지 확인
             boolean isParticipant = chatService.isRoomParticipant(email, roomId);
             if (!isParticipant) {
-                log.error("사용자가 채팅방 참여자가 아님: user={}, roomId={}", email, roomId);
                 return "redirect:/chat/my/rooms";
             }
 
@@ -86,7 +82,6 @@ public class ChatViewController {
 
             return "chat/room";
         } catch (Exception e) {
-            log.error("채팅방 페이지 로드 중 오류 발생", e);
             return "redirect:/";
         }
     }
@@ -95,7 +90,6 @@ public class ChatViewController {
     //1:1 채팅 개설
     @GetMapping("/oneonone")
     public String oneOnOneChat(@RequestParam Integer otherUserId, Model model, @AuthenticationPrincipal CustomerUser user) {
-        log.info("1:1 채팅 접속 요청: otherUserId={}, 현재 사용자={}", otherUserId, user.getUsername());
 
         try {
             // 현재 사용자 정보 - CustomerUser에서 직접 가져옴
@@ -103,20 +97,17 @@ public class ChatViewController {
             String email = user.getUsername();
 
             if (currentUser == null) {
-                log.error("현재 사용자를 찾을 수 없음: {}", email);
                 return "redirect:/login";
             }
 
             // 상대방 정보
             Users otherUser = userMapper.findById(otherUserId);
             if (otherUser == null) {
-                log.error("상대방 사용자를 찾을 수 없음: {}", otherUserId);
                 return "redirect:/";
             }
 
             // 채팅방 생성 또는 조회
             Long roomId = chatService.getOrCreatePrivateRoom(otherUserId); // 1:1 채팅에서는 postId를 0으로 설정
-            log.info("채팅방 ID: {}", roomId);
 
             // 채팅방 이름 설정
             String roomName = otherUser.getNickname() + "님과의 대화";
@@ -131,7 +122,6 @@ public class ChatViewController {
 
             return "chat/room";
         } catch (Exception e) {
-            log.error("1:1 채팅 페이지 로드 중 오류 발생", e);
             return "redirect:/";
         }
     }
