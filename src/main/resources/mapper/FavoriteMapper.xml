@@ -41,14 +41,12 @@
             po.created_at,
             u.address,
             pr.price,
-            i.url AS image_url
+            (SELECT url FROM image WHERE post_id = pr.post_id ORDER BY url LIMIT 1) AS image_url
         FROM favorites f
         JOIN product pr ON f.post_id = pr.post_id
         JOIN post po ON pr.post_id = po.post_id
         JOIN user u ON po.user_id = u.user_id
-        LEFT JOIN image i ON pr.post_id = i.post_id
         WHERE f.user_id = #{userId}
-        GROUP BY pr.post_id, po.title, po.created_at, u.address, pr.price, i.url
         ORDER BY f.created_at DESC
         LIMIT #{pageSize} OFFSET #{offset}
     </select>
