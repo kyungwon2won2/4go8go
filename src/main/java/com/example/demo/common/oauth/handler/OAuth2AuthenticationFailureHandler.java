@@ -28,10 +28,25 @@ public class OAuth2AuthenticationFailureHandler implements AuthenticationFailure
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
                                         AuthenticationException exception) throws IOException, ServletException {
         
+        log.error("OAuth2 인증 실패 - 예외 타입: {}, 메시지: {}", exception.getClass().getSimpleName(), exception.getMessage());
+        
         HttpSession session = request.getSession();
         
         // 소셜 로그인 시 저장된 이메일 확인
         String email = (String) session.getAttribute("oauth2Email");
+        
+        // 세션에서 설정된 loginError 확인
+        String sessionLoginError = (String) session.getAttribute("loginError");
+        log.error("세션의 loginError: {}", sessionLoginError);
+        
+        // 정지된 회원 처리 - 다양한 케이스 확인
+        if ((exception.getMessage() != null && exception.getMessage().contains("정지된")) ||
+            (sessionLoginError != null && sessionLoginError.contains("정지된"))) {
+            log.error("정지된 계정으로 리다이렉트");
+            session.setAttribute("loginError", "정지된 계정입니다. 관리자에게 문의하세요.");
+            response.sendRedirect("/login?error=suspended");
+            return;
+        }
         
         // 탈퇴한 회원인 경우 - 복구 가능 여부 확인
         if (exception.getMessage() != null && exception.getMessage().contains("탈퇴한 회원")) {

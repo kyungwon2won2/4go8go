@@ -158,6 +158,9 @@
                         <div class="alert alert-danger mt-3" th:if="${param.error == 'suspended'}">
                             정지된 계정입니다. 관리자에게 문의하세요.
                         </div>
+                        <div class="alert alert-danger mt-3" th:if="${param.error == 'social' and session.loginError != null and #strings.contains(session.loginError, '정지된')}">
+                            정지된 계정입니다. 관리자에게 문의하세요.
+                        </div>
                         <div class="alert alert-danger mt-3" th:if="${param.error == 'deleted' || session.deletedAccount != null}">
                             <p>탈퇴한 회원입니다.</p>
                             <!-- 이메일 파라미터로 넘어온 경우 -->
@@ -178,9 +181,32 @@
                                     <input type="email" name="email" class="form-control form-control-sm" placeholder="이메일 입력" required>
                                     <button type="submit" class="btn btn-sm btn-primary ms-2">복구하기</button>
                                 </form>
+
+                    <!-- JavaScript로 에러 메시지 처리 -->
+                    <script th:inline="javascript">
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const urlParams = new URLSearchParams(window.location.search);
+                            const error = urlParams.get('error');
+                            const loginError = /*[[${session.loginError}]]*/ null;
+                            
+                            if (error === 'social' && loginError && loginError.includes('정지된')) {
+                                // 기존 에러 메시지 숨기기
+                                const generalError = document.querySelector('.alert-danger:last-of-type');
+                                if (generalError) {
+                                    generalError.style.display = 'none';
+                                }
+                                
+                                // 정지 메시지 표시
+                                const suspendedAlert = document.createElement('div');
+                                suspendedAlert.className = 'alert alert-danger mt-3';
+                                suspendedAlert.textContent = '정지된 계정입니다. 관리자에게 문의하세요.';
+                                generalError.parentNode.insertBefore(suspendedAlert, generalError);
+                            }
+                        });
+                    </script>
                             </div>
                         </div>
-                        <div class="alert alert-danger mt-3" th:if="${param.error != null and param.error != 'deleted' and param.error != 'suspended' and session.deletedAccount == null}" th:text="${session.loginError ?: '로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.'}">>
+                        <div class="alert alert-danger mt-3" th:if="${param.error != null and param.error != 'deleted' and param.error != 'suspended' and session.deletedAccount == null and !(param.error == 'social' and session.loginError != null and #strings.contains(session.loginError, '정지된'))}" th:text="${session.loginError ?: '로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.'}">>
                             로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.
                         </div>
                         <!-- 계정 복구 실패 메시지 -->
@@ -208,6 +234,29 @@
                             </ul>
                         </div>
                     </form>
+
+                    <!-- JavaScript로 에러 메시지 처리 -->
+                    <script th:inline="javascript">
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const urlParams = new URLSearchParams(window.location.search);
+                            const error = urlParams.get('error');
+                            const loginError = /*[[${session.loginError}]]*/ null;
+                            
+                            if (error === 'social' && loginError && loginError.includes('정지된')) {
+                                // 기존 에러 메시지 숨기기
+                                const generalError = document.querySelector('.alert-danger:last-of-type');
+                                if (generalError) {
+                                    generalError.style.display = 'none';
+                                }
+                                
+                                // 정지 메시지 표시
+                                const suspendedAlert = document.createElement('div');
+                                suspendedAlert.className = 'alert alert-danger mt-3';
+                                suspendedAlert.textContent = '정지된 계정입니다. 관리자에게 문의하세요.';
+                                generalError.parentNode.insertBefore(suspendedAlert, generalError);
+                            }
+                        });
+                    </script>
 
                     <!-- 소셜 로그인 버튼 -->
                     <div class="mt-4">
