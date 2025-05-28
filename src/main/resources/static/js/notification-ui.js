@@ -1,6 +1,5 @@
-/**
- * 알림 드롭다운 UI 관련 기능
- */
+// 알림 드롭다운 UI 관련 스크립트
+
 (function() {
     'use strict';
     
@@ -339,10 +338,6 @@
 
     // 전역으로 노출
     window.NotificationUI = {
-        loadNotifications: loadNotifications,
-        markAsRead: markAsRead,
-        deleteNotification: deleteNotification,
-        markAllAsRead: markAllAsRead,
-        toggleDropdown: toggleDropdown
+        loadNotifications: loadNotifications
     };
 })();

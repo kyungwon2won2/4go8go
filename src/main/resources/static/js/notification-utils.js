@@ -1,6 +1,5 @@
-/**
- * 알림 관련 공통 유틸리티 함수
- */
+// 알림 관련 공통 유틸리티 함수들
+
 (function() {
     'use strict';
 
@@ -16,12 +15,12 @@
         }
     }
 
-    // 알림 뱃지 업데이트
+    // 알림 뱃지(개수) 업데이트
     function updateNotificationBadge(count) {
         const badge = document.getElementById('notificationBadge');
         if (badge) {
             if (count > 0) {
-                badge.textContent = count > 99 ? '99+' : count;
+                badge.textContent = count > 5 ? '5+' : count;
                 badge.classList.remove('hidden');
             } else {
                 badge.classList.add('hidden');
