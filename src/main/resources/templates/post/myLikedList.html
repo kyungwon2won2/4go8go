@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>좋아요 게시글 목록 | 4go8go</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/header.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/footer.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/postlist.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/notification.css}" />
+
+    <!-- CSRF 토큰 (필수) -->
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+</head>
+<body th:data-authenticated="${#authorization.expression('isAuthenticated()')}">
+<div th:replace="~{fragments/header :: header}"></div>
+<div class="post-container">
+    <div class="post-header">
+        <h1 class="post-title">좋아요 목록</h1>
+        <p class="post-description">'좋아요'누른 글을 모아보세요</p>
+    </div>
+
+    <div class="post-list">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>번호</th>
+                <th>제목</th>
+                <th>작성자</th>
+                <th>조회수</th>
+                <th>작성일</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="post : ${posts}">
+                <td th:text="${post.postId}"></td>
+                <td>
+                    <a th:href="@{'/post/' + ${post.postId} + '?from=likeList'}" th:text="${post.title}"></a>
+                    <span th:if="${post.commentCount > 0}" th:text="'(' + ${post.commentCount} + ')'" style="color: #666; margin-left: 5px;"></span>
+                    <span th:if="${#dates.createNow().getTime() - post.createdAt.getTime() < 86400000}"
+                          class="badge-new">NEW</span>
+                </td>
+                <td th:text="${post.userName}"></td>
+                <td th:text="${post.viewCount}"></td>
+                <td>
+        <span th:if="${#dates.createNow().getTime() - post.createdAt.getTime() < 86400000}"
+              th:text="${#dates.format(post.createdAt, 'HH:mm:ss')}"></span>
+                    <span th:unless="${#dates.createNow().getTime() - post.createdAt.getTime() < 86400000}"
+                          th:text="${#dates.format(post.createdAt, 'yyyy-MM-dd')}"></span>
+                </td>
+            </tr>
+            </tbody>
+
+        </table>
+
+        <div th:if="${#lists.isEmpty(posts)}" class="empty-state">
+            <i class="bi bi-journal-x"></i>
+            <p>'좋아요'한 게시글이 없습니다.</p>
+            <!--                <a href="/post/new" class="btn-primary" sec:authorize="isAuthenticated()">첫 번째 글 작성하기</a>-->
+
+        </div>
+
+        <!-- 페이지네이션 + 작성 버튼 flex 컨테이너 -->
+        <div class="pagination-flex">
+            <div class="pagination-center">
+                <div class="pagination" th:if="${!#lists.isEmpty(posts)}">
+                    <!-- 이전 페이지 화살표 -->
+                    <span th:if="${currentPage == 1}" class="page-link disabled">
+                        <i class="bi bi-chevron-left"></i>
+                    </span>
+                    <a th:if="${currentPage > 1}"
+                       th:href="@{/like/likedList(page=${currentPage - 1})}"
+                       class="page-link">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+
+                    <!-- 페이지 숫자 -->
+                    <a th:each="i : ${#numbers.sequence(1, totalPages)}"
+                       th:class="'page-link ' + (${currentPage == i} ? 'active' : '')"
+                       th:href="@{/like/likedList(page=${i})}"
+                       th:text="${i}">1</a>
+
+                    <!-- 다음 페이지 화살표 -->
+                    <span th:if="${currentPage == totalPages}" class="page-link disabled">
+                        <i class="bi bi-chevron-right"></i>
+                    </span>
+                    <a th:if="${currentPage < totalPages}"
+                       th:href="@{/like/likedList(page=${currentPage + 1})}"
+                       class="page-link">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <a href="/user/post/new" class="btn-primary" sec:authorize="isAuthenticated()">
+                <i class="bi bi-pencil-fill me-1"></i> 작성
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="search-box">
+    <form action="/post/search" method="get">
+        <input type="text" name="keyword" class="post-search-input" placeholder="검색어를 입력하세요">
+        <button type="submit" class="post-search-button">
+            <i class="bi bi-search"></i>
+        </button>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- 알림 관련 스크립트 (로드 순서 중요) -->
+<script th:src="@{/js/notification-utils.js}" sec:authorize="isAuthenticated()"></script>
+<script th:src="@{/js/notification-chat.js}" sec:authorize="isAuthenticated()"></script>
+<script th:src="@{/js/notification-ui.js}" sec:authorize="isAuthenticated()"></script>
+<script th:src="@{/js/notification-sse.js}" sec:authorize="isAuthenticated()"></script>
+</body>
+<div th:replace="~{fragments/footer :: footer}"></div>
+</html>

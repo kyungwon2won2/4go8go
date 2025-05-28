@@ -52,7 +52,7 @@ public class PostController {
 
     //상세조회
     @GetMapping("/post/{postId}")
-    public String getPostByIdDto(@PathVariable int postId, Model model, @AuthenticationPrincipal CustomerUser customerUser){
+    public String getPostByIdDto(@PathVariable int postId, @RequestParam(required = false) String from, Model model, @AuthenticationPrincipal CustomerUser customerUser){
         //조회수 증가
         postService.incrementViewCount(postId);
 
@@ -75,20 +75,23 @@ public class PostController {
 
         //좋아요 여부 확인
         int likeCount = likeService.getLikeCount(postId);
-        boolean hasLiked = likeService.hasLiked(postId, customerUser.getUserId());
+        boolean hasLiked =false;
+        if(customerUser != null){
+            hasLiked = likeService.hasLiked(postId, customerUser.getUserId());
+        }
 
         // 댓글 가져오기 (닉네임 포함)
         List<CommentDTO> commentList = commentHelper.getCommentWithNicknameByPostId(postId);
 
         model.addAttribute("post", post);
+        model.addAttribute("from", from);
         model.addAttribute("comment_list", commentList);
         model.addAttribute("userId", currentUserId);
         model.addAttribute("isOwner", isOwner);
         model.addAttribute("isAdmin", isAdmin);
         model.addAttribute("hasLiked", hasLiked);
         model.addAttribute("likeCount", likeCount);
-        log.info("customerUser.getUserId(): " + customerUser.getUserId());
-        log.info("post.getUserId(): " + post.getUserId());
+
         return "post/detail";
     }
 

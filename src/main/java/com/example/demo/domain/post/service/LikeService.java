@@ -1,10 +1,13 @@
 package com.example.demo.domain.post.service;
 
+import com.example.demo.domain.post.dto.GeneralPostDto;
 import com.example.demo.domain.post.model.Like;
 import com.example.demo.mapper.LikeMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -32,5 +35,13 @@ public class LikeService {
 
     public boolean hasLiked(int postId, int userId) {
         return likeMapper.exists(userId, postId);
+    }
+
+    public List<GeneralPostDto> getLikedPostsPaged(int userId, int offset, int pageSize) {
+        return likeMapper.selectLikedPostsByUserId(userId, offset, pageSize);
+    }
+
+    public int getLikedPostsCountByUserId(int userId){
+        return likeMapper.countLikedPostsByUserId(userId);
     }
 }
