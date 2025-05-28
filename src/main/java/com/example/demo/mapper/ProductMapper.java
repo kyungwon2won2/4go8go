@@ -56,9 +56,7 @@ public interface ProductMapper {
     // 검색 결과 개수 반환
     int countProductsBySearch(@Param("keyword") String keyword);
 
-    /**
-     * 상품 상태 변경
-     */
+    // 상품 상태 변경
     int updateProductStatus(@Param("postId") int postId, @Param("tradeStatus") Product.TradeStatus status);
     
     //내 상품 목록 조회

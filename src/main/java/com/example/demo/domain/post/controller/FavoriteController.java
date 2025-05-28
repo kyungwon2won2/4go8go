@@ -43,7 +43,6 @@ public class FavoriteController {
     public String myFavorites(@RequestParam(defaultValue="1") int page,
                               Model model,
                               @AuthenticationPrincipal CustomerUser loginUser){
-        System.out.println("찜목록 진입함");
         if (loginUser == null) {
             return "redirect:/login";
         }
