@@ -116,7 +116,7 @@ public class PostController {
             return "redirect:/post";
         }
         model.addAttribute("post", post);
-        return "/post/edit";
+        return "post/edit";
     }
 
     //게시글 수정 처리

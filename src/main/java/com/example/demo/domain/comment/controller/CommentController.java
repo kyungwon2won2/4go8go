@@ -56,6 +56,7 @@ public class CommentController {
     public ResponseEntity<Map<String, Object>> deleteCommentApi(
             @PathVariable("commentId") int commentId,
             @AuthenticationPrincipal CustomerUser user) {
+        System.out.println("jenkins");
         return ResponseEntity.ok(commentService.deleteComment(commentId, user.getUserId()));
     }
 }
