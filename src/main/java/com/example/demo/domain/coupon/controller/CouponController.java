@@ -26,12 +26,7 @@ public class CouponController {
     private final CouponService couponService;
     private final UserService userService;
     
-    /**
-     * 쿠폰 적용 API
-     * @param couponCode 쿠폰 코드
-     * @param authentication 인증 정보
-     * @return 쿠폰 적용 결과
-     */
+    // 쿠폰 적용 API
     @PostMapping("/apply")
     public ResponseEntity<Map<String, Object>> applyCoupon(
             @RequestParam("couponCode") String couponCode,
@@ -40,7 +35,7 @@ public class CouponController {
         Map<String, Object> response = new HashMap<>();
         
         try {
-            // 인증된 사용자 정보 가져오기
+            // 사용자 정보 가져오기
             CustomerUser customerUser = (CustomerUser) authentication.getPrincipal();
             String email = customerUser.getUsername();
             Users user = userService.getUserByEmail(email);

@@ -45,11 +45,7 @@ public class CouponService {
                 .build();
     }
     
-    /**
-     * 쿠폰 코드 검증
-     * @param couponCode 쿠폰 코드
-     * @return 유효한 쿠폰인 경우 쿠폰 정보 반환, 아니면 null
-     */
+    // 쿠폰 코드 검증
     public BirthdayCoupon validateCoupon(String couponCode) {
         if (couponCode == null || couponCode.trim().isEmpty()) {
             return null;
@@ -59,12 +55,7 @@ public class CouponService {
         return couponMapper.findByCouponCode(couponCode);
     }
     
-    /**
-     * 쿠폰 사용 처리
-     * @param couponCode 쿠폰 코드
-     * @param userId 사용자 ID
-     * @return 성공 시 true, 실패 시 false
-     */
+    // 쿠폰 사용 처리
     @Transactional
     public boolean useCoupon(String couponCode, int userId) {
         // 쿠폰 검증

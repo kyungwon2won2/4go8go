@@ -51,7 +51,6 @@ public class UserService {
         Users user = userMapper.getUserByEmail(dto.email());
         
         if (user == null) {
-            log.error("업데이트할 사용자를 찾을 수 없음: {}", dto.email());
             return 0;
         }
         
@@ -80,7 +79,6 @@ public class UserService {
         Users user = userMapper.getUserByEmail(email);
         
         if (user == null) {
-            log.error("삭제할 사용자를 찾을 수 없음: {}", email);
             return 0;
         }
         
@@ -110,28 +108,22 @@ public class UserService {
      */
     public boolean isAccountRecoverable(String email) {
         Users user = userMapper.getUserByEmail(email);
-        
-        log.info("계정 복구 가능 여부 확인 - 이메일: {}", email);
-        
+
         if (user == null) {
-            log.warn("사용자를 찾을 수 없음: {}", email);
             return false;
         }
         
         if (!"DELETED".equals(user.getStatus())) {
-            log.warn("삭제된 계정이 아님 - 상태: {}", user.getStatus());
             return false;
         }
         
         // 삭제 시간이 없는 경우 (이전 버전 데이터)
         if (user.getDeletedAt() == null) {
-            log.info("삭제 시간 정보 없음, 복구 가능한 것으로 처리");
             return true;
         }
         
         // 30일 이내 탈퇴한 계정만 복구 가능
         long deletedDays = (new Date().getTime() - user.getDeletedAt().getTime()) / (1000 * 60 * 60 * 24);
-        log.info("탈퇴 후 경과 일수: {}", deletedDays);
         
         return deletedDays <= 30;
     }
@@ -143,29 +135,21 @@ public class UserService {
     public boolean recoverAccount(String email) {
         Users user = userMapper.getUserByEmail(email);
         
-        log.info("계정 복구 시도 - 이메일: {}", email);
-        
         if (user == null) {
-            log.warn("복구할 사용자를 찾을 수 없음: {}", email);
             return false;
         }
         
         if (!"DELETED".equals(user.getStatus())) {
-            log.warn("삭제된 계정이 아님 - 상태: {}", user.getStatus());
             return false;
         }
         
         // 복구 가능 기간 확인 (30일)
         if (user.getDeletedAt() != null) {
             long deletedDays = (new Date().getTime() - user.getDeletedAt().getTime()) / (1000 * 60 * 60 * 24);
-            log.info("탈퇴 후 경과 일수: {}", deletedDays);
             
             if (deletedDays > 30) {
-                log.warn("복구 기간(30일) 초과");
                 return false;
             }
-        } else {
-            log.info("삭제 시간 정보 없음, 복구 진행");
         }
         
         // 계정 상태 복구
@@ -173,7 +157,6 @@ public class UserService {
         user.setDeletedAt(null);
         
         int result = userMapper.updateUser(user);
-        log.info("계정 복구 결과 (DB 업데이트): {}", result > 0 ? "성공" : "실패");
         
         return result > 0;
     }

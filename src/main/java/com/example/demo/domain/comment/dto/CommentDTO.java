@@ -19,17 +19,4 @@ public class CommentDTO {
     private String commentContent;
     private Date createdAt;
     private Date updatedAt;
-
-    @Override
-    public String toString() {
-        return "CommentDTO{" +
-                "commentId=" + commentId +
-                ", postId=" + postId +
-                ", userId=" + userId +
-                ", nickname='" + nickname + '\'' +
-                ", commentContent='" + commentContent + '\'' +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
-    }
 }

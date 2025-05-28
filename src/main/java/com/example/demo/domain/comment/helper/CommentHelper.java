@@ -12,11 +12,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CommentHelper {
     private final CommentMapper commentMapper;
-
-    // 기본 댓글 목록 (닉네임 없음)
-    public List<Comment> getCommentByPostId(int postId){
-        return commentMapper.selectCommentsByPost(postId);
-    }
     
     // 닉네임이 포함된 댓글 목록
     public List<CommentDTO> getCommentWithNicknameByPostId(int postId){

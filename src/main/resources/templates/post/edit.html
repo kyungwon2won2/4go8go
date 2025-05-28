@@ -28,15 +28,6 @@
         <input type="text" class="form-control" id="title" name="title" th:field="*{title}" required>
     </div>
 
-    <!-- 카테고리 선택 -->
-    <div class="mb-3">
-        <label for="postCategoryId" class="form-label">카테고리 선택</label>
-        <select class="form-select" id="postCategoryId" name="postCategoryId" th:field="*{postCategoryId}" required>
-            <option value="1">물품게시판</option>
-            <option value="2">일반게시판</option>
-        </select>
-    </div>
-
     <!--Summernote-->
     <div class="mb-3">
         <label for="content" class="form-label">내용</label>

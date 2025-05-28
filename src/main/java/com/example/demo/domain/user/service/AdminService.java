@@ -29,12 +29,10 @@ public class AdminService {
      */
     @Transactional
     public int updateUserStatus(Integer userId, String status) {
-        log.info("사용자 상태 업데이트: userId={}, status={}", userId, status);
 
         Users user = userMapper.findById(userId);
 
         if (user == null) {
-            log.error("사용자를 찾을 수 없음: {}", userId);
             return 0;
         }
 
@@ -43,13 +41,7 @@ public class AdminService {
             user.setDeletedAt(new Date());
         }
         
-        int result = userMapper.updateUser(user);
-        
-        if (result > 0) {
-            log.info("사용자 상태 변경 완료: userId={}, status={}", userId, status);
-        }
-        
-        return result;
+        return userMapper.updateUser(user);
     }
 
     /**
@@ -116,7 +108,6 @@ public class AdminService {
         try {
             Users user = userMapper.findByEmail(userEmail);
             if (user == null) {
-                log.error("사용자를 찾을 수 없음: {}", userEmail);
                 return false;
             }
 
@@ -126,7 +117,6 @@ public class AdminService {
                     .anyMatch(role -> roleName.equals(role.getRoleName()));
 
             if (hasRole) {
-                log.info("사용자가 이미 해당 권한을 보유함: userId={}, role={}", user.getUserId(), roleName);
                 return true;
             }
 
@@ -138,11 +128,9 @@ public class AdminService {
             userRole.setUpdatedAt(new Date());
 
             int result = userMapper.insertAuth(userRole);
-            log.info("권한 부여 결과: userId={}, role={}, result={}", user.getUserId(), roleName, result);
-            
+
             return result > 0;
         } catch (Exception e) {
-            log.error("권한 부여 중 오류 발생", e);
             return false;
         }
     }
@@ -154,10 +142,8 @@ public class AdminService {
     public boolean revokeRole(Integer userId, String roleName) {
         try {
             int result = deleteUserRole(userId, roleName);
-            log.info("권한 회수 결과: userId={}, role={}, result={}", userId, roleName, result);
             return result > 0;
         } catch (Exception e) {
-            log.error("권한 회수 중 오류 발생", e);
             return false;
         }
     }
@@ -186,58 +172,41 @@ public class AdminService {
         Map<String, Object> stats = new HashMap<>();
         
         try {
-            log.info("=== 회원 통계 조회 시작 ===");
-            
+
             // 기본 회원 수 통계
-            log.info("기본 회원 수 통계 조회 중...");
             int totalUsers = userMapper.getTotalUserCount();
-            log.info("전체 사용자 수: {}", totalUsers);
             
             int activeUsers = userMapper.getUserCountByStatus("ACTIVE");
-            log.info("활성 사용자 수: {}", activeUsers);
             
             int suspendedUsers = userMapper.getUserCountByStatus("SUSPENDED");
-            log.info("정지 사용자 수: {}", suspendedUsers);
             
             stats.put("totalUsers", totalUsers);
             stats.put("activeUsers", activeUsers);
             stats.put("suspendedUsers", suspendedUsers);
             
             // 기간별 가입자 수
-            log.info("기간별 가입자 수 조회 중...");
             int todayRegistrations = userMapper.getTodayRegistrationCount();
             int thisWeekRegistrations = userMapper.getThisWeekRegistrationCount();
             int thisMonthRegistrations = userMapper.getThisMonthRegistrationCount();
-            
-            log.info("오늘 가입: {}, 이번 주: {}, 이번 달: {}", todayRegistrations, thisWeekRegistrations, thisMonthRegistrations);
             
             stats.put("todayRegistrations", todayRegistrations);
             stats.put("thisWeekRegistrations", thisWeekRegistrations);
             stats.put("thisMonthRegistrations", thisMonthRegistrations);
             
             // 가입 방식별 통계
-            log.info("가입 방식별 통계 조회 중...");
             int normalUsers = userMapper.getNormalRegistrationCount();
             int googleUsers = userMapper.getUserCountBySocialType("GOOGLE");
             int naverUsers = userMapper.getUserCountBySocialType("NAVER");
-            
-            log.info("일반 가입: {}, 구글: {}, 네이버: {}", normalUsers, googleUsers, naverUsers);
             
             stats.put("normalUsers", normalUsers);
             stats.put("googleUsers", googleUsers);
             stats.put("naverUsers", naverUsers);
             
             // 연령대별 통계
-            log.info("연령대별 통계 조회 중...");
             List<Map<String, Object>> ageGroups = userMapper.getUserCountByAgeGroup();
-            log.info("연령대별 통계: {}", ageGroups);
             stats.put("ageGroups", ageGroups);
             
-            log.info("=== 회원 통계 조회 완료 ===");
-            log.info("최종 통계 데이터: {}", stats);
-            
         } catch (Exception e) {
-            log.error("회원 통계 조회 중 오류 발생", e);
             // 오류 발생 시 기본값 설정
             stats.put("totalUsers", 0);
             stats.put("activeUsers", 0);
@@ -259,17 +228,8 @@ public class AdminService {
      */
     public List<Users> getTopRatedUsers(int limit) {
         try {
-            log.info("평점 상위 회원 조회 - limit: {}", limit);
-            List<Users> topUsers = userMapper.getTopRatedUsers(limit);
-            log.info("평점 상위 회원 조회 완료 - 조회된 회원 수: {}", topUsers.size());
-            
-            if (!topUsers.isEmpty()) {
-                log.info("1등 회원: 닉네임={}, 평점={}", topUsers.get(0).getNickname(), topUsers.get(0).getRating());
-            }
-            
-            return topUsers;
+            return userMapper.getTopRatedUsers(limit);
         } catch (Exception e) {
-            log.error("평점 상위 회원 조회 중 오류 발생", e);
             return new ArrayList<>();
         }
     }
