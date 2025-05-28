@@ -148,5 +148,24 @@
         SELECT COUNT(*) FROM post WHERE post_category_id = #{postCategoryId}
     </select>
 
+    <!-- 검색 기능 - 제목과 내용에서 검색 -->
+    <select id="searchPostsByKeyword" resultMap="GeneralPostDtoMap">
+        SELECT p.post_id, p.title, u.nickname, p.view_count, p.comment_count, p.created_at
+        FROM post p
+        JOIN user u ON p.user_id = u.user_id
+        WHERE p.post_category_id = #{postCategoryId}
+        AND (p.title LIKE CONCAT('%', #{keyword}, '%') OR p.content LIKE CONCAT('%', #{keyword}, '%'))
+        ORDER BY p.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 검색 결과 총 개수 -->
+    <select id="countSearchPosts" resultType="int">
+        SELECT COUNT(*)
+        FROM post p
+        WHERE p.post_category_id = #{postCategoryId}
+        AND (p.title LIKE CONCAT('%', #{keyword}, '%') OR p.content LIKE CONCAT('%', #{keyword}, '%'))
+    </select>
+
 
 </mapper>
