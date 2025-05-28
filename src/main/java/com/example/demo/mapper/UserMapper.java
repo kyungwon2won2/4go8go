@@ -43,6 +43,9 @@ public interface UserMapper {
     public int deleteUser(String userId);
 
     List<Users> findUsersByBirthdayToday();
+    
+    // 페이징을 위한 생일 사용자 조회 (MyBatisPagingItemReader용)
+    List<Users> findUsersByBirthdayTodayWithPaging();
 
     public boolean existsByEmail(String email);
 
