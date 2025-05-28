@@ -27,8 +27,6 @@ public class OAuth2AuthenticationFailureHandler implements AuthenticationFailure
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
                                         AuthenticationException exception) throws IOException, ServletException {
-        log.error("OAuth2 인증 실패: {}", exception.getMessage());
-        log.error("예외 클래스: {}", exception.getClass().getName());
         
         HttpSession session = request.getSession();
         
@@ -55,10 +53,25 @@ public class OAuth2AuthenticationFailureHandler implements AuthenticationFailure
             return;
         }
         
+        // InternalAuthenticationServiceException 처리 추가
+        if (exception instanceof InternalAuthenticationServiceException) {
+            InternalAuthenticationServiceException internalEx = (InternalAuthenticationServiceException) exception;
+            
+            if (internalEx.getMessage().contains("정지된 계정")) {
+                session.setAttribute("loginError", "정지된 계정입니다. 관리자에게 문의하세요.");
+                response.sendRedirect("/login?error=suspended");
+                return;
+            }
+            
+            if (internalEx.getMessage().contains("탈퇴한 회원")) {
+                session.setAttribute("loginError", "탈퇴한 회원입니다.");
+                response.sendRedirect("/login?error=deleted");
+                return;
+            }
+        }
+        
         // 세션에서 직접 설정된 오류 메시지 확인
         if (session.getAttribute("deletedAccount") != null) {
-            // 탈퇴한 회원 처리
-            log.info("탈퇴한 회원으로 소셜 로그인 시도 (세션 플래그 확인)");
             response.sendRedirect("/login?error=deleted");
             return;
         }
@@ -66,7 +79,6 @@ public class OAuth2AuthenticationFailureHandler implements AuthenticationFailure
         // 원인 예외 메시지 확인 
         if (exception.getCause() != null) {
             String causeMessage = exception.getCause().getMessage();
-            log.error("원인 예외: {}", causeMessage);
             
             if (causeMessage != null && causeMessage.contains("탈퇴한 회원")) {
                 session.setAttribute("loginError", "탈퇴한 회원입니다.");
@@ -84,7 +96,6 @@ public class OAuth2AuthenticationFailureHandler implements AuthenticationFailure
         // 추가 정보 입력이 필요한 경우
         if ((exception.getMessage() != null && exception.getMessage().contains("추가 정보 입력")) ||
             session.getAttribute("requireAdditionalInfo") != null) {
-            log.info("추가 정보 입력 페이지로 리디렉션");
             response.sendRedirect("/oauth2/signup/additional-info");
             return;
         }

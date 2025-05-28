@@ -48,14 +48,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService implements
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         try {
             OAuth2User oauth2User = super.loadUser(userRequest);
-            log.debug("OAuth2 사용자 정보 로드 성공: {}", oauth2User);
-            
             return processOAuth2User(userRequest, oauth2User);
         } catch (AuthenticationException ex) {
-            log.error("OAuth2 인증 예외 발생: {}", ex.getMessage());
             throw ex;
         } catch (Exception ex) {
-            log.error("OAuth2 로딩 중 예외 발생", ex);
             throw new InternalAuthenticationServiceException("OAuth2 사용자 처리 중 오류: " + ex.getMessage(), ex);
         }
     }
@@ -71,12 +67,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService implements
             String userNameAttributeName = userRequest.getClientRegistration().getProviderDetails()
                     .getUserInfoEndpoint().getUserNameAttributeName();
 
-            log.debug("OAuth2 로그인 시도 - 제공자: {}, 속성 이름: {}", registrationId, userNameAttributeName);
-            log.debug("OAuth2 사용자 속성: {}", oauth2User.getAttributes());
-
             // OAuth2 속성 추출
             OAuthAttributes attributes = OAuthAttributes.of(registrationId, userNameAttributeName, oauth2User.getAttributes());
-            log.debug("추출된 OAuthAttributes: 이름={}, 이메일={}", attributes.getName(), attributes.getEmail());
 
             // 세션에 소셜 로그인 제공자 정보 저장
             session.setAttribute("registrationId", registrationId);
@@ -89,7 +81,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService implements
 
             // 이메일로 사용자 조회
             Users user = userMapper.getUserByEmail(attributes.getEmail());
-            log.debug("이메일로 사용자 조회 결과: {}", user != null ? user.getEmail() : "사용자 없음");
 
             // 사용자 정보가 없거나 필수 정보가 없는 경우
             if (user == null || !hasRequiredInfo(user)) {
@@ -108,9 +99,15 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService implements
                 throw new OAuth2AuthenticationException("탈퇴한 회원입니다.");
             }
 
+            // 정지된 회원인지 확인
+            if ("SUSPENDED".equals(user.getStatus()) || "정지".equals(user.getStatus())) {
+                log.warn("정지된 회원 로그인 시도: {}", user.getEmail());
+                session.setAttribute("loginError", "정지된 계정입니다. 관리자에게 문의하세요.");
+                throw new OAuth2AuthenticationException("정지된 계정입니다. 관리자에게 문의하세요.");
+            }
+
             return new CustomerUser(user, oauth2User.getAttributes());
         } catch (Exception e) {
-            log.error("OAuth2 사용자 처리 중 예외 발생", e);
             throw e;
         }
     }
