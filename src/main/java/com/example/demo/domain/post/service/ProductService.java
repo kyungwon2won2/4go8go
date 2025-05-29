@@ -30,6 +30,7 @@ public class ProductService {
     private final ImageHelper imageHelper;
     private final PostService postService;
     private final ChatParticipantMapper chatParticipantMapper;
+    private final FavoriteMapper favoriteMapper;
 
     public List<ProductListDto> getProductsByPage(int offset, int limit) {
         List<ProductListDto> products = productMapper.selectByPage(offset, limit);
@@ -140,9 +141,10 @@ public class ProductService {
                 }
             }
         }
-        
+
         // 2. 데이터베이스에서 관련 테이블들 순서대로 삭제
         // 외래키 제약조건을 고려하여 순서대로 삭제
+        favoriteMapper.deleteByPostId(postId);  //찜 삭제
         productMapper.delete(postId);          // 상품 테이블
         postService.deletePostById(postId);    // 게시글
     }

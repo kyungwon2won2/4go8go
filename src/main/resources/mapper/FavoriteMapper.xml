@@ -24,6 +24,11 @@
         WHERE user_id = #{userId} AND post_id = #{postId}
     </delete>
 
+    <delete id="deleteByPostId">
+        DELETE FROM favorites
+        WHERE post_id = #{postId}
+    </delete>
+
     <select id="exists" resultType="boolean">
         SELECT EXISTS (
             SELECT 1 FROM favorites WHERE user_id = #{userId} AND post_id = #{postId}
