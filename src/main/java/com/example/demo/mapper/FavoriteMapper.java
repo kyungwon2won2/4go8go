@@ -15,6 +15,8 @@ public interface FavoriteMapper {
     void delete(@Param("userId") int userId,
                 @Param("postId") int postId);
 
+    void deleteByPostId(@Param("postId") int postId);
+
     boolean exists(@Param("userId") int userId,
                    @Param("postId") int postId);
 

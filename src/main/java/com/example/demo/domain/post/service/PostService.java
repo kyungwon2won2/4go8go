@@ -4,9 +4,7 @@ import com.example.demo.domain.post.dto.GeneralDetailDto;
 import com.example.demo.domain.post.dto.GeneralPostDto;
 import com.example.demo.domain.post.model.Image;
 import com.example.demo.domain.post.model.Post;
-import com.example.demo.mapper.CommentMapper;
-import com.example.demo.mapper.ImageMapper;
-import com.example.demo.mapper.PostMapper;
+import com.example.demo.mapper.*;
 import com.example.demo.util.HtmlImageExtractor;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
@@ -32,6 +30,8 @@ public class PostService {
     private final ImageMapper imageMapper;
     private final ImageUploadService imageUploadService;
     private final CommentMapper commentMapper;
+    private final LikeMapper likeMapper;
+    private final ProductMapper productMapper;
 
     //전체조회
     public List<GeneralPostDto> getAllPostsDto(){
@@ -188,7 +188,13 @@ public class PostService {
         }
         imageMapper.deleteImagesByPostId(postId);
 
-        // 2. 게시글 삭제
+        // 3. 좋아요 삭제
+        likeMapper.deleteByPostId(postId);
+
+        // 4. product 테이블에서 해당 게시글 관련 삭제 (외래키)
+        productMapper.delete(postId);
+
+        // 5. 게시글 삭제
         postMapper.deletePostById(postId);
     }
 

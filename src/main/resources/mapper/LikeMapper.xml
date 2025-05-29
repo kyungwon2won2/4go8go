@@ -15,6 +15,10 @@
         WHERE user_id = #{userId} AND post_id = #{postId}
     </delete>
 
+    <delete id="deleteByPostId" parameterType="int">
+        DELETE FROM likes WHERE post_id = #{postId}
+    </delete>
+
     <select id="exists" resultType="boolean">
         SELECT EXISTS (
             SELECT 1 FROM likes WHERE user_id = #{userId} AND post_id = #{postId}
