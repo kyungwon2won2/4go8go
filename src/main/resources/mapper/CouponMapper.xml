@@ -12,7 +12,7 @@
         <result property="discountAmount" column="discount_amount" />
         <result property="validFrom" column="valid_from" />
         <result property="validTo" column="valid_to" />
-        <result property="userId" column="user_id" /> <!-- userNo -> userId로 수정 -->
+        <result property="userId" column="user_id" />
         <result property="used" column="used" />
         <result property="createdAt" column="created_at" />
     </resultMap>
@@ -62,5 +62,50 @@
         valid_to ASC
         LIMIT 1
     </select>
+    
+    <!-- 쿠폰 코드로 쿠폰 조회 -->
+    <select id="findByCouponCode" parameterType="string" resultMap="birthdayCouponMap">
+        SELECT
+        coupon_id,
+        coupon_code,
+        coupon_name,
+        discount_amount,
+        valid_from,
+        valid_to,
+        user_id,
+        used,
+        created_at
+        FROM
+        birthday_coupon
+        WHERE
+        coupon_code = #{couponCode}
+        AND valid_to >= CURRENT_DATE
+        AND used = 0
+    </select>
+    
+    <!-- 쿠폰 사용 처리 -->
+    <update id="updateCouponUsed" parameterType="int">
+        UPDATE 
+        birthday_coupon
+        SET 
+        used = 1
+        WHERE
+        coupon_id = #{couponId}
+    </update>
+
+    <!-- BULK-INSERT -->
+    <insert id="bulkInsertBirthdayCoupons" parameterType="list">
+        INSERT INTO birthday_coupon (
+        coupon_code, coupon_name, discount_amount,
+        valid_from, valid_to, user_id, created_at
+        ) VALUES
+        <foreach collection="list" item="coupon" separator=",">
+            (
+            #{coupon.couponCode}, #{coupon.couponName}, #{coupon.discountAmount},
+            #{coupon.validFrom}, #{coupon.validTo}, #{coupon.userId}, #{coupon.createdAt}
+            )
+        </foreach>
+    </insert>
+
 
 </mapper>

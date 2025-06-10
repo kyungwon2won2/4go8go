@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.mapper.CommentMapper">
+
+    <resultMap id="CommentDTOResultMap" type="com.example.demo.domain.comment.dto.CommentDTO">
+        <id property="commentId" column="comment_id" />
+        <result property="postId" column="post_id" />
+        <result property="userId" column="user_id" />
+        <result property="nickname" column="nickname" />
+        <result property="commentContent" column="comment_content" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
+    </resultMap>
+    
+    <resultMap id="CommentResultMap" type="com.example.demo.domain.comment.model.Comment">
+        <id property="commentId" column="comment_id" />
+        <result property="postId" column="post_id" />
+        <result property="userId" column="user_id" />
+        <result property="content" column="comment_content" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
+    </resultMap>
+
+    <!-- 댓글 등록 -->
+    <insert id="insertComment" parameterType="com.example.demo.domain.comment.model.Comment" useGeneratedKeys="true" keyProperty="commentId">
+        INSERT INTO comments (post_id, user_id, comment_content)
+        VALUES (#{postId}, #{userId}, #{content})
+    </insert>
+
+    <!-- 댓글 1개 조회 -->
+    <select id="selectComment" parameterType="int" resultMap="CommentResultMap">
+        SELECT comment_id, post_id, user_id, comment_content, created_at, updated_at
+        FROM comments
+        WHERE comment_id = #{commentId}
+    </select>
+    
+    <!-- 댓글 1개 상세 조회 (닉네임 포함) -->
+    <select id="selectCommentWithNickname" parameterType="int" resultMap="CommentDTOResultMap">
+        SELECT c.comment_id, c.post_id, c.user_id, u.nickname, c.comment_content, c.created_at, c.updated_at
+        FROM comments c
+        JOIN user u ON c.user_id = u.user_id
+        WHERE c.comment_id = #{commentId}
+    </select>
+
+    <!-- 게시글에 달린 댓글 목록 -->
+    <select id="selectCommentsByPost" parameterType="int" resultMap="CommentResultMap">
+        SELECT comment_id, post_id, user_id, comment_content, created_at, updated_at
+        FROM comments
+        WHERE post_id = #{postId}
+        ORDER BY created_at ASC
+    </select>
+    
+    <!-- 게시글에 달린 댓글 목록 (닉네임 포함) -->
+    <select id="selectCommentsByPostWithNickname" resultMap="CommentDTOResultMap">
+        SELECT c.comment_id, c.post_id, c.user_id, u.nickname, c.comment_content, c.created_at, c.updated_at
+        FROM comments c
+        JOIN user u ON c.user_id = u.user_id
+        WHERE c.post_id = #{postId}
+        ORDER BY c.created_at ASC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 댓글 수정 -->
+    <update id="updateComment" parameterType="com.example.demo.domain.comment.model.Comment">
+        UPDATE comments
+        SET comment_content = #{content},
+        updated_at = CURRENT_TIMESTAMP
+        WHERE comment_id = #{commentId}
+    </update>
+
+    <!-- 댓글 삭제 -->
+    <delete id="deleteComment" parameterType="int">
+        DELETE FROM comments
+        WHERE comment_id = #{commentId}
+    </delete>
+
+    <!-- 게시글에 달린 전체 댓글 개수 -->
+    <select id="selectCommentCountByPostId" parameterType="int" resultType="int">
+        SELECT COUNT(*) FROM comments WHERE post_id = #{postId}
+    </select>
+
+    <!-- 게시글에 달린 전체 댓글 삭제 -->
+    <delete id="deleteByPostId">
+        DELETE FROM comments WHERE post_id = #{postId}
+    </delete>
+
+</mapper>

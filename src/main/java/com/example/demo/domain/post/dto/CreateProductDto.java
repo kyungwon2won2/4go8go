@@ -1,0 +1,18 @@
+package com.example.demo.domain.post.dto;
+
+import com.example.demo.domain.post.model.Product;
+import com.example.demo.domain.stringcode.ProductCategory;
+import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
+
+@Data
+public class CreateProductDto {
+    private int postId;
+    private int userId;
+    private String title; // 제목
+    private String content; // 내용
+    private ProductCategory category;
+    private int price;
+    private Product.ProductCondition condition;
+    private MultipartFile[] imageFiles; // 이미지 배열
+}

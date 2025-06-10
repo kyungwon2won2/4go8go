@@ -15,7 +15,7 @@ public class JobController {
     private JobLauncher jobLauncher;
 
     @Autowired
-    private Job sampleJob;
+    private Job birthdayEmailJob;
 
     @GetMapping("/run-job")
     public String runJob() {
@@ -25,7 +25,7 @@ public class JobController {
                     .addString("manualTrigger", "true")
                     .toJobParameters();
 
-            jobLauncher.run(sampleJob, jobParameters);
+            jobLauncher.run(birthdayEmailJob, jobParameters);
             return "Job triggered successfully. Check console for execution details.";
         } catch (Exception e) {
             return "Error occurred: " + e.getMessage();

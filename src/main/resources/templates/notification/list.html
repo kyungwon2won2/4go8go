@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>알림 목록</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/index.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/header.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/footer.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/notification.css}" />
+
+    <style>
+        .notification-item {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: flex-start;
+        }
+        .notification-item:hover {
+            background-color: #f8f9fa;
+        }
+        .notification-unread {
+            background-color: #f0f7ff;
+        }
+        .notification-time {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        .notification-content {
+            margin-bottom: 5px;
+        }
+        .notification-content-container {
+            flex: 1;
+        }
+        .empty-notification {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+        }
+        .mark-all-read {
+            margin-bottom: 15px;
+        }
+        .delete-notification-btn {
+            background: none;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+            padding: 5px 8px;
+            margin-left: 10px;
+            opacity: 0.6;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .delete-notification-btn:hover {
+            opacity: 1;
+            background-color: #fff1f1;
+        }
+
+        /* 헤더의 알림 배지 스타일 강화 */
+        .card-header .badge {
+            background-color: #5f0080 !important;
+            color: white !important;
+            font-size: 0.75rem !important;
+            padding: 4px 8px !important;
+            border-radius: 12px !important;
+        }
+
+        /* 헤더의 알림 뱃지가 숨겨질 때 강제 숨김 */
+        #notificationBadge.hidden {
+            display: none !important;
+            visibility: hidden !important;
+        }
+
+        /* 페이지네이션 커스텀 스타일 */
+        .pagination-sm .page-link {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+            border-radius: 0.2rem;
+        }
+
+        .pagination .page-link {
+            color: #5f0080;
+            border-color: #dee2e6;
+        }
+
+        .pagination .page-link:hover {
+            color: #3c0050;
+            background-color: #f0e8f5;
+            border-color: #5f0080;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #5f0080;
+            border-color: #5f0080;
+            color: white;
+        }
+
+        .pagination .page-item.disabled .page-link {
+            color: #6c757d;
+            background-color: #fff;
+            border-color: #dee2e6;
+        }
+    </style>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+<body th:data-authenticated="${#authorization.expression('isAuthenticated()')}">
+
+<!-- 헤더 -->
+<div th:replace="~{fragments/header :: header}"></div>
+
+<!-- 알림 목록 -->
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">전체 알림 목록</h4>
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <select id="pageSizeSelect" class="form-select form-select-sm">
+                                <option value="5" th:selected="${size == 5}">5개씩 보기</option>
+                                <option value="10" th:selected="${size == 10}">10개씩 보기</option>
+                                <option value="20" th:selected="${size == 20}">20개씩 보기</option>
+                                <option value="50" th:selected="${size == 50}">50개씩 보기</option>
+                            </select>
+                        </div>
+                        <span th:if="${unreadCount > 0}" class="badge bg-danger" th:text="${unreadCount}"></span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <button id="markAllReadBtn" class="btn btn-outline-primary mb-3" th:if="${unreadCount > 0}">
+                        모두 읽음 처리
+                    </button>
+
+                    <div th:if="${notifications.empty}" class="empty-notification">
+                        <i class="bi bi-bell-slash fs-1"></i>
+                        <p class="mt-3">알림이 없습니다.</p>
+                    </div>
+
+                    <div th:unless="${notifications.empty}">
+                        <div th:each="notification : ${notifications}"
+                             th:class="'notification-item ' + (${!notification.isRead} ? 'notification-unread' : '')"
+                             th:data-id="${notification.notificationId}"
+                             th:data-url="${notification.url}">
+
+                            <div class="notification-content-container">
+                                <div class="notification-content" th:text="${notification.content}"></div>
+
+                                <div class="notification-time"
+                                     th:text="${#dates.format(notification.createdAt, 'yyyy-MM-dd HH:mm')}"></div>
+                            </div>
+
+                            <button class="delete-notification-btn" th:data-id="${notification.notificationId}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 간단한 페이지네이션 -->
+                    <div class="d-flex justify-content-center mt-4" th:if="${totalPages > 1}">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination pagination-sm">
+                                <!-- 첫 페이지 -->
+                                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                    <a class="page-link" th:href="@{/notifications(page=0, size=${size})}" aria-label="First">
+                                        <i class="bi bi-chevron-double-left"></i>
+                                    </a>
+                                </li>
+
+                                <!-- 이전 페이지 -->
+                                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                    <a class="page-link" th:href="@{/notifications(page=${currentPage - 1}, size=${size})}" aria-label="Previous">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </a>
+                                </li>
+
+                                <!-- 현재 페이지 정보 -->
+                                <li class="page-item active">
+                                    <span class="page-link">
+                                        <span th:text="${currentPage + 1}"></span> / <span th:text="${totalPages}"></span>
+                                    </span>
+                                </li>
+
+                                <!-- 다음 페이지 -->
+                                <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                                    <a class="page-link" th:href="@{/notifications(page=${currentPage + 1}, size=${size})}" aria-label="Next">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </li>
+
+                                <!-- 마지막 페이지 -->
+                                <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                                    <a class="page-link" th:href="@{/notifications(page=${totalPages - 1}, size=${size})}" aria-label="Last">
+                                        <i class="bi bi-chevron-double-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 푸터 -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // CSRF 토큰 가져오기
+    const headers = window.NotificationUtils ?
+                    window.NotificationUtils.getCsrfToken() :
+                    { 'Content-Type': 'application/json' };
+
+    // 페이지 로드 시 헤더 뱃지 업데이트
+    updateUnreadCount();
+
+    // 알림 항목 클릭 이벤트
+    const notificationItems = document.querySelectorAll('.notification-item');
+    notificationItems.forEach(item => {
+        const contentContainer = item.querySelector('.notification-content-container');
+        if (contentContainer) {
+            contentContainer.addEventListener('click', function() {
+                const notificationId = item.getAttribute('data-id');
+                const notificationUrl = item.getAttribute('data-url');
+
+                // 읽음 처리 API 호출
+                fetch(`/api/notifications/${notificationId}/read`, {
+                    method: 'POST',
+                    headers: headers
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // 읽음 처리 성공 시 해당 알림의 스타일 변경
+                        item.classList.remove('notification-unread');
+
+                        // 알림 개수 업데이트
+                        updateUnreadCount();
+
+                        // 링크가 있으면 해당 페이지로 이동
+                        if (notificationUrl) {
+                            window.location.href = notificationUrl;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('알림 읽음 처리 오류:', error);
+                });
+            });
+        }
+    });
+
+    // 알림 삭제 버튼 이벤트
+    const deleteButtons = document.querySelectorAll('.delete-notification-btn');
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation(); // 이벤트 전파 방지
+
+            const notificationId = this.getAttribute('data-id');
+            const item = this.closest('.notification-item');
+
+            if (confirm('이 알림을 삭제하시겠습니까?')) {
+                fetch(`/api/notifications/${notificationId}`, {
+                    method: 'POST',
+                    headers: headers
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error('API 응답 오류: ' + response.status);
+                })
+                .then(data => {
+                    if (data.status === 'success') {
+                        // 삭제 성공 시 해당 요소 제거
+                        if (item) {
+                            item.remove();
+                        }
+
+                        // 알림이 더 이상 없는 경우 빈 메시지 표시
+                        const notificationList = document.querySelector('.card-body');
+                        if (notificationList && notificationList.querySelectorAll('.notification-item').length === 0) {
+                            const emptyMsg = document.createElement('div');
+                            emptyMsg.className = 'empty-notification';
+                            emptyMsg.innerHTML = '<i class="bi bi-bell-slash fs-1"></i><p class="mt-3">알림이 없습니다.</p>';
+                            notificationList.appendChild(emptyMsg);
+
+                            // 모두 읽음 버튼 숨기기
+                            const markAllReadBtn = document.getElementById('markAllReadBtn');
+                            if (markAllReadBtn) {
+                                markAllReadBtn.style.display = 'none';
+                            }
+                        }
+
+                        // 읽지 않은 알림이 없을 경우 UI 업데이트
+                        if (item.classList.contains('notification-unread')) {
+                            updateUnreadCount();
+                        }
+                    } else {
+                        alert('알림 삭제에 실패했습니다.');
+                    }
+                })
+                .catch(error => {
+                    console.error('알림 삭제 오류:', error);
+                    alert('알림 삭제 중 오류가 발생했습니다.');
+                });
+            }
+        });
+    });
+
+    // 모두 읽음 처리 버튼 이벤트
+    const markAllReadBtn = document.getElementById('markAllReadBtn');
+    if (markAllReadBtn) {
+        markAllReadBtn.addEventListener('click', function() {
+            fetch('/api/notifications/read-all', {
+                method: 'POST',
+                headers: headers
+            })
+            .then(response => {
+                if (response.ok) {
+                    // 모든 알림의 스타일 변경
+                    document.querySelectorAll('.notification-unread').forEach(item => {
+                        item.classList.remove('notification-unread');
+                    });
+
+                    // 모두 읽음 버튼 숨기기
+                    markAllReadBtn.style.display = 'none';
+
+                    // 알림 개수 업데이트
+                    updateUnreadCount();
+                }
+            })
+            .catch(error => {
+                console.error('모든 알림 읽음 처리 오류:', error);
+            });
+        });
+    }
+
+    // 알림 개수 업데이트 함수
+    function updateUnreadCount() {
+        fetch('/api/notifications/count')
+            .then(response => response.json())
+            .then(data => {
+                const unreadCount = data.count;
+                const badge = document.querySelector('.card-header .badge');
+
+                // 헤더의 알림 뱃지 업데이트 - Utils 이용
+                if (window.NotificationUtils) {
+                    window.NotificationUtils.updateNotificationBadge(unreadCount);
+                }
+
+                // 페이지 내 알림 개수 뱃지 업데이트
+                if (badge) {
+                    if (unreadCount > 0) {
+                        badge.textContent = unreadCount;
+                        badge.style.display = 'inline-block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+
+                // 모두 읽음 버튼 상태 업데이트
+                if (markAllReadBtn) {
+                    markAllReadBtn.style.display = unreadCount > 0 ? 'block' : 'none';
+                }
+            })
+            .catch(error => {
+                console.error('알림 개수 조회 오류:', error);
+            });
+    }
+
+    // 페이지 크기 변경 이벤트 처리
+    const pageSizeSelect = document.getElementById('pageSizeSelect');
+    if (pageSizeSelect) {
+        pageSizeSelect.addEventListener('change', function() {
+            const size = this.value;
+            window.location.href = `/notifications?page=0&size=${size}`;
+        });
+    }
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- 알림 관련 스크립트 (로드 순서 중요) -->
+<script th:src="@{/js/notification-utils.js}" sec:authorize="isAuthenticated()"></script>
+<script th:src="@{/js/notification-chat.js}" sec:authorize="isAuthenticated()"></script>
+<script th:src="@{/js/notification-ui.js}" sec:authorize="isAuthenticated()"></script>
+<script th:src="@{/js/notification-sse.js}" sec:authorize="isAuthenticated()"></script>
+
+</body>
+</html>

@@ -38,3 +38,6 @@ out/
 
 ### properties ###
 application.properties
+
+### S3 ###
+.env

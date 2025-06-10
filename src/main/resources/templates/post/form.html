@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>글 작성 - 4고8고</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Noto Sans KR 폰트 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Summernote -->
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
+    <!-- CSS 임포트 (순서대로) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/index.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/header.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/footer.css}" />
+    <link rel="stylesheet" type="text/css" th:href="@{/css/notification.css}" />
+
+    <style>
+        :root {
+            --kurly-purple: #5f0080;
+            --kurly-purple-dark: #4c006a;
+            --kurly-light-gray: #f7f7f7;
+            --kurly-text: #333333;
+        }
+        
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #fff;
+            color: var(--kurly-text);
+        }
+        
+        .kurly-header {
+            background-color: white;
+            border-bottom: 1px solid #eee;
+            padding: 15px 0;
+        }
+        
+        .kurly-logo {
+            color: var(--kurly-purple);
+            font-size: 28px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        
+        .kurly-nav {
+            background-color: white;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 30px;
+        }
+        
+        .kurly-nav-link {
+            color: var(--kurly-text);
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: 500;
+            text-decoration: none;
+        }
+        
+        .kurly-nav-link:hover {
+            color: var(--kurly-purple);
+        }
+        
+        .kurly-container {
+            background-color: white;
+            border-radius: 6px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            padding: 40px;
+            margin-bottom: 50px;
+        }
+        
+        .kurly-title {
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: var(--kurly-text);
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: var(--kurly-text);
+            margin-bottom: 8px;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 4px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--kurly-purple);
+            box-shadow: 0 0 0 0.2rem rgba(95, 0, 128, 0.15);
+        }
+        
+        .btn-kurly-primary {
+            background-color: var(--kurly-purple);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 12px 24px;
+            font-weight: 500;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-kurly-primary:hover {
+            background-color: var(--kurly-purple-dark);
+            color: white;
+        }
+        
+        .btn-kurly-secondary {
+            background-color: #fff;
+            color: var(--kurly-text);
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 12px 24px;
+            font-weight: 500;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+        
+        .btn-kurly-secondary:hover {
+            border-color: #aaa;
+            color: #111;
+        }
+        
+        .note-editor {
+            border-color: #ddd !important;
+            margin-bottom: 30px;
+        }
+        
+        .note-editor.note-frame .note-editing-area .note-editable {
+            min-height: 300px;
+        }
+        
+        .note-toolbar {
+            background-color: var(--kurly-light-gray);
+        }
+        
+        .kurly-footer {
+            background-color: var(--kurly-light-gray);
+            padding: 40px 0;
+            margin-top: 50px;
+        }
+        
+        .kurly-footer-title {
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        
+        .kurly-footer-text {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+<!-- 상단 배너 -->
+<div th:replace="~{fragments/header :: header}"></div>
+
+    <!-- 메인 컨텐츠 -->
+    <div class="container">
+        <div class="kurly-container">
+            <h2 class="kurly-title">글 작성</h2>
+            <form action="/user/post" method="post" enctype="multipart/form-data">
+                <!-- CSRF 토큰 자동 삽입 -->
+                <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
+
+                <!-- 제목 입력 -->
+                <div class="mb-4">
+                    <label for="title" class="form-label">제목</label>
+                    <input type="text" class="form-control" id="title" name="title" placeholder="제목을 입력해주세요" required>
+                </div>
+
+                <!-- 카테고리 선택
+                <div class="mb-4">
+                    <label for="postCategoryId" class="form-label">카테고리 선택</label>
+                    <select class="form-select" id="postCategoryId" name="postCategoryId" required>
+                        <option value="" disabled selected>카테고리를 선택해주세요</option>
+                        <option value="1">물품게시판</option>
+                        <option value="2">일반게시판</option>
+                    </select>
+                </div>
+                 -->
+
+                <!--Summernote-->
+                <div class="mb-4">
+                    <label for="content" class="form-label">내용</label>
+                    <textarea id="content" name="content"></textarea>
+                </div>
+
+                <input type="hidden" name="comment_count" value="0">
+
+                <!-- 버튼들 -->
+                <div class="d-flex justify-content-between mt-5">
+                    <a href="/user/post" class="btn-kurly-secondary">취소</a>
+                    <button type="submit" class="btn-kurly-primary">등록하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+<!-- 푸터 -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <!-- Summernote -->
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
+    <!-- Summernote 초기화 -->
+    <script>
+        $(document).ready(function(){
+            $('#content').summernote({
+                placeholder: '내용을 입력해주세요',
+                tabsize: 2,
+                height: 300,
+                toolbar: [
+                    ['style', ['style']],
+                    ['font', ['bold', 'underline', 'clear']],
+                    ['color', ['color']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['table', ['table']],
+                    ['insert', ['link', 'picture']],
+                    ['view', ['fullscreen', 'help']]
+                ]
+            });
+        });
+    </script>
+    <!-- 알림 관련 스크립트 (로드 순서 중요) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/notification-utils.js}" sec:authorize="isAuthenticated()"></script>
+    <script th:src="@{/js/notification-chat.js}" sec:authorize="isAuthenticated()"></script>
+    <script th:src="@{/js/notification-ui.js}" sec:authorize="isAuthenticated()"></script>
+    <script th:src="@{/js/notification-sse.js}" sec:authorize="isAuthenticated()"></script>
+</body>
+</html>

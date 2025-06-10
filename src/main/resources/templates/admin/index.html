@@ -2,28 +2,911 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-<meta charset="UTF-8">
-<title>admin Index</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 대시보드 - 4고8고마켓</title>
+    <style>
+        :root {
+            --primary-color: #5f0080;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-color: #f7f7f7;
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .admin-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 0;
+            margin-bottom: 30px;
+        }
+
+        .admin-container {
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .table th {
+            background-color: #f8f9fa;
+            border-top: none;
+        }
+
+        .stat-card {
+            border-left: 4px solid var(--primary-color);
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        }
+
+        .stat-card .stat-icon {
+            font-size: 2rem;
+            color: var(--primary-color);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .role-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+        }
+
+        .search-box {
+            border-radius: 20px;
+            border: 2px solid #e9ecef;
+            transition: border-color 0.3s;
+        }
+
+        .search-box:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(95, 0, 128, 0.25);
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .list-group-item.active {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
+          rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/header.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/footer.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/postlist.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/notification.css}"/>
 </head>
 <body>
-<h5>
-    loginId : <span th:text="${loginId}"></span>
-</h5>
-<ul sec:authorize="isAuthenticated">
-    <li>  인증정보 : <span sec:authentication="principal"></span>    </li>
-    <li>  사용자 ID: <span sec:authentication="principal.username"></span>    </li>
-    <li>  사용자 ID: <span sec:authentication="principal.authorities"></span>    </li>
-</ul>
-<ul>
-    <li>
-        <a href="/login">로그인</a>
-    </li>
-    <li>
-        <a href="/user">사용자</a>
-    </li>
-    <li>
-        <a href="/admin">관리자</a>
-    </li>
-</ul>
+
+<!-- 상단 배너 -->
+<div th:replace="~{fragments/header :: header}"></div>
+
+<!-- 관리자 헤더 -->
+<div class="admin-header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="m-0"><i class="bi bi-shield-check"></i> 관리자 대시보드</h2>
+            <div>
+                <span class="text-white me-3" sec:authentication="principal.username"></span>
+                <a href="/" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-house"></i> 메인으로
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 관리자 컨텐츠 -->
+<div class="container mb-5">
+    <!-- 상단 통계 카드 -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="admin-container stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon me-3">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0" th:text="${totalUsers ?: 0}">0</h4>
+                        <small class="text-muted">총 사용자</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="admin-container stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon me-3">
+                        <i class="bi bi-person-check-fill"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0" th:text="${activeUsers ?: 0}">0</h4>
+                        <small class="text-muted">활성 사용자</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="admin-container stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon me-3">
+                        <i class="bi bi-calendar-plus"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0" th:text="${todayRegistrations ?: 0}">0</h4>
+                        <small class="text-muted">오늘 가입</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="admin-container stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon me-3">
+                        <i class="bi bi-person-x-fill"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0" th:text="${suspendedUsers ?: 0}">0</h4>
+                        <small class="text-muted">정지된 사용자</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 추가 통계 카드 -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="admin-container stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon me-3">
+                        <i class="bi bi-calendar-week"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0" th:text="${thisWeekRegistrations ?: 0}">0</h4>
+                        <small class="text-muted">이번 주 가입</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="admin-container stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon me-3">
+                        <i class="bi bi-calendar-month"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0" th:text="${thisMonthRegistrations ?: 0}">0</h4>
+                        <small class="text-muted">이번 달 가입</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="admin-container stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon me-3">
+                        <i class="bi bi-trophy-fill"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0" th:text="${#lists.size(topRatedUsers)}">0</h4>
+                        <small class="text-muted">우수 회원</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="admin-container stat-card">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon me-3">
+                        <i class="bi bi-envelope-x"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0" th:text="${emailUnverifiedUsers ?: 0}">0</h4>
+                        <small class="text-muted">미인증</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 우수 회원 TOP 5 섹션 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="admin-container">
+                <h3 class="section-title">
+                    <i class="bi bi-trophy-fill text-warning"></i> 우수 회원 TOP 5
+                </h3>
+                
+                <!-- 우수 회원이 없는 경우 -->
+                <div th:if="${#lists.isEmpty(topRatedUsers)}" class="text-center py-4">
+                    <i class="bi bi-emoji-smile" style="font-size: 3rem; color: #6c757d;"></i>
+                    <p class="text-muted mt-2">아직 평점을 받은 회원이 없습니다.</p>
+                    <small class="text-muted">거래가 활발해지면 우수 회원들이 나타날 예정입니다!</small>
+                </div>
+
+                <!-- 우수 회원 목록 -->
+                <div th:if="${!#lists.isEmpty(topRatedUsers)}" class="row">
+                    <div th:each="user, iterStat : ${topRatedUsers}" 
+                         th:class="${iterStat.index == 0} ? 'col-12 mb-4' : 'col-md-6 col-lg-3 mb-3'">
+                        
+                        <!-- 1등 회원 - 특별 디자인 -->
+                        <div th:if="${iterStat.index == 0}" class="card border-warning shadow-lg" 
+                             style="background: linear-gradient(135deg, #fff3cd 0%, #ffffff 50%, #fff3cd 100%);">
+                            <div class="card-body text-center position-relative">
+                                <!-- 왕관 아이콘 -->
+                                <div class="position-absolute top-0 start-50 translate-middle">
+                                    <i class="bi bi-award-fill text-warning" style="font-size: 2rem; 
+                                       filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));"></i>
+                                </div>
+                                
+                                <!-- 1등 배지 -->
+                                <div class="d-flex justify-content-center align-items-center mb-3 mt-3">
+                                    <span class="badge bg-warning text-dark fs-6 px-3 py-2 rounded-pill shadow-sm">
+                                        🥇 1st PLACE
+                                    </span>
+                                </div>
+                                
+                                <!-- 사용자 아바타 -->
+                                <div class="d-flex justify-content-center mb-3">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-lg"
+                                         style="width: 80px; height: 80px; background: linear-gradient(135deg, #ffc107, #ffb300); font-size: 1.5rem;"
+                                         th:text="${#strings.substring(user.nickname ?: 'U', 0, 1)}">U</div>
+                                </div>
+                                
+                                <!-- 사용자 정보 -->
+                                <h4 class="card-title text-warning fw-bold mb-2" th:text="${user.nickname}">닉네임</h4>
+                                <div class="mb-2">
+                                    <span class="badge bg-warning text-dark rounded-pill">
+                                        ⭐ <span th:text="${#numbers.formatDecimal(user.rating, 1, 1)}">5.0</span>
+                                    </span>
+                                </div>
+                                <div class="text-muted small mt-1">
+                                    <span th:if="${user.socialType == null}" class="badge bg-primary">일반</span>
+                                    <span th:if="${user.socialType == 'GOOGLE'}" class="badge bg-danger">구글</span>
+                                    <span th:if="${user.socialType == 'NAVER'}" class="badge bg-success">네이버</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 2-5등 회원 - 일반 디자인 -->
+                        <div th:unless="${iterStat.index == 0}" class="card h-100 shadow-sm border-0" 
+                             style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);">
+                            <div class="card-body text-center">
+                                <!-- 순위 배지 -->
+                                <div class="mb-2">
+                                    <span class="badge rounded-pill px-3 py-2"
+                                          th:classappend="${iterStat.index == 1} ? 'bg-secondary' : (${iterStat.index == 2} ? 'bg-warning text-dark' : 'bg-light text-dark')"
+                                          th:text="${iterStat.index == 1} ? '🥈 2nd' : (${iterStat.index == 2} ? '🥉 3rd' : (${iterStat.count} + 'th'))">2nd</span>
+                                </div>
+                                
+                                <!-- 사용자 아바타 -->
+                                <div class="d-flex justify-content-center mb-3">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow"
+                                         style="width: 50px; height: 50px; background: linear-gradient(135deg, #6c757d, #495057);"
+                                         th:text="${#strings.substring(user.nickname ?: 'U', 0, 1)}">U</div>
+                                </div>
+                                
+                                <!-- 사용자 정보 -->
+                                <h6 class="card-title mb-2" th:text="${user.nickname}">닉네임</h6>
+                                <div class="mb-1">
+                                    <small class="text-warning">
+                                        ⭐ <span th:text="${#numbers.formatDecimal(user.rating, 1, 1)}">4.5</span>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- 사이드 메뉴 -->
+        <div class="col-md-3 mb-4">
+            <div class="admin-container">
+                <h5 class="section-title">
+                    <i class="bi bi-list"></i> 관리 메뉴
+                </h5>
+                <div class="list-group list-group-flush">
+                    <a href="#dashboard-section" class="list-group-item list-group-item-action active"
+                       onclick="showSection('dashboard-section', this)">
+                        <i class="bi bi-speedometer2"></i> 대시보드
+                    </a>
+                    <a href="#user-management-section" class="list-group-item list-group-item-action"
+                       onclick="showSection('user-management-section', this)">
+                        <i class="bi bi-people"></i> 사용자 관리
+                    </a>
+                    <a href="#role-management-section" class="list-group-item list-group-item-action"
+                       onclick="showSection('role-management-section', this)">
+                        <i class="bi bi-shield-lock"></i> 권한 관리
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 메인 컨텐츠 -->
+        <div class="col-md-9">
+            <!-- 1. 대시보드 섹션 -->
+            <div id="dashboard-section" class="content-section active">
+                <div class="admin-container">
+                    <h3 class="section-title">
+                        <i class="bi bi-graph-up"></i> 시스템 현황
+                    </h3>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <h5>가입 유형별 통계</h5>
+                            <canvas id="registrationTypeChart" width="400" height="200"></canvas>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <h5>연령대별 분포</h5>
+                            <canvas id="ageGroupChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <h5>사용자 상태별 분포</h5>
+                            <canvas id="userStatusChart" width="400" height="200"></canvas>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <h5>우수 회원 평점 분포</h5>
+                            <canvas id="topUsersChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. 사용자 관리 섹션 -->
+            <div id="user-management-section" class="content-section">
+                <div class="admin-container">
+                    <h3 class="section-title">
+                        <i class="bi bi-people"></i> 사용자 관리
+                    </h3>
+
+                    <!-- 필터 및 검색 -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" id="searchInput" class="form-control search-box"
+                                       placeholder="이메일 또는 이름 검색">
+                                <button class="btn btn-outline-secondary" type="button" onclick="searchUsers()">
+                                    <i class="bi bi-search"></i> 검색
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-primary active"
+                                        onclick="filterUsers('all', this)">전체
+                                </button>
+                                <button type="button" class="btn btn-outline-primary"
+                                        onclick="filterUsers('ACTIVE', this)">활성
+                                </button>
+                                <button type="button" class="btn btn-outline-primary"
+                                        onclick="filterUsers('SUSPENDED', this)">정지
+                                </button>
+                                <button type="button" class="btn btn-outline-primary"
+                                        onclick="filterUsers('DELETED', this)">삭제
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 사용자 목록 테이블 -->
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="usersTable">
+                            <thead>
+                            <tr>
+                                <th width="8%">ID</th>
+                                <th width="20%">이메일</th>
+                                <th width="12%">이름</th>
+                                <th width="12%">닉네임</th>
+                                <th width="10%">가입일</th>
+                                <th width="8%">유형</th>
+                                <th width="8%">상태</th>
+                                <th width="22%">관리</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="user : ${users}" class="user-row"
+                                th:data-status="${user.status ?: 'ACTIVE'}"
+                                th:data-email="${user.email}"
+                                th:data-name="${user.name}">
+                                <td>
+                                    <div class="user-avatar"
+                                         th:text="${#strings.substring(user.nickname ?: 'U', 0, 1)}">U
+                                    </div>
+                                </td>
+                                <td>
+                                    <div th:text="${user.email}">user@example.com</div>
+                                    <small class="text-muted" th:if="${user.emailVerified}">
+                                        <i class="bi bi-check-circle-fill text-success"></i> 인증됨
+                                    </small>
+                                </td>
+                                <td th:text="${user.name}">홍길동</td>
+                                <td th:text="${user.nickname}">길동이</td>
+                                <td th:text="${#dates.format(user.createdAt, 'yyyy-MM-dd')}">2023-01-01</td>
+                                <td>
+                                    <span th:if="${user.socialType == null}" class="badge bg-primary">일반</span>
+                                    <span th:if="${user.socialType == 'GOOGLE'}" class="badge bg-danger">구글</span>
+                                    <span th:if="${user.socialType == 'NAVER'}" class="badge bg-success">네이버</span>
+                                </td>
+                                <td>
+                                    <span th:if="${user.status == 'ACTIVE' or user.status == null}"
+                                          class="badge bg-success">활성</span>
+                                    <span th:if="${user.status == 'SUSPENDED'}" class="badge bg-warning">정지</span>
+                                    <span th:if="${user.status == 'DELETED'}" class="badge bg-danger">삭제</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button type="button" class="btn btn-outline-secondary dropdown-toggle"
+                                                data-bs-toggle="dropdown" style="font-size: 0.8rem;">
+                                            상태변경
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <form th:action="@{/admin/user/status}" method="post"
+                                                      style="display: inline;">
+                                                    <input type="hidden" name="userId" th:value="${user.userId}">
+                                                    <input type="hidden" name="status" value="ACTIVE">
+                                                    <input type="hidden" th:name="${_csrf.parameterName}"
+                                                           th:value="${_csrf.token}">
+                                                    <button type="submit" class="dropdown-item">
+                                                        <i class="bi bi-check-circle"></i> 활성화
+                                                    </button>
+                                                </form>
+                                            </li>
+                                            <li>
+                                                <form th:action="@{/admin/user/status}" method="post"
+                                                      style="display: inline;">
+                                                    <input type="hidden" name="userId" th:value="${user.userId}">
+                                                    <input type="hidden" name="status" value="SUSPENDED">
+                                                    <input type="hidden" th:name="${_csrf.parameterName}"
+                                                           th:value="${_csrf.token}">
+                                                    <button type="submit" class="dropdown-item">
+                                                        <i class="bi bi-pause-circle"></i> 정지
+                                                    </button>
+                                                </form>
+                                            </li>
+                                            <li>
+                                                <form th:action="@{/admin/user/status}" method="post"
+                                                      style="display: inline;"
+                                                      onsubmit="return confirm('정말 삭제하시겠습니까?')">
+                                                    <input type="hidden" name="userId" th:value="${user.userId}">
+                                                    <input type="hidden" name="status" value="DELETED">
+                                                    <input type="hidden" th:name="${_csrf.parameterName}"
+                                                           th:value="${_csrf.token}">
+                                                    <button type="submit" class="dropdown-item text-danger">
+                                                        <i class="bi bi-trash"></i> 삭제
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. 권한 관리 섹션 -->
+            <div id="role-management-section" class="content-section">
+                <div class="admin-container">
+                    <h3 class="section-title">
+                        <i class="bi bi-shield-lock"></i> 권한 관리
+                    </h3>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>권한별 사용자 수</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                    <tr>
+                                        <th>권한</th>
+                                        <th>사용자 수</th>
+                                        <th>설명</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr>
+                                        <td><span class="badge bg-primary role-badge">USER</span></td>
+                                        <td th:text="${userRoleCount ?: 0}">0</td>
+                                        <td>일반 사용자</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="badge bg-danger role-badge">ADMIN</span></td>
+                                        <td th:text="${adminRoleCount ?: 0}">0</td>
+                                        <td>관리자</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <h5>관리자 권한 부여</h5>
+                            <form th:action="@{/admin/role/assign}" method="post">
+                                <div class="input-group mb-3">
+                                    <input type="email" class="form-control" name="userEmail" placeholder="사용자 이메일 입력"
+                                           required>
+                                    <select class="form-select" name="roleName" required>
+                                        <option value="ROLE_ADMIN">관리자</option>
+                                        <option value="ROLE_USER">일반사용자</option>
+                                    </select>
+                                    <button class="btn btn-primary" type="submit">
+                                        <i class="bi bi-person-plus"></i> 권한 부여
+                                    </button>
+                                </div>
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 푸터 -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/notification-utils.js}" sec:authorize="isAuthenticated()"></script>
+<script th:src="@{/js/notification-chat.js}" sec:authorize="isAuthenticated()"></script>
+<script th:src="@{/js/notification-ui.js}" sec:authorize="isAuthenticated()"></script>
+<script th:src="@{/js/notification-sse.js}" sec:authorize="isAuthenticated()"></script>
+
+<script th:inline="javascript">
+/*<![CDATA[*/
+    // 차트 데이터 (Thymeleaf에서 전달받은 데이터)
+    const statsData = {
+        totalUsers: [[${totalUsers ?: 0}]],
+        activeUsers: [[${activeUsers ?: 0}]],
+        suspendedUsers: [[${suspendedUsers ?: 0}]],
+        normalUsers: [[${normalUsers ?: 0}]],
+        googleUsers: [[${googleUsers ?: 0}]],
+        naverUsers: [[${naverUsers ?: 0}]],
+        ageGroups: /*[[${ageGroups}]]*/ [],
+        topRatedUsers: /*[[${topRatedUsers}]]*/ []
+    };
+
+    // 데이터 확인 로그
+    console.log('=== 통계 데이터 확인 ===');
+    console.log('statsData:', statsData);
+    console.log('totalUsers:', statsData.totalUsers);
+    console.log('activeUsers:', statsData.activeUsers);
+    console.log('normalUsers:', statsData.normalUsers);
+    console.log('googleUsers:', statsData.googleUsers);
+    console.log('naverUsers:', statsData.naverUsers);
+    console.log('ageGroups:', statsData.ageGroups);
+
+    // Chart.js 기본 설정
+    Chart.defaults.font.family = 'Noto Sans KR';
+    Chart.defaults.font.size = 12;
+
+    // 섹션 전환 함수
+    function showSection(sectionId, element) {
+        document.querySelectorAll('.content-section').forEach(section => {
+            section.classList.remove('active');
+        });
+
+        document.getElementById(sectionId).classList.add('active');
+
+        document.querySelectorAll('.list-group-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        element.classList.add('active');
+    }
+
+    // 사용자 검색 함수
+    function searchUsers() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const rows = document.querySelectorAll('#usersTable tbody .user-row');
+
+        rows.forEach(row => {
+            const email = row.getAttribute('data-email').toLowerCase();
+            const name = row.getAttribute('data-name').toLowerCase();
+
+            if (email.includes(searchTerm) || name.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    // 사용자 필터링 함수
+    function filterUsers(status, element) {
+        const rows = document.querySelectorAll('#usersTable tbody .user-row');
+
+        document.querySelectorAll('.btn-group .btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        element.classList.add('active');
+
+        rows.forEach(row => {
+            const userStatus = row.getAttribute('data-status');
+
+            if (status === 'all' || userStatus === status || (status === 'ACTIVE' && (userStatus === 'ACTIVE' || userStatus === null))) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    // 페이지 로드 후 차트 생성
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log('=== 차트 생성 시작 ===');
+
+        // 1. 가입 유형별 파이 차트
+        const registrationTypeCtx = document.getElementById('registrationTypeChart');
+        if (registrationTypeCtx) {
+            console.log('가입 유형별 차트 데이터:', [statsData.normalUsers, statsData.googleUsers, statsData.naverUsers]);
+
+            // 데이터가 모두 0인 경우 샘플 데이터 사용
+            const hasData = statsData.normalUsers + statsData.googleUsers + statsData.naverUsers > 0;
+            const chartData = hasData ?
+                [statsData.normalUsers, statsData.googleUsers, statsData.naverUsers] :
+                [1, 1, 1]; // 샘플 데이터
+
+            try {
+                new Chart(registrationTypeCtx.getContext('2d'), {
+                    type: 'pie',
+                    data: {
+                        labels: ['일반 가입', '구글', '네이버'],
+                        datasets: [{
+                            data: chartData,
+                            backgroundColor: ['#5f0080', '#dc3545', '#28a745']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            },
+                            title: {
+                                display: !hasData,
+                                text: '데이터가 없습니다 (샘플 표시)'
+                            }
+                        }
+                    }
+                });
+                console.log('가입 유형별 차트 생성 완료');
+            } catch (error) {
+                console.error('가입 유형별 차트 생성 오류:', error);
+            }
+        } else {
+            console.error('registrationTypeChart 캔버스를 찾을 수 없습니다');
+        }
+
+        // 2. 연령대별 바 차트
+        const ageGroupCtx = document.getElementById('ageGroupChart');
+        if (ageGroupCtx) {
+            console.log('연령대별 차트 데이터:', statsData.ageGroups);
+
+            let ageGroupLabels, ageGroupData;
+
+            if (statsData.ageGroups && Array.isArray(statsData.ageGroups) && statsData.ageGroups.length > 0) {
+                ageGroupLabels = statsData.ageGroups.map(item => item.age_group || item.ageGroup);
+                ageGroupData = statsData.ageGroups.map(item => item.count);
+            } else {
+                // 샘플 데이터
+                ageGroupLabels = ['20대', '30대', '40대'];
+                ageGroupData = [5, 3, 2];
+            }
+
+            try {
+                new Chart(ageGroupCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ageGroupLabels,
+                        datasets: [{
+                            label: '사용자 수',
+                            data: ageGroupData,
+                            backgroundColor: '#5f0080'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            title: {
+                                display: !statsData.ageGroups || statsData.ageGroups.length === 0,
+                                text: '데이터가 없습니다 (샘플 표시)'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        }
+                    }
+                });
+                console.log('연령대별 차트 생성 완료');
+            } catch (error) {
+                console.error('연령대별 차트 생성 오류:', error);
+            }
+        } else {
+            console.error('ageGroupChart 캔버스를 찾을 수 없습니다');
+        }
+
+        // 3. 사용자 상태별 도넛 차트
+        const userStatusCtx = document.getElementById('userStatusChart');
+        if (userStatusCtx) {
+            console.log('사용자 상태별 차트 데이터:', [statsData.activeUsers, statsData.suspendedUsers]);
+
+            const hasData = statsData.activeUsers + statsData.suspendedUsers > 0;
+            const chartData = hasData ?
+                [statsData.activeUsers, statsData.suspendedUsers] :
+                [8, 2]; // 샘플 데이터
+
+            try {
+                new Chart(userStatusCtx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['활성', '정지'],
+                        datasets: [{
+                            data: chartData,
+                            backgroundColor: ['#28a745', '#ffc107']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            },
+                            title: {
+                                display: !hasData,
+                                text: '데이터가 없습니다 (샘플 표시)'
+                            }
+                        }
+                    }
+                });
+                console.log('사용자 상태별 차트 생성 완료');
+            } catch (error) {
+                console.error('사용자 상태별 차트 생성 오류:', error);
+            }
+        } else {
+            console.error('userStatusChart 캔버스를 찾을 수 없습니다');
+        }
+
+        // 4. 우수 회원 평점 분포 바 차트
+        const topUsersCtx = document.getElementById('topUsersChart');
+        if (topUsersCtx) {
+            console.log('우수 회원 차트 데이터:', statsData.topRatedUsers);
+
+            let userLabels, userRatings;
+
+            if (statsData.topRatedUsers && Array.isArray(statsData.topRatedUsers) && statsData.topRatedUsers.length > 0) {
+                userLabels = statsData.topRatedUsers.map(user => user.nickname || '사용자');
+                userRatings = statsData.topRatedUsers.map(user => user.rating || 0);
+            } else {
+                // 샘플 데이터
+                userLabels = ['샘플1', '샘플2', '샘플3'];
+                userRatings = [4.8, 4.5, 4.2];
+            }
+
+            try {
+                new Chart(topUsersCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: userLabels,
+                        datasets: [{
+                            label: '평점',
+                            data: userRatings,
+                            backgroundColor: [
+                                '#ffc107', // 1등 - 금색
+                                '#6c757d', // 2등 - 은색  
+                                '#cd7f32', // 3등 - 동색
+                                '#5f0080', // 4-5등 - 보라색
+                                '#5f0080'
+                            ],
+                            borderColor: '#ffffff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            title: {
+                                display: !statsData.topRatedUsers || statsData.topRatedUsers.length === 0,
+                                text: '데이터가 없습니다 (샘플 표시)'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                min: 0,
+                                max: 5,
+                                ticks: {
+                                    stepSize: 0.5,
+                                    callback: function(value) {
+                                        return value.toFixed(1) + '⭐';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                console.log('우수 회원 차트 생성 완료');
+            } catch (error) {
+                console.error('우수 회원 차트 생성 오류:', error);
+            }
+        } else {
+            console.error('topUsersChart 캔버스를 찾을 수 없습니다');
+        }
+
+        console.log('=== 차트 생성 완료 ===');
+
+        // Enter 키로 검색 이벤트 리스너 추가
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    searchUsers();
+                }
+            });
+        }
+    });
+
+    // Bootstrap 확인
+    if (typeof bootstrap !== 'undefined') {
+        console.log('Bootstrap이 성공적으로 로드되었습니다.');
+    } else {
+        console.log('Bootstrap이 로드되지 않았습니다. 커스텀 드롭다운을 사용합니다.');
+    }
+/*]]>*/
+</script>
 </body>
 </html>

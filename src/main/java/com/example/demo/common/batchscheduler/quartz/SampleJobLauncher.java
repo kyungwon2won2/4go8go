@@ -35,10 +35,7 @@ public class SampleJobLauncher extends QuartzJobBean {
             // Spring Batch Job 실행
             jobLauncher.run(birthdayEmailJob, jobParameters);
 
-            log.info("생일 이메일 배치 작업 성공적으로 완료");
-
         } catch (Exception e) {
-            log.error("생일 이메일 배치 작업 실행 중 오류 발생", e);
             throw new JobExecutionException("생일 이메일 배치 작업 실패: " + e.getMessage(), e);
         }
     }

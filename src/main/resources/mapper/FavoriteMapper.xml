@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+    int countByPostId(@Param("postId") int postId);
+    -->
+<mapper namespace="com.example.demo.mapper.FavoriteMapper">
+    <!--상품게시글 dto-->
+    <resultMap id="ProductListDtoMap" type="com.example.demo.domain.post.dto.ProductListDto">
+        <id property="postId" column="post_id"/>
+        <result property="title" column="title"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="location" column="address"/>
+        <result property="price" column="price"/>
+        <result property="imageUrl" column="image_url"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.example.demo.domain.post.model.Favorite">
+        INSERT INTO favorites (user_id, post_id, created_at)
+        VALUES (#{userId}, #{postId}, NOW())
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM favorites
+        WHERE user_id = #{userId} AND post_id = #{postId}
+    </delete>
+
+    <delete id="deleteByPostId">
+        DELETE FROM favorites
+        WHERE post_id = #{postId}
+    </delete>
+
+    <select id="exists" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1 FROM favorites WHERE user_id = #{userId} AND post_id = #{postId}
+        )
+    </select>
+
+    <select id="countByPostId" resultType="int">
+        SELECT COUNT(*) FROM favorites WHERE post_id = #{postId}
+    </select>
+
+    <select id="selectFavoritedProductsByUserId" resultMap="ProductListDtoMap">
+        SELECT
+            pr.post_id,
+            po.title,
+            po.created_at,
+            u.address,
+            pr.price,
+            (SELECT url FROM image WHERE post_id = pr.post_id ORDER BY url LIMIT 1) AS image_url
+        FROM favorites f
+        JOIN product pr ON f.post_id = pr.post_id
+        JOIN post po ON pr.post_id = po.post_id
+        JOIN user u ON po.user_id = u.user_id
+        WHERE f.user_id = #{userId}
+        ORDER BY f.created_at DESC
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
+    <select id="countFavoritedProductsByUserId" parameterType="int" resultType="int">
+        SELECT COUNT(*)
+        FROM favorites
+        WHERE user_id = #{userId}
+    </select>
+
+</mapper>

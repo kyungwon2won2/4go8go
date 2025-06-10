@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.mapper.ChatMessageMapper">
+
+    <resultMap id="chatMessageResultMap" type="com.example.demo.domain.chat.model.ChatMessage">
+        <id property="messageId" column="message_id"/>
+        <result property="chatRoomId" column="chat_room_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="content" column="content"/>
+        <result property="imageUrl" column="image_url"/>
+        <result property="messageType" column="message_type"/>
+        <result property="sentAt" column="sent_at"/>
+    </resultMap>
+
+    <select id="findById" resultMap="chatMessageResultMap">
+        SELECT * FROM chat_message WHERE message_id = #{messageId}
+    </select>
+
+    <select id="findByChatRoomId" resultMap="chatMessageResultMap">
+        SELECT * FROM chat_message
+        WHERE chat_room_id = #{chatRoomId}
+        ORDER BY sent_at ASC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="messageId">
+        INSERT INTO chat_message (chat_room_id, user_id, content, image_url, message_type, sent_at)
+        VALUES (#{chatRoomId}, #{userId}, #{content}, #{imageUrl}, COALESCE(#{messageType}, 'TEXT'), NOW())
+    </insert>
+
+    <delete id="deleteById">
+        DELETE FROM chat_message WHERE message_id = #{messageId}
+    </delete>
+
+</mapper>

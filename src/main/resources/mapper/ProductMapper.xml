@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.mapper.ProductMapper">
+
+    <!-- 상세 DTO 매핑 -->
+    <resultMap id="ProductDetailDtoMap" type="com.example.demo.domain.post.dto.ProductDetailDto">
+        <id property="postId" column="post_id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="category" column="category"/>
+        <result property="price" column="price"/>
+        <result property="condition" column="condition"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="location" column="address"/>
+        <result property="userId" column="user_id"/>
+    </resultMap>
+
+    <!-- INSERT -->
+    <insert id="insert" parameterType="com.example.demo.domain.post.model.Product">
+        INSERT INTO product (post_id, price, `condition`, category, trade_status)
+        VALUES (#{postId}, #{price}, #{condition}, #{category}, #{tradeStatus})
+    </insert>
+
+    <!-- 상세 조회 -->
+        <resultMap id="ProductDetailResultMap" type="com.example.demo.domain.post.dto.ProductDetailDto">
+            <result property="postId" column="post_id"/>
+            <result property="title" column="title"/>
+            <result property="viewCount" column="view_count"/>
+            <result property="commentCount" column="comment_count"/>
+            <result property="createdAt" column="created_at"/>
+
+            <result property="categoryName" column="category_name"/>
+            <result property="price" column="price"/>
+            <result property="tradeStatus" column="trade_status"/>
+            <result property="condition" column="product_condition"/>
+
+            <result property="userId" column="user_id" />
+            <result property="nickname" column="nickname"/>
+            <result property="address" column="address"/>
+            <result property="rating" column="rating"/>
+        </resultMap>
+
+    <select id="selectByPostIdDetail" resultMap="ProductDetailResultMap">
+        SELECT
+        pr.post_id,
+        p.title,
+        p.view_count,
+        p.comment_count,
+        p.created_at,
+        p.content,
+
+        pr.price,
+        pr.category AS category_name,
+        pr.trade_status,
+        pr.condition AS product_condition,
+
+        u.user_id,
+        u.email,
+        u.nickname,
+        u.address,
+        u.rating
+
+        FROM product pr
+        JOIN post p ON pr.post_id = p.post_id
+        JOIN user u ON p.user_id = u.user_id
+
+        WHERE pr.post_id = #{postId}
+    </select>
+
+    <!-- 업데이트를 위한 값 가져오기 -->
+    <select id="selectByUpdateProductDto" parameterType="int" resultType="com.example.demo.domain.post.dto.UpdateProductDto">
+        SELECT
+        p.post_id,
+        ps.user_id,
+        ps.title,
+        ps.`content`,
+        p.price,
+        p.`condition`,
+        p.category
+        FROM product p
+        JOIN post ps ON p.post_id = ps.post_id
+        WHERE p.post_id = #{postId}
+    </select>
+
+
+    <!-- 목록 DTO 매핑 -->
+    <resultMap id="ProductListDtoMap" type="com.example.demo.domain.post.dto.ProductListDto">
+        <id property="postId" column="post_id"/>
+        <result property="title" column="title"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="location" column="address"/>
+        <result property="price" column="price"/>
+    </resultMap>
+
+    <!-- 페이징 조회 -->
+    <select id="selectByPage" resultMap="ProductListDtoMap">
+        SELECT
+        p.post_id,
+        p.title,
+        p.created_at,
+        u.address,
+        pr.price
+        FROM post p
+        JOIN product pr ON p.post_id = pr.post_id
+        JOIN user u ON p.user_id = u.user_id
+        WHERE p.post_category_id = 1
+        ORDER BY p.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 카테고리별 페이징 조회 -->
+    <select id="selectByPageAndCategory" resultMap="ProductListDtoMap">
+        SELECT
+        p.post_id,
+        p.title,
+        p.created_at,
+        u.address,
+        pr.price
+        FROM post p
+        JOIN product pr ON p.post_id = pr.post_id
+        JOIN user u ON p.user_id = u.user_id
+        WHERE p.post_category_id = 1 
+        AND pr.category = #{category}
+        ORDER BY p.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- UPDATE -->
+    <update id="update" parameterType="com.example.demo.domain.post.model.Product">
+        UPDATE product
+        SET price = #{price},
+        `condition` = #{condition}
+        WHERE post_id = #{postId}
+    </update>
+
+    <!-- DELETE - 상품만 삭제 -->
+    <delete id="delete">
+        DELETE FROM product WHERE post_id = #{postId}
+    </delete>
+
+    <!-- 상품 전체 개수 반환 -->
+    <select id="countAllProducts" resultType="int">
+        SELECT COUNT(*) FROM product
+    </select>
+
+    <!-- 카테고리별 상품 개수 반환 -->
+    <select id="countProductsByCategory" resultType="int">
+        SELECT COUNT(*) FROM product 
+        WHERE category = #{category}
+    </select>
+
+    <!-- product 테이블 업데이트 -->
+    <update id="updateProductDetails">
+        UPDATE product
+        SET price = #{price},
+        `condition` = #{condition},
+        category = #{category}
+        WHERE post_id = #{postId}
+    </update>
+
+    <!-- 조회수가 높은 상품 4개 조회 (메인 페이지용) -->
+    <select id="selectTopViewedProducts" resultMap="ProductListDtoMap">
+        SELECT
+        p.post_id,
+        p.title,
+        p.created_at,
+        u.address,
+        pr.price
+        FROM post p
+        JOIN product pr ON p.post_id = pr.post_id
+        JOIN user u ON p.user_id = u.user_id
+        WHERE p.post_category_id = 1
+        ORDER BY p.view_count DESC
+        LIMIT 4
+    </select>
+
+    <!-- 가격이 저렴한 상품 4개 조회 (메인 페이지용) -->
+    <select id="selectCheapestProducts" resultMap="ProductListDtoMap">
+        SELECT
+        p.post_id,
+        p.title,
+        p.created_at,
+        u.address,
+        pr.price
+        FROM post p
+        JOIN product pr ON p.post_id = pr.post_id
+        JOIN user u ON p.user_id = u.user_id
+        WHERE p.post_category_id = 1
+        ORDER BY pr.price ASC
+        LIMIT 4
+    </select>
+
+    <!-- 검색 기능 - 제목과 내용으로 검색 -->
+    <select id="selectBySearchKeyword" resultMap="ProductListDtoMap">
+        SELECT
+        p.post_id,
+        p.title,
+        p.created_at,
+        u.address,
+        pr.price
+        FROM post p
+        JOIN product pr ON p.post_id = pr.post_id
+        JOIN user u ON p.user_id = u.user_id
+        WHERE p.post_category_id = 1
+        AND (p.title LIKE CONCAT('%', #{keyword}, '%') OR p.content LIKE CONCAT('%', #{keyword}, '%'))
+        ORDER BY p.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 검색 결과 개수 반환 -->
+    <select id="countProductsBySearch" resultType="int">
+        SELECT COUNT(*) 
+        FROM post p
+        JOIN product pr ON p.post_id = pr.post_id
+        WHERE p.post_category_id = 1
+        AND (p.title LIKE CONCAT('%', #{keyword}, '%') OR p.content LIKE CONCAT('%', #{keyword}, '%'))
+    </select>
+
+    <!-- 상품 상태 변경 -->
+    <update id="updateProductStatus">
+        UPDATE product
+        SET trade_status = #{tradeStatus}
+        WHERE post_id = #{postId}
+    </update>
+    
+    <!-- MyProductDto 매핑 -->
+    <resultMap id="MyProductDtoMap" type="com.example.demo.domain.post.dto.MyProductDto">
+        <id property="postId" column="post_id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="price" column="price"/>
+        <result property="category" column="category"/>
+        <result property="tradeStatus" column="trade_status"/>
+        <result property="condition" column="condition"/>
+        <result property="viewCount" column="view_count"/>
+        <result property="commentCount" column="comment_count"/>
+        <result property="chatCount" column="chat_count"/>
+        <result property="likeCount" column="like_count"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="location" column="address"/>
+        <result property="hasMultipleImages" column="has_multiple_images"/>
+    </resultMap>
+    
+    <!-- 내 상품 목록 조회-->
+    <select id="selectMyProducts" resultMap="MyProductDtoMap">
+        SELECT
+            p.post_id,
+            p.title,
+            p.content,
+            p.view_count,
+            p.comment_count,
+            p.created_at,
+            u.address,
+            pr.price,
+            pr.category,
+            pr.trade_status,
+            pr.condition,
+            (SELECT COUNT(*) FROM chat_room_post crp WHERE crp.post_id = p.post_id) as chat_count,
+--             (SELECT COUNT(*) FROM product_like pl WHERE pl.post_id = p.post_id) as like_count,
+            (SELECT 0) as like_count,
+            (SELECT COUNT(*) > 1 FROM image i WHERE i.post_id = p.post_id) as has_multiple_images
+        FROM post p
+        JOIN product pr ON p.post_id = pr.post_id
+        JOIN user u ON p.user_id = u.user_id
+        WHERE p.post_category_id = 1
+        AND p.user_id = #{userId}
+        <if test="category != null">
+            AND pr.category = #{category}
+        </if>
+        <if test="search != null and search != ''">
+            AND (p.title LIKE CONCAT('%', #{search}, '%') OR p.content LIKE CONCAT('%', #{search}, '%'))
+        </if>
+        <if test="tradeStatus != null">
+            AND pr.trade_status = #{tradeStatus}
+        </if>
+        <choose>
+            <when test="orderBy != null">
+                ORDER BY ${orderBy}
+            </when>
+            <otherwise>
+                ORDER BY p.created_at DESC
+            </otherwise>
+        </choose>
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+    
+    <!-- 내 상품 수 조회-->
+    <select id="countMyProducts" resultType="int">
+        SELECT COUNT(*) 
+        FROM post p
+        JOIN product pr ON p.post_id = pr.post_id
+        WHERE p.post_category_id = 1
+        AND p.user_id = #{userId}
+        <if test="category != null">
+            AND pr.category = #{category}
+        </if>
+        <if test="search != null and search != ''">
+            AND (p.title LIKE CONCAT('%', #{search}, '%') OR p.content LIKE CONCAT('%', #{search}, '%'))
+        </if>
+        <if test="tradeStatus != null">
+            AND pr.trade_status = #{tradeStatus}
+        </if>
+    </select>
+
+    <!-- 상품 정보 조회 (거래 상태 포함)-->
+    <select id="selectByPostId" resultType="com.example.demo.domain.post.model.Product">
+        SELECT post_id, category, price, trade_status, `condition`
+        FROM product
+        WHERE post_id = #{postId}
+    </select>
+
+    <!-- 상품 구매상태 업데이트 -->
+    <update id="updateProductStatusWithBuyer">
+        UPDATE product
+        SET buyer_id = #{buyerId}, trade_status = #{tradeStatus}
+        WHERE post_id = #{postId}
+    </update>
+
+    <!-- 구매한 상품 조회 -->
+    <select id="selectPurchasedProducts" resultMap="MyProductDtoMap">
+        SELECT
+        p.post_id,
+        p.title,
+        p.content,
+        p.view_count,
+        p.comment_count,
+        p.created_at,
+        seller.user_id as seller_id,
+        seller.nickname as seller_nickname,
+        seller.address as seller_address,
+        pr.price,
+        pr.category,
+        pr.trade_status,
+        pr.condition,
+        (SELECT COUNT(*) FROM chat_room_post crp WHERE crp.post_id = p.post_id) as chat_count,
+        (SELECT 0) as like_count,
+        (SELECT COUNT(*) > 1 FROM image i WHERE i.post_id = p.post_id) as has_multiple_images
+        FROM product pr
+        JOIN post p ON pr.post_id = p.post_id
+        JOIN user seller ON p.user_id = seller.user_id
+        WHERE pr.buyer_id = #{userId}
+        AND pr.trade_status = 'COMPLETED'
+        <if test="category != null">
+            AND pr.category = #{category}
+        </if>
+        <if test="search != null and search != ''">
+            AND (p.title LIKE CONCAT('%', #{search}, '%') OR p.content LIKE CONCAT('%', #{search}, '%'))
+        </if>
+        <choose>
+            <when test="orderBy != null">
+                ORDER BY ${orderBy}
+            </when>
+            <otherwise>
+                ORDER BY p.created_at DESC
+            </otherwise>
+        </choose>
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 구매한 상품 수 조회 -->
+    <select id="countPurchasedProducts" resultType="int">
+        SELECT COUNT(*)
+        FROM product pr
+        JOIN post p ON pr.post_id = p.post_id
+        WHERE pr.buyer_id = #{userId}
+        AND pr.trade_status = 'COMPLETED'
+        <if test="category != null">
+            AND pr.category = #{category}
+        </if>
+        <if test="search != null and search != ''">
+            AND (p.title LIKE CONCAT('%', #{search}, '%') OR p.content LIKE CONCAT('%', #{search}, '%'))
+        </if>
+    </select>
+
+
+</mapper>

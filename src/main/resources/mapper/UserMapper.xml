@@ -6,37 +6,46 @@
 <mapper namespace="com.example.demo.mapper.UserMapper">
 
     <resultMap type="Users" id="userMap">
-        <id property="userId" column="user_id" />
-        <result property="email" column="email" />
-        <result property="password" column="password" />
-        <result property="nickname" column="nickname" />
-        <result property="address" column="address" />
-        <result property="birthDate" column="birth_date" />
-        <result property="points" column="points" />
-        <result property="rating" column="rating" />
-        <result property="receiveMail" column="receive_mail" />
-        <result property="createdAt" column="created_at" />
-        <result property="updatedAt" column="updated_at" />
-        <collection property="roleList" resultMap="roleMap" />
+        <id property="userId" column="user_id"/>
+        <result property="email" column="email"/>
+        <result property="name" column="name"/>
+        <result property="phone" column="phone"/>
+        <result property="password" column="password"/>
+        <result property="nickname" column="nickname"/>
+        <result property="address" column="address"/>
+        <result property="birthDate" column="birth_date"/>
+        <result property="points" column="points"/>
+        <result property="rating" column="rating"/>
+        <result property="receiveMail" column="receive_mail"/>
+        <result property="emailVerified" column="email_verified"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="status" column="status"/>
+        <result property="deletedAt" column="deleted_at"/>
+        <result property="socialType" column="social_type"/>
+        <result property="socialId" column="social_id"/>
+        <collection property="roleList" resultMap="roleMap"/>
     </resultMap>
 
     <resultMap type="UserRole" id="roleMap">
-        <result property="userId" column="user_id" />
-        <result property="roleName" column="role_name" />
+        <result property="userId" column="user_id"/>
+        <result property="roleName" column="role_name"/>
     </resultMap>
 
     <select id="login" resultMap="userMap">
-        SELECT u.user_id, u.email, u.password, u.nickname, u.address,
-               u.birth_date, u.points, u.rating, u.receive_mail,
-               u.created_at, u.updated_at, r.role_name
-        FROM user u JOIN user_role r ON u.user_id = r.user_id
+        SELECT u.user_id, u.email, u.name, u.phone, u.password, u.nickname, u.address,
+        u.birth_date, u.points, u.rating, u.receive_mail, u.email_verified,
+        u.created_at, u.updated_at, u.status, u.deleted_at, u.social_type, u.social_id, r.role_name
+        FROM user u LEFT JOIN user_role r ON u.user_id = r.user_id
         WHERE u.email = #{email}
     </select>
 
     <!-- 자동 생성된 키(user_id)를 반환받도록 useGeneratedKeys와 keyProperty 추가 -->
     <insert id="join" useGeneratedKeys="true" keyProperty="userId">
-        INSERT INTO user(email, password, nickname, address, birth_date, receive_mail)
-        VALUES(#{email}, #{password}, #{nickname}, #{address}, #{birthDate}, #{receiveMail})
+        INSERT INTO user(email, name, phone, password, nickname, address, birth_date, receive_mail, email_verified,
+        social_type, social_id)
+        VALUES(#{email}, #{name}, #{phone}, #{password}, #{nickname}, #{address}, #{birthDate}, #{receiveMail},
+        #{emailVerified}, #{socialType}, #{socialId})
     </insert>
 
     <insert id="insertAuth">
@@ -45,28 +54,67 @@
     </insert>
 
     <select id="getAllUsers" resultMap="userMap">
-        SELECT u.user_id, u.email, u.nickname, u.address, u.birth_date,
-               u.points, u.rating, u.receive_mail, u.created_at, u.updated_at,
-               r.role_name
-        FROM user u JOIN user_role r ON u.user_id = r.user_id
+        SELECT u.user_id, u.email, u.name, u.phone, u.nickname, u.address, u.birth_date,
+        u.points, u.rating, u.receive_mail, u.email_verified, u.created_at, u.updated_at,
+        u.status, u.deleted_at, u.social_type, u.social_id, r.role_name
+        FROM user u LEFT JOIN user_role r ON u.user_id = r.user_id
     </select>
 
     <select id="getUserById" resultMap="userMap">
-        SELECT u.user_id, u.email, u.nickname, u.address, u.birth_date,
-               u.points, u.rating, u.receive_mail, u.created_at, u.updated_at,
-               r.role_name
-        FROM user u JOIN user_role r ON u.user_id = r.user_id
+        SELECT u.user_id, u.email, u.name, u.phone, u.nickname, u.address, u.birth_date,
+        u.points, u.rating, u.receive_mail, u.email_verified, u.created_at, u.updated_at,
+        u.status, u.deleted_at, u.social_type, u.social_id, r.role_name
+        FROM user u LEFT JOIN user_role r ON u.user_id = r.user_id
         WHERE u.email = #{email}
     </select>
 
-    <update id="updateUser">
+    <select id="findById" resultMap="userMap">
+        SELECT u.user_id, u.email, u.name, u.phone, u.nickname, u.address, u.birth_date,
+        u.points, u.rating, u.receive_mail, u.email_verified, u.created_at, u.updated_at,
+        u.status, u.deleted_at, u.social_type, u.social_id, r.role_name
+        FROM user u LEFT JOIN user_role r ON u.user_id = r.user_id
+        WHERE u.user_id = #{userId}
+    </select>
+
+    <select id="getUserByEmail" resultMap="userMap">
+        SELECT u.user_id, u.email, u.name, u.phone, u.nickname, u.address, u.birth_date,
+        u.points, u.rating, u.receive_mail, u.created_at, u.updated_at, u.status, u.deleted_at,
+        u.social_type, u.social_id, r.role_name
+        FROM user u LEFT JOIN user_role r ON u.user_id = r.user_id
+        WHERE u.email = #{email}
+    </select>
+
+    <select id="findByEmail" resultMap="userMap">
+        SELECT u.user_id, u.email, u.name, u.phone, u.nickname, u.address, u.birth_date,
+        u.points, u.rating, u.receive_mail, u.email_verified, u.created_at, u.updated_at,
+        u.status, u.deleted_at, u.social_type, u.social_id, r.role_name
+        FROM user u LEFT JOIN user_role r ON u.user_id = r.user_id
+        WHERE u.email = #{email}
+    </select>
+
+    <!-- 사용자 정보 수정 -->
+    <update id="updateUser" parameterType="Users">
         UPDATE user
-        SET nickname = #{nickname},
+        SET
+        name = #{name},
+        nickname = #{nickname},
+        phone = #{phone},
         address = #{address},
-        receive_mail = #{receiveMail}
-        <if test="password != null and password != ''">
-            , password = #{password}
+        birth_date = #{birthDate},
+        receive_mail = #{receiveMail},
+        <if test="status != null">
+            status = #{status},
         </if>
+        <if test="deletedAt != null">
+            deleted_at = #{deletedAt},
+        </if>
+        <if test="deletedAt == null">
+            deleted_at = NULL,
+        </if>
+        <if test="password != null and password != ''">
+            password = #{password},
+        </if>
+        updated_at = NOW()
         WHERE user_id = #{userId}
     </update>
 
@@ -74,13 +122,202 @@
         DELETE FROM user WHERE email = #{email}
     </delete>
 
-    <!-- 오늘 생일인 사용자 목록 조회 -->
-    <select id="findUsersByBirthdayToday" resultMap="userMap">
+    <!-- 오늘 생일인 사용자 목록 조회 (페이징) -->
+    <select id="findUsersByBirthdayTodayWithPaging" resultMap="userMap">
         SELECT u.user_id, u.email, u.password, u.nickname, u.address,
         u.birth_date, u.points, u.rating, u.receive_mail,
         u.created_at, u.updated_at, r.role_name
         FROM user u JOIN user_role r ON u.user_id = r.user_id
         WHERE MONTH(u.birth_date) = MONTH(CURRENT_DATE)
         AND DAY(u.birth_date) = DAY(CURRENT_DATE)
+        ORDER BY u.user_id
+        LIMIT #{_pagesize} OFFSET #{_skiprows}
     </select>
+
+    <!-- 이메일이 존재하는지 여부 -->
+    <select id="existsByEmail" resultType="boolean">
+        SELECT EXISTS (
+        SELECT 1 FROM user WHERE email = #{email}
+        )
+    </select>
+
+    <!-- 30일 지난 탈퇴 계정들 조회 -->
+    <select id="findExpiredDeletedAccounts" resultMap="userMap">
+        SELECT u.user_id, u.email, u.name, u.status, u.deleted_at, u.created_at
+        FROM user u
+        WHERE u.status = 'DELETED' 
+        AND u.deleted_at IS NOT NULL
+        AND DATEDIFF(NOW(), u.deleted_at) > 30
+    </select>
+    
+    <!-- === 완전 삭제를 위한 참조 데이터 삭제 쿼리들 === -->
+    
+    <!-- 1. 채팅 메시지 삭제 -->
+    <delete id="deleteChatMessagesByUserId">
+        DELETE FROM chat_message WHERE user_id = #{userId}
+    </delete>
+    
+    <!-- 2. 채팅 참가자 삭제 -->
+    <delete id="deleteChatParticipantsByUserId">
+        DELETE FROM chat_participant WHERE user_id = #{userId}
+    </delete>
+    
+    <!-- 3. 채팅방 삭제 (해당 유저가 생성한) -->
+    <delete id="deleteChatRoomsByUserId">
+        DELETE FROM chat_room WHERE user_id = #{userId}
+    </delete>
+    
+    <!-- 4. 댓글 삭제 -->
+    <delete id="deleteCommentsByUserId">
+        DELETE FROM comments WHERE user_id = #{userId}
+    </delete>
+    
+    <!-- 5. 알림 삭제 -->
+    <delete id="deleteNotificationsByUserId">
+        DELETE FROM notification WHERE user_id = #{userId}
+    </delete>
+    
+    <!-- 6. 읽음 상태 삭제 -->
+    <delete id="deleteReadStatusByUserId">
+        DELETE FROM read_status WHERE user_id = #{userId}
+    </delete>
+    
+    <!-- 7. 사용자 권한 삭제 -->
+    <delete id="deleteUserRolesByUserId">
+        DELETE FROM user_role WHERE user_id = #{userId}
+    </delete>
+    
+    <!-- 8. 최종 사용자 삭제 -->
+    <delete id="permanentlyDeleteUser">
+        DELETE FROM user WHERE user_id = #{userId}
+    </delete>
+  
+    <!-- 쿠폰 사용시 포인트 추가 -->
+    <update id="updatePoint">
+        UPDATE user
+        SET points = points + #{discountAmount}
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- === 관리자 기능을 위한 추가 쿼리들 === -->
+    
+    <!-- 사용자의 권한 목록 조회 -->
+    <select id="getUserRolesByUserId" resultMap="roleMap">
+        SELECT user_id, role_name
+        FROM user_role
+        WHERE user_id = #{userId}
+    </select>
+    
+    <!-- 관리자 권한을 가진 사용자 목록 조회 -->
+    <select id="getAdminUsers" resultMap="userMap">
+        SELECT u.user_id, u.email, u.name, u.phone, u.nickname, u.address, u.birth_date,
+               u.points, u.rating, u.receive_mail, u.email_verified, u.created_at, u.updated_at,
+               u.status, u.deleted_at, u.social_type, u.social_id, r.role_name
+        FROM user u LEFT JOIN user_role r ON u.user_id = r.user_id
+        WHERE r.role_name = 'ROLE_ADMIN'
+    </select>
+    
+    <!-- 특정 권한 삭제 -->
+    <delete id="deleteUserRole">
+        DELETE FROM user_role 
+        WHERE user_id = #{userId} AND role_name = #{roleName}
+    </delete>
+
+    <!-- === 통계 기능을 위한 쿼리들 === -->
+    
+    <!-- 전체 회원 수 -->
+    <select id="getTotalUserCount" resultType="int">
+        SELECT COUNT(*) FROM user
+        WHERE status != 'DELETED' OR status IS NULL
+    </select>
+    
+    <!-- 상태별 회원 수 -->
+    <select id="getUserCountByStatus" resultType="int">
+        <choose>
+            <when test="status == 'ACTIVE'">
+                SELECT COUNT(*) FROM user
+                WHERE (status = 'ACTIVE' OR status IS NULL)
+            </when>
+            <otherwise>
+                SELECT COUNT(*) FROM user
+                WHERE status = #{status}
+            </otherwise>
+        </choose>
+    </select>
+    
+    <!-- 오늘 가입한 회원 수 -->
+    <select id="getTodayRegistrationCount" resultType="int">
+        SELECT COUNT(*) FROM user
+        WHERE DATE(created_at) = CURDATE()
+        AND (status != 'DELETED' OR status IS NULL)
+    </select>
+    
+    <!-- 이번 주 가입한 회원 수 -->
+    <select id="getThisWeekRegistrationCount" resultType="int">
+        SELECT COUNT(*) FROM user
+        WHERE YEARWEEK(created_at, 1) = YEARWEEK(CURDATE(), 1)
+        AND (status != 'DELETED' OR status IS NULL)
+    </select>
+    
+    <!-- 이번 달 가입한 회원 수 -->
+    <select id="getThisMonthRegistrationCount" resultType="int">
+        SELECT COUNT(*) FROM user
+        WHERE YEAR(created_at) = YEAR(CURDATE()) 
+        AND MONTH(created_at) = MONTH(CURDATE())
+        AND (status != 'DELETED' OR status IS NULL)
+    </select>
+    
+    <!-- 소셜 로그인 타입별 회원 수 -->
+    <select id="getUserCountBySocialType" resultType="int">
+        SELECT COUNT(*) FROM user
+        WHERE social_type = #{socialType}
+        AND (status != 'DELETED' OR status IS NULL)
+    </select>
+    
+    <!-- 일반 가입 회원 수 -->
+    <select id="getNormalRegistrationCount" resultType="int">
+        SELECT COUNT(*) FROM user
+        WHERE (social_type IS NULL OR social_type = '')
+        AND (status != 'DELETED' OR status IS NULL)
+    </select>
+    
+    <!-- 연령대별 회원 수 -->
+    <select id="getUserCountByAgeGroup" resultType="map">
+        SELECT 
+            CASE 
+                WHEN birth_date IS NULL THEN '미입력'
+                WHEN YEAR(CURDATE()) - YEAR(birth_date) &lt; 20 THEN '10대'
+                WHEN YEAR(CURDATE()) - YEAR(birth_date) &lt; 30 THEN '20대'
+                WHEN YEAR(CURDATE()) - YEAR(birth_date) &lt; 40 THEN '30대'
+                WHEN YEAR(CURDATE()) - YEAR(birth_date) &lt; 50 THEN '40대'
+                WHEN YEAR(CURDATE()) - YEAR(birth_date) &lt; 60 THEN '50대'
+                ELSE '60대 이상'
+            END as age_group,
+            COUNT(*) as count
+        FROM user
+        WHERE (status != 'DELETED' OR status IS NULL)
+        GROUP BY age_group
+        ORDER BY age_group
+    </select>
+  
+
+
+    <!-- 사용자 평점 업데이트 -->
+    <update id="updateUserRating">
+        UPDATE user
+        SET rating = #{rating}
+        WHERE user_id = #{userId}
+    </update>
+    
+    <!-- 평점 높은 상위 회원 조회 -->
+    <select id="getTopRatedUsers" resultMap="userMap">
+        SELECT u.user_id, u.email, u.name, u.nickname, u.rating, u.points, u.social_type,
+               u.created_at, u.status
+        FROM user u
+        WHERE (u.status = 'ACTIVE' OR u.status IS NULL)
+        AND u.rating > 0.0
+        ORDER BY u.rating DESC, u.points DESC
+        LIMIT #{limit}
+    </select>
+
 </mapper>
